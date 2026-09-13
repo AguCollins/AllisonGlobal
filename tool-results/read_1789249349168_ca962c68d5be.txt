@@ -1,0 +1,762 @@
+     1→"use client";
+     2→
+     3→import * as React from "react";
+     4→import {
+     5→  ArrowRight,
+     6→  PhoneCall,
+     7→  ShieldCheck,
+     8→  CheckCircle2,
+     9→  Network,
+    10→  Lock,
+    11→  Camera,
+    12→  Fingerprint,
+    13→  Flame,
+    14→  ServerCog,
+    15→  Quote,
+    16→  Star,
+    17→  ChevronRight,
+    18→  Cpu,
+    19→  Layers,
+    20→  Handshake,
+    21→  Map as MapIcon,
+    22→  Zap,
+    23→  LifeBuoy,
+    24→  Scale,
+    25→  FileCheck,
+    26→} from "lucide-react";
+    27→import { useSite } from "@/store/site-store";
+    28→import {
+    29→  Section,
+    30→  SectionHeader,
+    31→  Reveal,
+    32→  Stagger,
+    33→  staggerItem,
+    34→  IconBadge,
+    35→  NavButton,
+    36→  NavLink,
+    37→} from "@/components/site/primitives";
+    38→import {
+    39→  ConversionPathCTA,
+    40→  StatStrip,
+    41→  ServiceCard,
+    42→  IndustryCard,
+    43→  ProjectCard,
+    44→  BlogCard,
+    45→  TrustLine,
+    46→} from "@/components/site/sections";
+    47→import { motion } from "framer-motion";
+    48→import {
+    49→  company,
+    50→  capabilityStats,
+    51→  differentiators,
+    52→  technologyPlatforms,
+    53→} from "@/lib/data/company";
+    54→import { serviceCategories, services, featuredServices } from "@/lib/data/services";
+    55→import { industries } from "@/lib/data/industries";
+    56→import { projects } from "@/lib/data/projects";
+    57→import { processSteps } from "@/lib/data/process";
+    58→import { testimonials } from "@/lib/data/testimonials";
+    59→import { blogPosts } from "@/lib/data/blog";
+    60→import { industryMap } from "@/lib/data/industries";
+    61→
+    62→const valueIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    63→  Layers, Cpu, MapIcon, Network, Zap, LifeBuoy, Scale, FileCheck,
+    64→};
+    65→
+    66→export function HomeView() {
+    67→  return (
+    68→    <>
+    69→      <Hero />
+    70→      <TrustStrip />
+    71→      <WhatWeDo />
+    72→      <WhyChooseUs />
+    73→      <ProcessPreview />
+    74→      <IndustriesPreview />
+    75→      <CapabilityStats />
+    76→      <ProjectsPreview />
+    77→      <SolutionsPreview />
+    78→      <TestimonialsPreview />
+    79→      <InsightsPreview />
+    80→      <FounderNote />
+    81→      <ConversionPathCTA />
+    82→    </>
+    83→  );
+    84→}
+    85→
+    86→/* ------------------------------------------------------------------ */
+    87→/*  Hero                                                               */
+    88→/* ------------------------------------------------------------------ */
+    89→function Hero() {
+    90→  const { navigate } = useSite();
+    91→  return (
+    92→    <section className="relative overflow-hidden band-ink">
+    93→      {/* Background layers */}
+    94→      <div className="absolute inset-0 bg-grid-dark opacity-50" />
+    95→      <div className="absolute inset-0 bg-radial-fade opacity-70" />
+    96→      <div className="absolute -right-32 -top-32 size-[28rem] rounded-full bg-emerald-500/20 blur-3xl" />
+    97→      <div className="absolute -left-20 top-1/3 size-72 rounded-full bg-amber-500/10 blur-3xl" />
+    98→
+    99→      <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:pb-28 lg:pt-20">
+   100→        <div className="lg:col-span-7">
+   101→          <motion.div
+   102→            initial={{ opacity: 0, y: 16 }}
+   103→            animate={{ opacity: 1, y: 0 }}
+   104→            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+   105→            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-300 backdrop-blur"
+   106→          >
+   107→            <span className="relative flex size-2">
+   108→              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+   109→              <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
+   110→            </span>
+   111→            Engineering-led ICT & security partner · {company.location.city}, Nigeria
+   112→          </motion.div>
+   113→
+   114→          <motion.h1
+   115→            initial={{ opacity: 0, y: 20 }}
+   116→            animate={{ opacity: 1, y: 0 }}
+   117→            transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+   118→            className="mt-6 text-balance text-4xl font-bold leading-[1.05] text-white sm:text-5xl lg:text-6xl xl:text-[4.2rem]"
+   119→          >
+   120→            Engineering Trust.{" "}
+   121→            <span className="text-gradient-brand">Securing Futures.</span>
+   122→          </motion.h1>
+   123→
+   124→          <motion.p
+   125→            initial={{ opacity: 0, y: 20 }}
+   126→            animate={{ opacity: 1, y: 0 }}
+   127→            transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+   128→            className="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-white/70"
+   129→          >
+   130→            We are <strong className="font-semibold text-white">Allison Global</strong> — a technology
+   131→            and security solutions partner integrating networking, cybersecurity,
+   132→            CCTV, access control, fire safety and IT infrastructure under one
+   133→            accountable team. From assessment to long-term support, we own the outcome.
+   134→          </motion.p>
+   135→
+   136→          <motion.div
+   137→            initial={{ opacity: 0, y: 20 }}
+   138→            animate={{ opacity: 1, y: 0 }}
+   139→            transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+   140→            className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+   141→          >
+   142→            <Button_primary onClick={() => navigate("quote")}>
+   143→              Request a Quote
+   144→              <ArrowRight className="size-4" />
+   145→            </Button_primary>
+   146→            <Button_secondary onClick={() => navigate("contact")}>
+   147→              <PhoneCall className="size-4" />
+   148→              Talk to an Expert
+   149→            </Button_secondary>
+   150→          </motion.div>
+   151→
+   152→          <motion.div
+   153→            initial={{ opacity: 0 }}
+   154→            animate={{ opacity: 1 }}
+   155→            transition={{ duration: 0.7, delay: 0.3 }}
+   156→            className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3"
+   157→          >
+   158→            {[
+   159→              "6 service domains",
+   160→              "24+ specialist services",
+   161→              "13 industries served",
+   162→              "< 4h priority response",
+   163→            ].map((t) => (
+   164→              <span
+   165→                key={t}
+   166→                className="inline-flex items-center gap-1.5 text-sm text-white/60"
+   167→              >
+   168→                <CheckCircle2 className="size-4 text-emerald-400" />
+   169→                {t}
+   170→              </span>
+   171→            ))}
+   172→          </motion.div>
+   173→        </div>
+   174→
+   175→        {/* Visual panel */}
+   176→        <div className="lg:col-span-5">
+   177→          <HeroVisual />
+   178→        </div>
+   179→      </div>
+   180→    </section>
+   181→  );
+   182→}
+   183→
+   184→/* Local button styles to keep hero on-brand */
+   185→function Button_primary({
+   186→  children,
+   187→  onClick,
+   188→}: {
+   189→  children: React.ReactNode;
+   190→  onClick?: () => void;
+   191→}) {
+   192→  return (
+   193→    <button
+   194→      onClick={onClick}
+   195→      className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-gold px-7 text-sm font-semibold text-gold-foreground shadow-lg shadow-amber-900/20 transition-all hover:bg-gold/90 hover:shadow-xl"
+   196→    >
+   197→      {children}
+   198→    </button>
+   199→  );
+   200→}
+   201→function Button_secondary({
+   202→  children,
+   203→  onClick,
+   204→}: {
+   205→  children: React.ReactNode;
+   206→  onClick?: () => void;
+   207→}) {
+   208→  return (
+   209→    <button
+   210→      onClick={onClick}
+   211→      className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/15 bg-white/5 px-7 text-sm font-semibold text-white backdrop-blur transition-all hover:bg-white/10"
+   212→    >
+   213→      {children}
+   214→    </button>
+   215→  );
+   216→}
+   217→
+   218→function HeroVisual() {
+   219→  const domains = [
+   220→    { icon: Network, label: "Networking", color: "text-emerald-300" },
+   221→    { icon: Lock, label: "Cybersecurity", color: "text-emerald-300" },
+   222→    { icon: Camera, label: "Surveillance", color: "text-amber-300" },
+   223→    { icon: Fingerprint, label: "Access Control", color: "text-emerald-300" },
+   224→    { icon: Flame, label: "Fire Safety", color: "text-amber-300" },
+   225→    { icon: ServerCog, label: "IT Infrastructure", color: "text-emerald-300" },
+   226→  ];
+   227→  return (
+   228→    <motion.div
+   229→      initial={{ opacity: 0, scale: 0.96 }}
+   230→      animate={{ opacity: 1, scale: 1 }}
+   231→      transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+   232→      className="relative"
+   233→    >
+   234→      <div className="glass rounded-3xl p-6 shadow-2xl">
+   235→        <div className="mb-4 flex items-center justify-between">
+   236→          <div className="flex items-center gap-2">
+   237→            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
+   238→              <ShieldCheck className="size-4.5" />
+   239→            </div>
+   240→            <span className="text-sm font-semibold text-white">
+   241→              Integrated Security Stack
+   242→            </span>
+   243→          </div>
+   244→          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-emerald-300">
+   245→            ONE TEAM
+   246→          </span>
+   247→        </div>
+   248→        <div className="grid grid-cols-2 gap-2.5">
+   249→          {domains.map((d, i) => (
+   250→            <motion.div
+   251→              key={d.label}
+   252→              initial={{ opacity: 0, y: 10 }}
+   253→              animate={{ opacity: 1, y: 0 }}
+   254→              transition={{ delay: 0.4 + i * 0.08 }}
+   255→              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5"
+   256→            >
+   257→              <d.icon className={`size-4.5 ${d.color}`} />
+   258→              <span className="text-sm font-medium text-white/85">{d.label}</span>
+   259→            </motion.div>
+   260→          ))}
+   261→        </div>
+   262→        <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3">
+   263→          <div className="flex items-center justify-between text-xs">
+   264→            <span className="font-semibold text-emerald-300">System Status</span>
+   265→            <span className="text-white/50">Assessment → Design → Install → Support</span>
+   266→          </div>
+   267→          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+   268→            <motion.div
+   269→              initial={{ width: 0 }}
+   270→              animate={{ width: "100%" }}
+   271→              transition={{ duration: 1.4, delay: 0.6, ease: "easeInOut" }}
+   272→              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
+   273→            />
+   274→          </div>
+   275→        </div>
+   276→      </div>
+   277→
+   278→      {/* Floating badge */}
+   279→      <motion.div
+   280→        initial={{ opacity: 0, x: 20 }}
+   281→        animate={{ opacity: 1, x: 0 }}
+   282→        transition={{ delay: 0.8 }}
+   283→        className="absolute -bottom-5 -right-3 hidden rounded-2xl border border-white/10 bg-background p-4 shadow-xl sm:block"
+   284→      >
+   285→        <div className="flex items-center gap-3">
+   286→          <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
+   287→            <Handshake className="size-5" />
+   288→          </div>
+   289→          <div>
+   290→            <div className="font-display text-sm font-bold">Single Accountability</div>
+   291→            <div className="text-xs text-muted-foreground">One partner. Full stack.</div>
+   292→          </div>
+   293→        </div>
+   294→      </motion.div>
+   295→    </motion.div>
+   296→  );
+   297→}
+   298→
+   299→/* ------------------------------------------------------------------ */
+   300→/*  Trust strip                                                        */
+   301→/* ------------------------------------------------------------------ */
+   302→function TrustStrip() {
+   303→  return (
+   304→    <div className="border-b border-border bg-muted/30">
+   305→      <div className="mx-auto w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+   306→        <TrustLine />
+   307→      </div>
+   308→    </div>
+   309→  );
+   310→}
+   311→
+   312→/* ------------------------------------------------------------------ */
+   313→/*  What we do — service categories                                    */
+   314→/* ------------------------------------------------------------------ */
+   315→function WhatWeDo() {
+   316→  const { navigate } = useSite();
+   317→  return (
+   318→    <Section>
+   319→      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+   320→        <SectionHeader
+   321→          eyebrow="What we do"
+   322→          title="Six domains. One accountable partner."
+   323→          subtitle="Most security and IT problems span networking, cybersecurity, surveillance, access control, fire safety and IT. We engineer them together — so your systems work as one."
+   324→        />
+   325→        <NavButton view="services" variant="outline" size="lg">
+   326→          View all services
+   327→          <ArrowRight className="size-4" />
+   328→        </NavButton>
+   329→      </div>
+   330→
+   331→      <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+   332→        {serviceCategories.map((cat) => (
+   333→          <motion.div key={cat.id} variants={staggerItem}>
+   334→            <NavLink
+   335→              view="services"
+   336→              params={{ anchor: `cat-${cat.id}` }}
+   337→              className="group block h-full"
+   338→            >
+   339→              <div className="relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
+   340→                <div
+   341→                  className={`absolute inset-0 bg-gradient-to-br ${cat.accent} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+   342→                />
+   343→                <div className="relative">
+   344→                  <div className="flex items-center justify-between">
+   345→                    <IconBadge icon={cat.icon} variant="brand" />
+   346→                    <span className="text-xs font-medium text-muted-foreground">
+   347→                      {cat.services.length} services
+   348→                    </span>
+   349→                  </div>
+   350→                  <h3 className="mt-5 font-display text-xl font-bold">{cat.name}</h3>
+   351→                  <p className="mt-1.5 text-sm font-medium text-brand">{cat.tagline}</p>
+   352→                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+   353→                    {cat.description}
+   354→                  </p>
+   355→                  <div className="mt-5 flex flex-wrap gap-1.5">
+   356→                    {cat.services.slice(0, 3).map((slug) => {
+   357→                      const svc = services.find((s) => s.slug === slug);
+   358→                      return svc ? (
+   359→                        <span
+   360→                          key={slug}
+   361→                          className="rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground"
+   362→                        >
+   363→                          {svc.name}
+   364→                        </span>
+   365→                      ) : null;
+   366→                    })}
+   367→                    {cat.services.length > 3 && (
+   368→                      <span className="rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
+   369→                        +{cat.services.length - 3}
+   370→                      </span>
+   371→                    )}
+   372→                  </div>
+   373→                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-transform group-hover:translate-x-1">
+   374→                    Explore category
+   375→                    <ArrowRight className="size-4" />
+   376→                  </span>
+   377→                </div>
+   378→              </div>
+   379→            </NavLink>
+   380→          </motion.div>
+   381→        ))}
+   382→      </Stagger>
+   383→    </Section>
+   384→  );
+   385→}
+   386→
+   387→/* ------------------------------------------------------------------ */
+   388→/*  Why choose us                                                      */
+   389→/* ------------------------------------------------------------------ */
+   390→function WhyChooseUs() {
+   391→  return (
+   392→    <Section className="bg-muted/30">
+   393→      <SectionHeader
+   394→        align="center"
+   395→        eyebrow="Why Allison Global"
+   396→        title="More than a vendor — your technology & security partner"
+   397→        subtitle="Organisations choose us because we engineer outcomes, not transactions. Here's what that looks like in practice."
+   398→      />
+   399→      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+   400→        {differentiators.map((d, i) => {
+   401→          const Icon = valueIconMap[d.icon] ?? ShieldCheck;
+   402→          return (
+   403→            <Reveal key={d.title} delay={i * 0.05}>
+   404→              <div className="h-full rounded-2xl border border-border/70 bg-card p-6">
+   405→                <IconBadge icon={Icon} variant="brand" />
+   406→                <h3 className="mt-4 font-display text-base font-semibold">{d.title}</h3>
+   407→                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+   408→                  {d.description}
+   409→                </p>
+   410→              </div>
+   411→            </Reveal>
+   412→          );
+   413→        })}
+   414→      </div>
+   415→    </Section>
+   416→  );
+   417→}
+   418→
+   419→/* ------------------------------------------------------------------ */
+   420→/*  Process preview                                                    */
+   421→/* ------------------------------------------------------------------ */
+   422→function ProcessPreview() {
+   423→  const { navigate } = useSite();
+   424→  return (
+   425→    <Section>
+   426→      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+   427→        <SectionHeader
+   428→          eyebrow="How we work"
+   429→          title="A process built for outcomes, not transactions"
+   430→          subtitle="Every engagement follows the same engineering-led path — from understanding your site to supporting it for years after."
+   431→        />
+   432→        <NavButton view="process" variant="outline" size="lg">
+   433→          See full process
+   434→          <ArrowRight className="size-4" />
+   435→        </NavButton>
+   436→      </div>
+   437→      <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+   438→        {processSteps.map((step, i) => (
+   439→          <Reveal key={step.id} delay={i * 0.05}>
+   440→            <div className="group relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card p-6">
+   441→              <div className="absolute right-4 top-4 font-display text-5xl font-bold text-muted/60 transition-colors group-hover:text-brand/15">
+   442→                {String(step.step).padStart(2, "0")}
+   443→              </div>
+   444→              <IconBadge icon={step.icon} variant="brand" />
+   445→              <h3 className="mt-4 font-display text-lg font-semibold">{step.title}</h3>
+   446→              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+   447→                {step.summary}
+   448→              </p>
+   449→            </div>
+   450→          </Reveal>
+   451→        ))}
+   452→      </div>
+   453→    </Section>
+   454→  );
+   455→}
+   456→
+   457→/* ------------------------------------------------------------------ */
+   458→/*  Industries preview                                                 */
+   459→/* ------------------------------------------------------------------ */
+   460→function IndustriesPreview() {
+   461→  return (
+   462→    <Section className="bg-muted/30">
+   463→      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+   464→        <SectionHeader
+   465→          eyebrow="Who we serve"
+   466→          title="Solutions engineered for your sector"
+   467→          subtitle="Different environments face different risks. We tailor our approach to the realities of your industry — from homes to heavy industry."
+   468→        />
+   469→        <NavButton view="industries" variant="outline" size="lg">
+   470→          All industries
+   471→          <ArrowRight className="size-4" />
+   472→        </NavButton>
+   473→      </div>
+   474→      <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+   475→        {industries.slice(0, 8).map((ind) => (
+   476→          <motion.div key={ind.id} variants={staggerItem}>
+   477→            <IndustryCard industry={ind} />
+   478→          </motion.div>
+   479→        ))}
+   480→      </Stagger>
+   481→    </Section>
+   482→  );
+   483→}
+   484→
+   485→/* ------------------------------------------------------------------ */
+   486→/*  Capability stats                                                   */
+   487→/* ------------------------------------------------------------------ */
+   488→function CapabilityStats() {
+   489→  return (
+   490→    <Section className="band-ink relative overflow-hidden">
+   491→      <div className="absolute inset-0 bg-grid-dark opacity-40" />
+   492→      <div className="absolute left-1/2 top-0 size-96 -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl" />
+   493→      <div className="relative">
+   494→        <SectionHeader
+   495→          align="center"
+   496→          light
+   497→          eyebrow="Capability"
+   498→          title="Built to protect what matters, at scale"
+   499→          subtitle="The breadth to handle your full infrastructure — and the engineering discipline to do it right."
+   500→        />
+   501→        <div className="mt-12">
+   502→          <StatStrip stats={capabilityStats} light />
+   503→        </div>
+   504→        <div className="mx-auto mt-14 max-w-5xl">
+   505→          <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+   506→            Technologies & platforms we deploy
+   507→          </p>
+   508→          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+   509→            {technologyPlatforms.map((t) => (
+   510→              <span
+   511→                key={t.name}
+   512→                className="rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-white/70"
+   513→              >
+   514→                {t.name}
+   515→              </span>
+   516→            ))}
+   517→          </div>
+   518→          <p className="mt-4 text-center text-xs text-white/30">
+   519→            Competency with these platforms — not claimed certified partnerships.
+   520→          </p>
+   521→        </div>
+   522→      </div>
+   523→    </Section>
+   524→  );
+   525→}
+   526→
+   527→/* ------------------------------------------------------------------ */
+   528→/*  Projects preview                                                   */
+   529→/* ------------------------------------------------------------------ */
+   530→function ProjectsPreview() {
+   531→  const featured = projects.filter((p) => p.featured).slice(0, 3);
+   532→  return (
+   533→    <Section>
+   534→      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+   535→        <SectionHeader
+   536→          eyebrow="Projects"
+   537→          title="Representative engagements"
+   538→          subtitle="A selection of the work we deliver across industries — each engineered, documented and supported as a complete system."
+   539→        />
+   540→        <NavButton view="projects" variant="outline" size="lg">
+   541→          View all projects
+   542→          <ArrowRight className="size-4" />
+   543→        </NavButton>
+   544→      </div>
+   545→      <Stagger className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+   546→        {featured.map((p) => (
+   547→          <motion.div key={p.id} variants={staggerItem}>
+   548→            <ProjectCard project={p} />
+   549→          </motion.div>
+   550→        ))}
+   551→      </Stagger>
+   552→    </Section>
+   553→  );
+   554→}
+   555→
+   556→/* ------------------------------------------------------------------ */
+   557→/*  Solutions preview                                                  */
+   558→/* ------------------------------------------------------------------ */
+   559→function SolutionsPreview() {
+   560→  const { navigate } = useSite();
+   561→  const items = [
+   562→    {
+   563→      icon: ShieldCheck,
+   564→      title: "Unified Security & Surveillance",
+   565→      desc: "CCTV, access control, alarms and monitoring on one platform.",
+   566→      slug: "unified-security",
+   567→    },
+   568→    {
+   569→      icon: Network,
+   570→      title: "Resilient Network Infrastructure",
+   571→      desc: "Cabling, switching, routing and Wi-Fi engineered to last.",
+   572→      slug: "resilient-network",
+   573→    },
+   574→    {
+   575→      icon: Lock,
+   576→      title: "Cyber Defence Programme",
+   577→      desc: "Assessment, firewalls, endpoint protection and monitoring.",
+   578→      slug: "cyber-defence",
+   579→    },
+   580→    {
+   581→      icon: Flame,
+   582→      title: "Life Safety & Fire Protection",
+   583→      desc: "Detection, alarms and evacuation engineered to standards.",
+   584→      slug: "life-safety",
+   585→    },
+   586→  ];
+   587→  return (
+   588→    <Section className="bg-muted/30">
+   589→      <SectionHeader
+   590→        align="center"
+   591→        eyebrow="Solutions by outcome"
+   592→        title="Start with the problem, not the product"
+   593→        subtitle="These cross-cutting solutions bundle services across our domains — so you solve a real problem instead of buying disconnected products."
+   594→      />
+   595→      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+   596→        {items.map((s, i) => (
+   597→          <Reveal key={s.slug} delay={i * 0.05}>
+   598→            <button
+   599→              onClick={() => navigate("solutions", { anchor: `sol-${s.slug}` })}
+   600→              className="group block h-full w-full rounded-2xl border border-border/70 bg-card p-6 text-left transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
+   601→            >
+   602→              <IconBadge icon={s.icon} variant="brand" />
+   603→              <h3 className="mt-4 font-display text-lg font-semibold">{s.title}</h3>
+   604→              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+   605→              <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-transform group-hover:translate-x-1">
+   606→                Explore solution
+   607→                <ChevronRight className="size-4" />
+   608→              </span>
+   609→            </button>
+   610→          </Reveal>
+   611→        ))}
+   612→      </div>
+   613→    </Section>
+   614→  );
+   615→}
+   616→
+   617→/* ------------------------------------------------------------------ */
+   618→/*  Testimonials preview                                               */
+   619→/* ------------------------------------------------------------------ */
+   620→function TestimonialsPreview() {
+   621→  const picks = testimonials.slice(0, 3);
+   622→  return (
+   623→    <Section>
+   624→      <SectionHeader
+   625→        align="center"
+   626→        eyebrow="Client feedback"
+   627→        title="What working with us feels like"
+   628→        subtitle="Representative feedback from the clients and sectors we serve — by role, not manufactured endorsements."
+   629→      />
+   630→      <div className="mt-12 grid gap-5 md:grid-cols-3">
+   631→        {picks.map((t, i) => (
+   632→          <Reveal key={t.id} delay={i * 0.06}>
+   633→            <figure className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-6">
+   634→              <div className="flex gap-0.5">
+   635→                {Array.from({ length: t.rating }).map((_, j) => (
+   636→                  <Star key={j} className="size-4 fill-amber-400 text-amber-400" />
+   637→                ))}
+   638→              </div>
+   639→              <Quote className="mt-3 size-7 text-brand/30" />
+   640→              <blockquote className="mt-2 flex-1 text-sm leading-relaxed text-foreground/90">
+   641→                “{t.quote}”
+   642→              </blockquote>
+   643→              <figcaption className="mt-5 border-t border-border pt-4">
+   644→                <div className="text-sm font-semibold">{t.authorRole}</div>
+   645→                <div className="text-xs text-muted-foreground">
+   646→                  {industryMap[t.sector]?.name} · {t.projectType}
+   647→                </div>
+   648→              </figcaption>
+   649→            </figure>
+   650→          </Reveal>
+   651→        ))}
+   652→      </div>
+   653→      <div className="mt-10 text-center">
+   654→        <NavButton view="testimonials" variant="outline">
+   655→          Read more feedback
+   656→        </NavButton>
+   657→      </div>
+   658→    </Section>
+   659→  );
+   660→}
+   661→
+   662→/* ------------------------------------------------------------------ */
+   663→/*  Insights preview                                                   */
+   664→/* ------------------------------------------------------------------ */
+   665→function InsightsPreview() {
+   666→  const posts = blogPosts.slice(0, 3);
+   667→  return (
+   668→    <Section className="bg-muted/30">
+   669→      <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+   670→        <SectionHeader
+   671→          eyebrow="Insights"
+   672→          title="Practical guidance from our engineers"
+   673→          subtitle="Learn how to choose, secure and maintain the systems that protect your business — in plain language."
+   674→        />
+   675→        <NavButton view="blog" variant="outline" size="lg">
+   676→          All insights
+   677→          <ArrowRight className="size-4" />
+   678→        </NavButton>
+   679→      </div>
+   680→      <Stagger className="mt-12 grid gap-6 md:grid-cols-3">
+   681→        {posts.map((p) => (
+   682→          <motion.div key={p.slug} variants={staggerItem}>
+   683→            <BlogCard post={p} />
+   684→          </motion.div>
+   685→        ))}
+   686→      </Stagger>
+   687→    </Section>
+   688→  );
+   689→}
+   690→
+   691→/* ------------------------------------------------------------------ */
+   692→/*  Founder note                                                       */
+   693→/* ------------------------------------------------------------------ */
+   694→function FounderNote() {
+   695→  const { navigate } = useSite();
+   696→  return (
+   697→    <Section>
+   698→      <div className="grid items-center gap-10 lg:grid-cols-12">
+   699→        <Reveal className="lg:col-span-5">
+   700→          <div className="relative">
+   701→            <div className="absolute -inset-3 -z-10 rounded-3xl bg-gradient-to-br from-emerald-500/10 to-amber-500/10 blur-2xl" />
+   702→            <div className="overflow-hidden rounded-3xl border border-border bg-card">
+   703→              <div className="aspect-[4/5] bg-gradient-to-br from-emerald-600 to-emerald-900 p-8">
+   704→                <div className="flex h-full flex-col justify-between">
+   705→                  <div className="flex items-center gap-3">
+   706→                    <div className="flex size-12 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur">
+   707→                      <Cpu className="size-6" />
+   708→                    </div>
+   709→                    <div>
+   710→                      <div className="font-display text-lg font-bold text-white">
+   711→                        {company.founder.name}
+   712→                      </div>
+   713→                      <div className="text-xs text-white/70">{company.founder.title}</div>
+   714→                    </div>
+   715→                  </div>
+   716→                  <div className="text-white/80">
+   717→                    <div className="text-xs uppercase tracking-wide text-white/50">
+   718→                      Discipline
+   719→                    </div>
+   720→                    <div className="mt-1 text-sm font-semibold">
+   721→                      {company.founder.discipline}
+   722→                    </div>
+   723→                  </div>
+   724→                  <div className="flex items-center gap-2 rounded-xl bg-white/10 p-3 text-white/90 backdrop-blur">
+   725→                    <PhoneCall className="size-4 text-amber-300" />
+   726→                    <span className="text-sm font-medium">{company.contact.phoneDisplay}</span>
+   727→                  </div>
+   728→                </div>
+   729→              </div>
+   730→            </div>
+   731→          </div>
+   732→        </Reveal>
+   733→        <div className="lg:col-span-7">
+   734→          <SectionHeader
+   735→            eyebrow="From the founder"
+   736→            title="“Systems should be engineered, not assembled.”"
+   737→          />
+   738→          <div className="mt-6 space-y-4 text-base leading-relaxed text-muted-foreground">
+   739→            <p>
+   740→              {company.founder.bio}
+   741→            </p>
+   742→            <p>
+   743→              That field-first mindset is why Allison Global delivers documented,
+   744→              integrated, supported systems — and why we stay accountable long
+   745→              after the installers leave.
+   746→            </p>
+   747→          </div>
+   748→          <div className="mt-8 flex flex-wrap gap-3">
+   749→            <NavButton view="about" size="lg">
+   750→              Read our story
+   751→              <ArrowRight className="size-4" />
+   752→            </NavButton>
+   753→            <NavButton view="contact" variant="outline" size="lg">
+   754→              Speak with the team
+   755→            </NavButton>
+   756→          </div>
+   757→        </div>
+   758→      </div>
+   759→    </Section>
+   760→  );
+   761→}
+   762→

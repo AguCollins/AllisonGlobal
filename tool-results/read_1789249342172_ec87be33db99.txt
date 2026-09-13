@@ -1,0 +1,1092 @@
+     1→import {
+     2→  Network,
+     3→  Wifi,
+     4→  Cable,
+     5→  Router,
+     6→  ShieldCheck,
+     7→  Lock,
+     8→  ScanEye,
+     9→  ShieldAlert,
+    10→  Camera,
+    11→  Video,
+    12→  MonitorPlay,
+    13→  HardDrive,
+    14→  Fingerprint,
+    15→  DoorOpen,
+    16→  PhoneCall,
+    17→  KeyRound,
+    18→  Flame,
+    19→  Bell,
+    20→  Siren,
+    21→  ServerCog,
+    22→  MonitorCog,
+    23→  Cog,
+    24→  Building2,
+    25→  LifeBuoy,
+    26→  ClipboardCheck,
+    27→  type LucideIcon,
+    28→} from "lucide-react";
+    29→import type { ServiceCategory, Service } from "@/lib/types";
+    30→
+    31→export const serviceCategories: ServiceCategory[] = [
+    32→  {
+    33→    id: "network",
+    34→    slug: "network-connectivity",
+    35→    name: "Network & Connectivity",
+    36→    tagline: "The backbone everything else runs on",
+    37→    description:
+    38→      "Structured cabling, switching, routing and wireless engineered for performance, reliability and future growth — the foundation beneath every CCTV, access and IT system we deploy.",
+    39→    icon: Network,
+    40→    accent: "from-emerald-500/20 to-teal-500/10",
+    41→    services: [
+    42→      "structured-cabling",
+    43→      "lan-wan",
+    44→      "wifi-installation",
+    45→      "network-installation",
+    46→      "network-maintenance",
+    47→    ],
+    48→  },
+    49→  {
+    50→    id: "cybersecurity",
+    51→    slug: "cybersecurity",
+    52→    name: "Cybersecurity",
+    53→    tagline: "Protect your data, network and endpoints",
+    54→    description:
+    55→      "Defend your business against intrusion, malware, ransomware and data loss with layered security — firewalls, endpoint protection, monitoring and proactive assessment.",
+    56→    icon: ShieldCheck,
+    57→    accent: "from-teal-500/20 to-emerald-500/10",
+    58→    services: [
+    59→      "network-security",
+    60→      "firewall-endpoint-protection",
+    61→      "intrusion-detection",
+    62→      "security-assessment",
+    63→    ],
+    64→  },
+    65→  {
+    66→    id: "surveillance",
+    67→    slug: "surveillance-monitoring",
+    68→    name: "Surveillance & Monitoring",
+    69→    tagline: "See everything that matters",
+    70→    description:
+    71→      "CCTV and IP video systems designed for coverage, clarity and reliable playback — from single-site cameras to multi-location deployments with remote monitoring.",
+    72→    icon: Camera,
+    73→    accent: "from-amber-500/20 to-emerald-500/10",
+    74→    services: [
+    75→      "cctv-installation",
+    76→      "ip-camera-systems",
+    77→      "video-monitoring",
+    78→      "nvr-dvr-solutions",
+    79→    ],
+    80→  },
+    81→  {
+    82→    id: "access",
+    83→    slug: "access-control",
+    84→    name: "Access Control & Automation",
+    85→    tagline: "Control who enters, when and where",
+    86→    description:
+    87→      "Card, biometric and intercom systems that secure doors, gates and sensitive areas — with audit trails and integration into your wider security setup.",
+    88→    icon: Fingerprint,
+    89→    accent: "from-emerald-500/20 to-amber-500/10",
+    90→    services: [
+    91→      "access-control-systems",
+    92→      "biometric-systems",
+    93→      "door-access-systems",
+    94→      "intercom-systems",
+    95→    ],
+    96→  },
+    97→  {
+    98→    id: "alarm-fire",
+    99→    slug: "alarm-fire-safety",
+   100→    name: "Alarm & Fire Safety",
+   101→    tagline: "Early warning that saves lives and assets",
+   102→    description:
+   103→      "Intrusion alarms, fire detection and life-safety systems engineered to standards — so threats are detected early and escalated to the right people fast.",
+   104→    icon: Flame,
+   105→    accent: "from-orange-500/20 to-amber-500/10",
+   106→    services: [
+   107→      "burglar-alarm-systems",
+   108→      "fire-alarm-systems",
+   109→      "fire-detection-safety",
+   110→      "perimeter-intrusion",
+   111→    ],
+   112→  },
+   113→  {
+   114→    id: "infrastructure",
+   115→    slug: "it-infrastructure",
+   116→    name: "IT Infrastructure & Support",
+   117→    tagline: "Resilient systems, always-on support",
+   118→    description:
+   119→      "Servers, data-centre fit-out, computer support and managed services that keep your operations running — designed, deployed and maintained by one team.",
+   120→    icon: ServerCog,
+   121→    accent: "from-teal-500/20 to-slate-500/10",
+   122→    services: [
+   123→      "server-data-centre",
+   124→      "computer-it-support",
+   125→      "systems-installation-maintenance",
+   126→      "smart-building-solutions",
+   127→      "managed-services",
+   128→    ],
+   129→  },
+   130→];
+   131→
+   132→export const services: Service[] = [
+   133→  // ───────────────────────── NETWORK & CONNECTIVITY ─────────────────────────
+   134→  {
+   135→    slug: "structured-cabling",
+   136→    name: "Structured Cabling",
+   137→    categoryId: "network",
+   138→    icon: Cable,
+   139→    tagline: "A cabling foundation engineered to carry your business for decades",
+   140→    shortDescription:
+   141→      "Standards-compliant copper, fibre and rack cabling with proper labelling, testing and certification.",
+   142→    overview:
+   143→      "Structured cabling is the unseen backbone of every reliable network, surveillance and access system. We design and install Cat6/Cat6A copper and fibre-optic cabling to TIA/EIA standards, with patch panels, labelled terminations, certification testing and as-built documentation — so your infrastructure is fast, tidy and future-proof.",
+   144→    problem: [
+   145→      "Slow, intermittent connections caused by poorly terminated or tangled cabling.",
+   146→      "No documentation, so every change becomes a guessing game.",
+   147→      "Cabling that fails under high bandwidth or distance demands.",
+   148→      "Messy racks that make troubleshooting and expansion painful.",
+   149→    ],
+   150→    solution:
+   151→      "We engineer a structured cabling system around your building, bandwidth and growth plans — properly planned routes, quality cable, certified terminations and a documented rack you can actually manage.",
+   152→    deliverables: [
+   153→      { title: "Site survey & cable design", description: "Cable routes, outlet counts, rack locations and material take-off tailored to your building." },
+   154→      { title: "Copper & fibre installation", description: "Cat6/Cat6A and OS2/OM4 fibre pulled, terminated and dressed to standard." },
+   155→      { title: "Patch panels & racks", description: "Wall and floor racks, patch panels, cable managers and tidy, labelled patching." },
+   156→      { title: "Certification testing", description: "Fluke-class testers validate every link — you get pass results, not promises." },
+   157→      { title: "As-built documentation", description: "Outlet schedules, rack diagrams and cable labels that make future changes easy." },
+   158→    ],
+   159→    benefits: [
+   160→      "Reliable gigabit and multi-gig performance to every outlet",
+   161→      "Clean, documented infrastructure that scales with you",
+   162→      "Fewer outages and faster fault-finding",
+   163→      "Future-proofed headroom for CCTV, Wi-Fi and IT growth",
+   164→    ],
+   165→    tech: ["Cat6/Cat6A", "Single-mode & multimode fibre", "LSZH cabling", "Cable certification testers", "Racks & cable management"],
+   166→    relatedServices: ["lan-wan", "network-installation", "wifi-installation", "cctv-installation", "access-control-systems"],
+   167→    relatedIndustries: ["corporate", "education", "healthcare", "industrial", "warehouse"],
+   168→    featured: true,
+   169→  },
+   170→  {
+   171→    slug: "lan-wan",
+   172→    name: "LAN / WAN Solutions",
+   173→    categoryId: "network",
+   174→    icon: Router,
+   175→    tagline: "Switching, routing and segmentation done right",
+   176→    shortDescription:
+   177→      "Layer 2/3 switching, VLANs, routing and inter-site connectivity designed for performance and segmentation.",
+   178→    overview:
+   179→      "A flat network is a slow, insecure network. We design and deploy LAN and WAN infrastructure with managed switching, VLAN segmentation, routing and inter-site links — so voice, data, surveillance and guest traffic are separated, prioritised and resilient.",
+   180→    problem: [
+   181→      "Congested, flat networks where CCTV traffic competes with business data.",
+   182→      "Intermittent dropouts from consumer-grade switches and routers.",
+   183→      "No segmentation between guest, staff and device networks.",
+   184→      "Multi-site connectivity that's slow, insecure or both.",
+   185→    ],
+   186→    solution:
+   187→      "We architect your LAN/WAN with enterprise switching, VLAN design, routing and secure inter-site links — tuned for performance, segmentation and resilience.",
+   188→    deliverables: [
+   189→      { title: "Network architecture", description: "Topology, VLAN plan, IP scheme and segmentation strategy." },
+   190→      { title: "Managed switching", description: "Layer 2/3 switches configured with VLANs, QoS and link aggregation." },
+   191→      { title: "Routing & WAN", description: "Router configuration, inter-site VPN and WAN aggregation where needed." },
+   192→      { title: "Segmentation", description: "Separate networks for data, voice, surveillance, guests and IoT." },
+   193→      { title: "Documentation & handover", description: "Configuration backup, IP plan and operational runbook." },
+   194→    ],
+   195→    benefits: [
+   196→      "Clean separation of traffic for security and performance",
+   197→      "Reliable connectivity that scales with users and devices",
+   198→      "Better application performance with proper QoS",
+   199→      "Secure multi-site connectivity",
+   200→    ],
+   201→    tech: ["Managed L2/L3 switches", "VLANs & 802.1Q", "Site-to-site VPN", "QoS", "Link aggregation"],
+   202→    relatedServices: ["network-installation", "structured-cabling", "network-security", "firewall-endpoint-protection", "wifi-installation"],
+   203→    relatedIndustries: ["corporate", "education", "healthcare", "finance", "industrial"],
+   204→  },
+   205→  {
+   206→    slug: "wifi-installation",
+   207→    name: "Wi-Fi Installation & Optimization",
+   208→    categoryId: "network",
+   209→    icon: Wifi,
+   210→    tagline: "Coverage you can actually rely on, in every corner",
+   211→    shortDescription:
+   212→      "Heat-mapped wireless deployments and optimisation for offices, hotels, campuses and large homes.",
+   213→    overview:
+   214→      "Dead zones and dropped Wi-Fi cost productivity and frustrate users. We design wireless networks using proper site surveys and heat maps, deploy enterprise access points with seamless roaming, and tune them for capacity, coverage and speed — whether it's a 4-room office or a multi-building campus.",
+   215→    problem: [
+   216→      "Dead spots and weak signal in key areas.",
+   217→      "Wi-Fi that slows to a crawl when many users connect.",
+   218→      "Guest Wi-Fi sharing the same network as staff.",
+   219→      "Roaming that drops calls and sessions between access points.",
+   220→    ],
+   221→    solution:
+   222→      "We survey your environment, design access-point placement for true coverage, and configure enterprise Wi-Fi with seamless roaming, band steering and guest isolation.",
+   223→    deliverables: [
+   224→      { title: "Wireless site survey", description: "Heat-mapped coverage planning based on your walls, floors and layout." },
+   225→      { title: "Access point deployment", description: "Enterprise APs placed and mounted for optimal coverage and capacity." },
+   226→      { title: "SSID & security design", description: "Separate networks for staff, guests and devices with WPA2/3 security." },
+   227→      { title: "Roaming & optimisation", description: "Seamless 802.11r/k/v roaming, band steering and channel tuning." },
+   228→      { title: "Performance validation", description: "Post-installation testing confirming coverage and throughput." },
+   229→    ],
+   230→    benefits: [
+   231→      "Reliable coverage everywhere it matters",
+   232→      "Higher capacity for many simultaneous users",
+   233→      "Secure guest access isolated from business data",
+   234→      "Seamless roaming without dropped connections",
+   235→    ],
+   236→    tech: ["Wi-Fi 6 / 6E access points", "Controller & cloud-managed Wi-Fi", "Mesh & roaming protocols", "WPA3", "Heat-map survey tools"],
+   237→    relatedServices: ["network-installation", "lan-wan", "network-security", "structured-cabling", "smart-building-solutions"],
+   238→    relatedIndustries: ["hospitality", "education", "corporate", "residential", "retail"],
+   239→    featured: true,
+   240→  },
+   241→  {
+   242→    slug: "network-installation",
+   243→    name: "Network Installation & Infrastructure",
+   244→    categoryId: "network",
+   245→    icon: Network,
+   246→    tagline: "End-to-end network build, from rack to endpoint",
+   247→    shortDescription:
+   248→      "Turnkey network installation — design, supply, configuration, commissioning and handover.",
+   249→    overview:
+   250→      "A great network design means nothing without clean execution. We handle the full installation — supply of enterprise equipment, rack build, configuration, commissioning and handover — so your network goes live stable, documented and supported.",
+   251→    problem: [
+   252→      "Equipment bought but never properly configured.",
+   253→      "Installations with no testing, no documentation and no support.",
+   254→      "Vendors who disappear after deployment.",
+   255→      "Networks that work on day one and degrade from day two.",
+   256→    ],
+   257→    solution:
+   258→      "We install your network end-to-end — supply, configure, test, commission and document — then back it with support.",
+   259→    deliverables: [
+   260→      { title: "Equipment supply", description: "Genuine enterprise equipment sourced and supplied with warranty." },
+   261→      { title: "Rack build & cabling", description: "Clean rack assembly with proper cable management." },
+   262→      { title: "Configuration", description: "Switches, routers, APs and security configured to design." },
+   263→      { title: "Commissioning & testing", description: "End-to-end validation before we hand over." },
+   264→      { title: "Handover & documentation", description: "As-built docs, credentials and operational runbook." },
+   265→    ],
+   266→    benefits: [
+   267→      "One accountable partner for the whole build",
+   268→      "Stable, tested network from day one",
+   269→      "Documented and supportable long-term",
+   270→      "Genuine, warrantied equipment",
+   271→    ],
+   272→    tech: ["Enterprise switches & routers", "Racks & UPS", "Network configuration management", "Documentation tooling"],
+   273→    relatedServices: ["structured-cabling", "lan-wan", "wifi-installation", "network-security", "network-maintenance"],
+   274→    relatedIndustries: ["corporate", "education", "healthcare", "industrial", "warehouse"],
+   275→  },
+   276→  {
+   277→    slug: "network-maintenance",
+   278→    name: "Network Maintenance & Support",
+   279→    categoryId: "network",
+   280→    icon: LifeBuoy,
+   281→    tagline: "Keep the backbone healthy, not just installed",
+   282→    shortDescription:
+   283→      "Preventive maintenance, monitoring and rapid-response support for your network infrastructure.",
+   284→    overview:
+   285→      "Networks degrade silently — firmware drift, failing links, capacity creep. Our maintenance and support keeps your network healthy with scheduled health checks, monitoring, firmware management and priority response when something breaks.",
+   286→    problem: [
+   287→      "Slow deterioration nobody notices until something fails.",
+   288→      "Outdated firmware with known vulnerabilities.",
+   289→      "No monitoring, so outages are discovered by users first.",
+   290→      "Slow vendor response when the network goes down.",
+   291→    ],
+   292→    solution:
+   293→      "We keep your network under maintenance — proactive monitoring, scheduled servicing, firmware updates and priority response.",
+   294→    deliverables: [
+   295→      { title: "Health checks", description: "Scheduled audits of switching, routing and wireless performance." },
+   296→      { title: "Monitoring", description: "Proactive monitoring that flags issues before users do." },
+   297→      { title: "Firmware management", description: "Planned updates and security patching." },
+   298→      { title: "Priority response", description: "Defined SLA response times for support clients." },
+   299→      { title: "Change management", description: "Configuration backups and controlled change." },
+   300→    ],
+   301→    benefits: [
+   302→      "Fewer surprise outages",
+   303→      "Security patches applied on schedule",
+   304→      "Faster resolution when issues occur",
+   305→      "Predictable support costs",
+   306→    ],
+   307→    tech: ["Network monitoring (SNMP)", "Configuration backup", "Firmware management", "Remote support"],
+   308→    relatedServices: ["network-installation", "managed-services", "network-security", "computer-it-support"],
+   309→    relatedIndustries: ["corporate", "education", "healthcare", "finance", "industrial"],
+   310→  },
+   311→
+   312→  // ───────────────────────── CYBERSECURITY ─────────────────────────
+   313→  {
+   314→    slug: "network-security",
+   315→    name: "Network Security",
+   316→    categoryId: "cybersecurity",
+   317→    icon: ShieldCheck,
+   318→    tagline: "Defend the perimeter and everything inside it",
+   319→    shortDescription:
+   320→      "Layered network security — firewalls, segmentation, secure access and policy — engineered to your risk profile.",
+   321→    overview:
+   322→      "Network security is no longer a single firewall at the edge. We design layered defences — perimeter firewalls, internal segmentation, secure remote access, policy and monitoring — so threats are blocked, contained and visible.",
+   323→    problem: [
+   324→      "A single firewall protecting a flat, exposed network.",
+   325→      "No visibility into what's entering or leaving the network.",
+   326→      "Insecure remote access opening doors to attackers.",
+   327→      "Guest and IoT devices sharing privileged network space.",
+   328→    ],
+   329→    solution:
+   330→      "We engineer layered network security around your actual risk — perimeter defence, segmentation, secure access and monitoring.",
+   331→    deliverables: [
+   332→      { title: "Security architecture", description: "Defence-in-depth design tailored to your risk and compliance needs." },
+   333→      { title: "Firewall & segmentation", description: "Next-gen firewalling and network segmentation policies." },
+   334→      { title: "Secure remote access", description: "VPN and zero-trust access for staff and partners." },
+   335→      { title: "Policy & controls", description: "Access policies, URL filtering and application control." },
+   336→      { title: "Monitoring & alerts", description: "Logging and alerting on suspicious activity." },
+   337→    ],
+   338→    benefits: [
+   339→      "Reduced attack surface and lateral movement",
+   340→      "Visibility into network threats",
+   341→      "Secure remote and partner access",
+   342→      "Stronger posture for compliance",
+   343→    ],
+   344→    tech: ["Next-gen firewalls", "Network segmentation", "VPN / zero-trust access", "URL & app filtering", "SIEM logging"],
+   345→    relatedServices: ["firewall-endpoint-protection", "intrusion-detection", "security-assessment", "lan-wan", "managed-services"],
+   346→    relatedIndustries: ["finance", "corporate", "government", "healthcare", "education"],
+   347→    featured: true,
+   348→  },
+   349→  {
+   350→    slug: "firewall-endpoint-protection",
+   351→    name: "Firewall & Endpoint Protection",
+   352→    categoryId: "cybersecurity",
+   353→    icon: Lock,
+   354→    tagline: "Guard the gate and every device behind it",
+   355→    shortDescription:
+   356→      "Next-gen firewalls and endpoint protection (EDR/AV) to block malware, ransomware and breaches.",
+   357→    overview:
+   358→      "The firewall guards the gate; endpoint protection guards every laptop, server and workstation behind it. We deploy and manage both — next-gen firewalls with threat prevention, plus modern endpoint detection and response — so malware, ransomware and intrusions are blocked at the edge and on the device.",
+   359→    problem: [
+   360→      "Consumer antivirus that misses modern threats.",
+   361→      "A firewall with no threat prevention or filtering.",
+   362→      "Ransomware reaching endpoints unchecked.",
+   363→      "Unmanaged devices spreading infection across the network.",
+   364→    ],
+   365→    solution:
+   366→      "We deploy next-gen firewalls with threat prevention and modern endpoint protection across your devices — centrally managed and monitored.",
+   367→    deliverables: [
+   368→      { title: "Next-gen firewalling", description: "Firewall with IDS/IPS, anti-malware, web filtering and application control." },
+   369→      { title: "Endpoint protection", description: "EDR/antivirus deployed across workstations and servers." },
+   370→      { title: "Central management", description: "Single console for policy, alerts and remediation." },
+   371→      { title: "Ransomware defence", description: "Behavioural detection and rollback where supported." },
+   372→      { title: "Ongoing management", description: "Policy tuning, alerts and reporting under support plans." },
+   373→    ],
+   374→    benefits: [
+   375→      "Blocked malware, ransomware and phishing threats",
+   376→      "Visibility and control across all endpoints",
+   377→      "Faster detection and response",
+   378→      "Reduced downtime and data-loss risk",
+   379→    ],
+   380→    tech: ["Fortinet / SonicWall", "Bitdefender EDR", "Central management consoles", "Threat intelligence"],
+   381→    relatedServices: ["network-security", "intrusion-detection", "security-assessment", "server-data-centre", "managed-services"],
+   382→    relatedIndustries: ["finance", "corporate", "healthcare", "government", "smb"],
+   383→  },
+   384→  {
+   385→    slug: "intrusion-detection",
+   386→    name: "Intrusion Detection & Prevention",
+   387→    categoryId: "cybersecurity",
+   388→    icon: ScanEye,
+   389→    tagline: "Spot the threats that get past the front door",
+   390→    shortDescription:
+   391→      "IDS/IPS and monitoring that detects and blocks intrusion attempts on your network.",
+   392→    overview:
+   393→      "Even strong firewalls can be bypassed. Intrusion detection and prevention systems watch network traffic for attack patterns and suspicious behaviour — alerting and blocking before threats spread. We deploy and tune IDS/IPS so you're not just defended, you're aware.",
+   394→    problem: [
+   395→      "Breaches that go unnoticed for weeks or months.",
+   396→      "Firewalls that block known bad traffic but miss novel attacks.",
+   397→      "No alerting when attackers probe the network.",
+   398→      "Compliance requirements for continuous monitoring.",
+   399→    ],
+   400→    solution:
+   401→      "We deploy IDS/IPS with tuned signatures and behaviour monitoring, integrated with your firewall and logging — so threats are detected, blocked and reported.",
+   402→    deliverables: [
+   403→      { title: "IDS/IPS deployment", description: "Network-based intrusion detection and prevention, tuned to your environment." },
+   404→      { title: "Signature & behaviour rules", description: "Curated rulesets with false-positive tuning." },
+   405→      { title: "Alerting & escalation", description: "Alerts routed to the right people with clear severity." },
+   406→      { title: "Logging integration", description: "Centralised logging for investigation and compliance." },
+   407→      { title: "Regular tuning", description: "Ongoing rule updates under support plans." },
+   408→    ],
+   409→    benefits: [
+   410→      "Earlier detection of attacks and probing",
+   411→      "Automated blocking of known threats",
+   412→      "Investigation-ready logs",
+   413→      "Stronger compliance posture",
+   414→    ],
+   415→    tech: ["IDS/IPS engines", "Next-gen firewall threat prevention", "SIEM / log aggregation", "Threat intelligence feeds"],
+   416→    relatedServices: ["network-security", "firewall-endpoint-protection", "security-assessment", "managed-services"],
+   417→    relatedIndustries: ["finance", "government", "healthcare", "corporate"],
+   418→  },
+   419→  {
+   420→    slug: "security-assessment",
+   421→    name: "Security Assessment & Consultation",
+   422→    categoryId: "cybersecurity",
+   423→    icon: ShieldAlert,
+   424→    tagline: "Know your risks before attackers do",
+   425→    shortDescription:
+   426→      "Practical security assessments, audits and roadmap planning — translated into clear, prioritised action.",
+   427→    overview:
+   428→      "You can't defend what you don't understand. Our security assessments evaluate your network, systems, surveillance and physical security against real threats — then give you a prioritised, jargon-free roadmap of what to fix first and why.",
+   429→    problem: [
+   430→      "Uncertainty about where the real risks are.",
+   431→      "Budget spent on tools without a clear strategy.",
+   432→      "Compliance demands you're not sure you meet.",
+   433→      "No independent view of your security posture.",
+   434→    ],
+   435→    solution:
+   436→      "We assess your environment, document risks against likelihood and impact, and produce a prioritised, practical remediation roadmap.",
+   437→    deliverables: [
+   438→      { title: "Risk assessment", description: "Identification and rating of threats across network, systems and physical security." },
+   439→      { title: "Vulnerability review", description: "Scanning and review of exposed services and weak configurations." },
+   440→      { title: "Gap analysis", description: "Where you stand versus best practice and any regulatory needs." },
+   441→      { title: "Remediation roadmap", description: "Prioritised, cost-aware plan of what to fix first." },
+   442→      { title: "Executive briefing", description: "Clear, plain-language summary for decision-makers." },
+   443→    ],
+   444→    benefits: [
+   445→      "Clarity on real risks and priorities",
+   446→      "Defensible, documented security posture",
+   447→      "Confident, budget-aware decision-making",
+   448→      "Foundation for a proper security programme",
+   449→    ],
+   450→    tech: ["Vulnerability scanners", "Configuration review", "Risk frameworks", "Reporting"],
+   451→    relatedServices: ["network-security", "firewall-endpoint-protection", "intrusion-detection", "managed-services"],
+   452→    relatedIndustries: ["finance", "corporate", "government", "healthcare", "smb"],
+   453→  },
+   454→
+   455→  // ───────────────────────── SURVEILLANCE & MONITORING ─────────────────────────
+   456→  {
+   457→    slug: "cctv-installation",
+   458→    name: "CCTV Installation",
+   459→    categoryId: "surveillance",
+   460→    icon: Camera,
+   461→    tagline: "Coverage engineered so nothing is missed",
+   462→    shortDescription:
+   463→      "Professional CCTV design and installation with the right cameras in the right places — and reliable playback.",
+   464→    overview:
+   465→      "Most CCTV problems aren't the cameras — they're the design. Wrong camera for the scene, no coverage of the real risk areas, footage you can't actually use. We design surveillance around what you need to see, deploy quality cameras with proper lensing and lighting, and ensure storage and playback work when it matters.",
+   466→    problem: [
+   467→      "Cameras that capture nothing useful when an incident happens.",
+   468→      "Blind spots at entrances, loading bays and key assets.",
+   469→      "Footage too grainy to be useful.",
+   470→      "Systems with no remote viewing or unreliable playback.",
+   471→    ],
+   472→    solution:
+   473→      "We design CCTV around your risk areas, deploy cameras with the right resolution, lensing and night capability, and configure reliable storage and remote access.",
+   474→    deliverables: [
+   475→      { title: "Coverage design", description: "Camera placement plan mapped to your risk areas and sightlines." },
+   476→      { title: "Camera deployment", description: "Right cameras for each scene — resolution, lens, IR and WDR tuned." },
+   477→      { title: "Storage & retention", description: "NVR/storage sized for your retention needs with reliable recording." },
+   478→      { title: "Remote viewing", description: "Secure mobile and web access to live and recorded footage." },
+   479→      { title: "Commissioning & handover", description: "Angle tuning, focus checks and user training." },
+   480→    ],
+   481→    benefits: [
+   482→      "Useable footage of the areas that matter",
+   483→      "Deterrent and evidence when incidents occur",
+   484→      "Reliable remote monitoring",
+   485→      "Foundation for integration with access and alarms",
+   486→    ],
+   487→    tech: ["Hikvision / Dahua cameras", "4K & varifocal cameras", "IR & low-light", "NVR storage", "Mobile/web viewing"],
+   488→    relatedServices: ["ip-camera-systems", "video-monitoring", "nvr-dvr-solutions", "structured-cabling", "access-control-systems", "perimeter-intrusion"],
+   489→    relatedIndustries: ["retail", "warehouse", "corporate", "residential", "industrial", "construction"],
+   490→    featured: true,
+   491→  },
+   492→  {
+   493→    slug: "ip-camera-systems",
+   494→    name: "IP Camera Systems",
+   495→    categoryId: "surveillance",
+   496→    icon: Video,
+   497→    tagline: "Modern IP video with the clarity and intelligence you need",
+   498→    shortDescription:
+   499→      "Network-based IP camera systems with high resolution, smart analytics and scalable storage.",
+   500→    overview:
+   501→      "IP cameras are the modern standard — higher resolution, smarter analytics, and easier scalability. We design IP video systems that deliver clear footage, intelligent detection (motion, line-crossing, intrusion), and storage that scales with your camera count.",
+   502→    problem: [
+   503→      "Older analogue systems with poor image quality.",
+   504→      "Need for smart features like motion alerts and analytics.",
+   505→      "Scaling beyond what the existing system can handle.",
+   506→      "Desire for remote, multi-site viewing on one platform.",
+   507→    ],
+   508→    solution:
+   509→      "We deploy IP camera systems with high-resolution cameras, smart analytics and scalable NVR/storage — viewable locally and remotely.",
+   510→    deliverables: [
+   511→      { title: "IP camera selection", description: "Resolution, lensing and analytics matched to each scene." },
+   512→      { title: "Smart analytics", description: "Motion, line-crossing, intrusion and people/vehicle detection." },
+   513→      { title: "Scalable storage", description: "NVR with RAID and retention sized to camera count." },
+   514→      { title: "Multi-site viewing", description: "Centralised platform for one or many locations." },
+   515→      { title: "Network integration", description: "Proper VLAN isolation for clean video traffic." },
+   516→    ],
+   517→    benefits: [
+   518→      "Sharper, more usable footage",
+   519→      "Smarter alerts instead of constant recording review",
+   520→      "Easier scaling as needs grow",
+   521→      "Unified viewing across sites",
+   522→    ],
+   523→    tech: ["IP cameras (4K/2K)", "Edge analytics", "PoE switching", "NVR with RAID", "VMS platforms"],
+   524→    relatedServices: ["cctv-installation", "video-monitoring", "nvr-dvr-solutions", "network-security", "lan-wan"],
+   525→    relatedIndustries: ["retail", "warehouse", "corporate", "industrial", "education"],
+   526→  },
+   527→  {
+   528→    slug: "video-monitoring",
+   529→    name: "Video Monitoring & Remote Viewing",
+   530→    categoryId: "surveillance",
+   531→    icon: MonitorPlay,
+   532→    tagline: "Eyes on your premises, even when you're away",
+   533→    shortDescription:
+   534→      "Remote monitoring, live viewing and event-based alerting across single or multiple sites.",
+   535→    overview:
+   536→      "Installing cameras is only half the value — the other half is watching and responding. We set up remote monitoring so you (or our team) can view live footage, receive event-based alerts, and review recordings from anywhere, across one or many sites.",
+   537→    problem: [
+   538→      "Cameras installed but nobody watching them.",
+   539→      "No alerts when something actually happens.",
+   540→      "Can't view footage when off-site.",
+   541→      "Multiple sites with no unified view.",
+   542→    ],
+   543→    solution:
+   544→      "We configure remote monitoring with live viewing, event-based alerts and a unified multi-site platform — accessible securely from anywhere.",
+   545→    deliverables: [
+   546→      { title: "Remote viewing setup", description: "Secure mobile and web access to live and recorded footage." },
+   547→      { title: "Event alerts", description: "Push/email alerts for motion, line-crossing and intrusion events." },
+   548→      { title: "Multi-site platform", description: "Unified dashboard across all your locations." },
+   549→      { title: "Monitoring integration", description: "Optional integration with access control and alarms." },
+   550→      { title: "User management", description: "Role-based access for staff and security teams." },
+   551→    ],
+   552→    benefits: [
+   553→      "Real-time awareness across sites",
+   554→      "Faster response to incidents",
+   555→      "Reduced need for constant manual monitoring",
+   556→      "Centralised oversight of security",
+   557→    ],
+   558→    tech: ["VMS / mobile apps", "Push & email alerting", "Cloud / on-prem platforms", "Role-based access"],
+   559→    relatedServices: ["cctv-installation", "ip-camera-systems", "nvr-dvr-solutions", "access-control-systems", "burglar-alarm-systems"],
+   560→    relatedIndustries: ["retail", "warehouse", "hospitality", "corporate", "construction"],
+   561→  },
+   562→  {
+   563→    slug: "nvr-dvr-solutions",
+   564→    name: "NVR / DVR & Storage Solutions",
+   565→    categoryId: "surveillance",
+   566→    icon: HardDrive,
+   567→    tagline: "Reliable recording that keeps your footage when it counts",
+   568→    shortDescription:
+   569→      "Network and digital video recorders with RAID storage, retention planning and redundancy.",
+   570→    overview:
+   571→      "Footage is only valuable if it's still there when you need it. We deploy NVR and DVR solutions with properly sized storage, RAID redundancy, retention planning and reliable recording schedules — so your footage survives hardware failures and is available when incidents are discovered days later.",
+   572→    problem: [
+   573→      "Footage lost or overwritten before an incident is noticed.",
+   574→      "Single-drive recorders with no redundancy.",
+   575→      "Storage too small for the camera count and retention needed.",
+   576→      "Unreliable recording that misses the moment.",
+   577→    ],
+   578→    solution:
+   579→      "We size and deploy NVR/DVR storage with redundancy and retention planning matched to your cameras and needs.",
+   580→    deliverables: [
+   581→      { title: "Storage sizing", description: "Capacity calculated from camera count, resolution, retention and activity." },
+   582→      { title: "RAID & redundancy", description: "Disk redundancy so a failed drive doesn't lose footage." },
+   583→      { title: "Retention planning", description: "Recording schedules and retention aligned to requirements." },
+   584→      { title: "Backup options", description: "Off-site or cloud backup for critical footage." },
+   585→      { title: "Health monitoring", description: "Disk health monitoring and alerts under support plans." },
+   586→    ],
+   587→    benefits: [
+   588→      "Footage available when you need it — days later, not hours",
+   589→      "Protection against drive failure",
+   590→      "Right-sized storage, no overpaying or under-provisioning",
+   591→      "Confident retention for compliance",
+   592→    ],
+   593→    tech: ["NVR / DVR", "RAID storage", "Surveillance-grade disks", "Cloud backup", "Retention scheduling"],
+   594→    relatedServices: ["cctv-installation", "ip-camera-systems", "video-monitoring", "network-installation"],
+   595→    relatedIndustries: ["retail", "warehouse", "finance", "corporate", "hospitality"],
+   596→  },
+   597→
+   598→  // ───────────────────────── ACCESS CONTROL & AUTOMATION ─────────────────────────
+   599→  {
+   600→    slug: "access-control-systems",
+   601→    name: "Access Control Systems",
+   602→    categoryId: "access",
+   603→    icon: KeyRound,
+   604→    tagline: "Decide who goes where, and when",
+   605→    shortDescription:
+   606→      "Card, fob and app-based access control with audit trails, schedules and integration.",
+   607→    overview:
+   608→      "Keys get copied, lost and untracked. Access control systems let you decide exactly who can enter which door, when — with full audit trails, time schedules and instant revocation. We design and deploy access control that scales from a single door to a full building or campus.",
+   609→    problem: [
+   610→      "Lost or copied keys compromising security.",
+   611→      "No record of who entered and when.",
+   612→      "Difficulty revoking access for former staff or tenants.",
+   613→      "Different access needs for different roles and times.",
+   614→    ],
+   615→    solution:
+   616→      "We deploy card/fob/app access control with role-based permissions, schedules and full audit trails — scalable across doors, buildings and sites.",
+   617→    deliverables: [
+   618→      { title: "Access design", description: "Door-by-door permissions, roles and schedules." },
+   619→      { title: "Reader & controller deployment", description: "Readers, controllers and locking hardware installed." },
+   620→      { title: "Credential management", description: "Card/fob/app enrolment and easy revocation." },
+   621→      { title: "Audit trails", description: "Full entry/exit logging and reporting." },
+   622→      { title: "Integration", description: "Link with CCTV, alarms and time attendance where needed." },
+   623→    ],
+   624→    benefits: [
+   625→      "Control and visibility over who enters your premises",
+   626→      "Instant revocation — no rekeying",
+   627→      "Audit trail for investigations and compliance",
+   628→      "Flexible, role-based access",
+   629→    ],
+   630→    tech: ["Card/fob/mobile readers", "Access controllers", "Management software", "Electric locks & strikes"],
+   631→    relatedServices: ["biometric-systems", "door-access-systems", "intercom-systems", "cctv-installation", "burglar-alarm-systems"],
+   632→    relatedIndustries: ["corporate", "finance", "government", "healthcare", "education", "warehouse"],
+   633→    featured: true,
+   634→  },
+   635→  {
+   636→    slug: "biometric-systems",
+   637→    name: "Biometric Systems",
+   638→    categoryId: "access",
+   639→    icon: Fingerprint,
+   640→    tagline: "Identity you can't lose or share",
+   641→    shortDescription:
+   642→      "Fingerprint and facial recognition for access control and time attendance.",
+   643→    overview:
+   644→      "Cards and fobs can be shared or lost — biometrics can't. We deploy fingerprint and facial-recognition systems for access control and time & attendance, giving you certainty about who is actually at the door, and accurate attendance records for payroll.",
+   645→    problem: [
+   646→      "Shared or borrowed cards undermining access control.",
+   647→      "Buddy-punching inflating attendance records.",
+   648→      "Need for higher-assurance identity at sensitive doors.",
+   649→      "Manual attendance processes prone to error.",
+   650→    ],
+   651→    solution:
+   652→      "We deploy biometric readers for access control and time attendance — accurate, fast and hard to circumvent.",
+   653→    deliverables: [
+   654→      { title: "Biometric reader deployment", description: "Fingerprint and/or facial recognition at chosen doors." },
+   655→      { title: "Enrolment & management", description: "User enrolment and ongoing management." },
+   656→      { title: "Time & attendance", description: "Attendance records exportable for payroll." },
+   657→      { title: "Access integration", description: "Biometric integrated with your access control platform." },
+   658→      { title: "Reporting", description: "Attendance and access reports on demand." },
+   659→    ],
+   660→    benefits: [
+   661→      "Higher-assurance identity verification",
+   662→      "Eliminates card sharing and buddy-punching",
+   663→      "Accurate attendance for payroll",
+   664→      "Strong audit trail",
+   665→    ],
+   666→    tech: ["Fingerprint readers", "Facial recognition", "Time & attendance software", "ZKTeco platforms"],
+   667→    relatedServices: ["access-control-systems", "door-access-systems", "intercom-systems", "smart-building-solutions"],
+   668→    relatedIndustries: ["corporate", "finance", "government", "education", "industrial"],
+   669→  },
+   670→  {
+   671→    slug: "door-access-systems",
+   672→    name: "Door Access Systems",
+   673→    categoryId: "access",
+   674→    icon: DoorOpen,
+   675→    tagline: "Secure, reliable door hardware that just works",
+   676→    shortDescription:
+   677→      "Electric locks, strikes, magnetic locks and turnstiles — installed and integrated for reliable operation.",
+   678→    overview:
+   679→      "An access system is only as reliable as the door hardware behind it. We supply and install electric strikes, magnetic locks, automatic doors and turnstiles — integrated with your access control for smooth, secure entry that won't fail when it matters.",
+   680→    problem: [
+   681→      "Cheap locking hardware that fails or jams.",
+   682→      "Doors that don't reliably lock after entry.",
+   683→      "Hardware not integrated with access control.",
+   684→      "Bottlenecks at busy entrances.",
+   685→    ],
+   686→    solution:
+   687→      "We install quality electric locking hardware — strikes, maglocks, automatic doors and turnstiles — integrated with your access platform.",
+   688→    deliverables: [
+   689→      { title: "Hardware selection", description: "Right locking hardware for each door type and traffic." },
+   690→      { title: "Installation", description: "Professional mounting, wiring and safety compliance." },
+   691→      { title: "Access integration", description: "Hardware wired to controllers and fire-alarm safety release." },
+   692→      { title: "Safety compliance", description: "Fail-safe operation and emergency egress compliance." },
+   693→      { title: "Testing & handover", description: "Reliability testing under normal and emergency conditions." },
+   694→    ],
+   695→    benefits: [
+   696→      "Reliable, secure door operation",
+   697→      "Safe, compliant emergency egress",
+   698→      "Smooth flow at busy entrances",
+   699→      "Hardware built to last",
+   700→    ],
+   701→    tech: ["Electric strikes", "Magnetic locks", "Automatic doors", "Turnstiles", "Exit buttons & sensors"],
+   702→    relatedServices: ["access-control-systems", "biometric-systems", "intercom-systems", "fire-alarm-systems"],
+   703→    relatedIndustries: ["corporate", "government", "healthcare", "education", "industrial"],
+   704→  },
+   705→  {
+   706→    slug: "intercom-systems",
+   707→    name: "Intercom Systems",
+   708→    categoryId: "access",
+   709→    icon: PhoneCall,
+   710→    tagline: "See, speak and grant access from anywhere",
+   711→    shortDescription:
+   712→      "Audio/video intercoms for gates, receptions and multi-tenant buildings with remote unlock.",
+   713→    overview:
+   714→      "Intercoms are the bridge between security and convenience — see who's at the gate, speak to them, and let them in. We deploy audio and video intercom systems for gates, receptions and multi-tenant buildings, with remote unlock and integration into access control.",
+   715→    problem: [
+   716→      "No way to verify visitors before granting access.",
+   717→      "Staff leaving desks to open gates and doors.",
+   718→      "Multi-tenant buildings with messy access management.",
+   719→      "Need to answer the gate from anywhere.",
+   720→    ],
+   721→    solution:
+   722→      "We deploy video and audio intercoms with remote unlock, multi-tenant support and access-control integration.",
+   723→    deliverables: [
+   724→      { title: "Intercom deployment", description: "Audio/video intercoms at gates, doors and receptions." },
+   725→      { title: "Remote unlock", description: "Grant access from a desk handset, mobile app or video phone." },
+   726→      { title: "Multi-tenant support", description: "Directory and per-unit calling for apartments and offices." },
+   727→      { title: "Access integration", description: "Intercom integrated with access control and CCTV." },
+   728→      { title: "Mobile answering", description: "Answer and unlock from anywhere via app." },
+   729→    ],
+   730→    benefits: [
+   731→      "Verify visitors before granting access",
+   732→      "Convenience without compromising security",
+   733→      "Smooth multi-tenant access",
+   734→      "Answer the gate from anywhere",
+   735→    ],
+   736→    tech: ["IP video intercoms", "Mobile intercom apps", "Multi-tenant directories", "Remote unlock"],
+   737→    relatedServices: ["access-control-systems", "door-access-systems", "cctv-installation", "smart-building-solutions"],
+   738→    relatedIndustries: ["residential", "corporate", "hospitality", "education", "government"],
+   739→  },
+   740→
+   741→  // ───────────────────────── ALARM & FIRE SAFETY ─────────────────────────
+   742→  {
+   743→    slug: "burglar-alarm-systems",
+   744→    name: "Burglar Alarm Systems",
+   745→    categoryId: "alarm-fire",
+   746→    icon: Siren,
+   747→    tagline: "Detect intruders early, before loss occurs",
+   748→    shortDescription:
+   749→      "Intrusion alarm systems with sensors, sirens and remote alerts for homes and businesses.",
+   750→    overview:
+   751→      "A burglar alarm detects intrusion early and creates a loud, immediate response — often before loss occurs. We design alarm systems with door/window contacts, motion detectors, glass-break sensors and sirens, configured to alert you (or a monitoring contact) the moment an intrusion is detected.",
+   752→    problem: [
+   753→      "Theft discovered only after the fact.",
+   754→      "No alert when an intruder forces entry at night.",
+   755→      "Alarms that go off with no one to respond.",
+   756→      "Sensors that false-trigger constantly until ignored.",
+   757→    ],
+   758→    solution:
+   759→      "We design alarm systems with the right sensors for your risk, tuned to minimise false alarms and configured to alert the right people fast.",
+   760→    deliverables: [
+   761→      { title: "Sensor design", description: "Contacts, motion, glass-break and vibration sensors at risk points." },
+   762→      { title: "Control panel", description: "Programmable panel with arm/disarm and zone management." },
+   763→      { title: "Alerting", description: "Sirens plus phone/app alerts to you or a monitoring contact." },
+   764→      { title: "Tuning", description: "Zone configuration to minimise false alarms." },
+   765→      { title: "Integration", description: "Link with CCTV, access control and monitoring." },
+   766→    ],
+   767→    benefits: [
+   768→      "Early detection of forced entry",
+   769→      "Immediate deterrent and response",
+   770→      "Remote alerts wherever you are",
+   771→      "Lower false-alarm fatigue",
+   772→    ],
+   773→    tech: ["Motion & contact sensors", "Glass-break sensors", "Control panels", "Sirens & strobes", "GSM/IP alerting"],
+   774→    relatedServices: ["cctv-installation", "perimeter-intrusion", "access-control-systems", "fire-alarm-systems", "video-monitoring"],
+   775→    relatedIndustries: ["residential", "retail", "warehouse", "corporate", "industrial"],
+   776→  },
+   777→  {
+   778→    slug: "fire-alarm-systems",
+   779→    name: "Fire Alarm Systems",
+   780→    categoryId: "alarm-fire",
+   781→    icon: Bell,
+   782→    tagline: "Life-safety detection engineered to standards",
+   783→    shortDescription:
+   784→      "Conventional and addressable fire alarm systems with detectors, call points and sounders.",
+   785→    overview:
+   786→      "Fire alarms are life-safety systems — they must detect early and alert everyone reliably. We design and install conventional and addressable fire alarm systems with smoke, heat and flame detectors, manual call points, sounders and strobes, engineered for compliance and rapid evacuation.",
+   787→    problem: [
+   788→      "No early warning of fire, endangering lives.",
+   789→      "Systems that don't meet safety standards or insurance requirements.",
+   790→      "Undersized sounders that can't be heard across the site.",
+   791→      "No integration with access control for evacuation.",
+   792→    ],
+   793→    solution:
+   794→      "We design and install fire alarm systems — conventional or addressable — with proper detector coverage, audible/visual alerting and integration for safe evacuation.",
+   795→    deliverables: [
+   796→      { title: "System design", description: "Detector coverage and zoning engineered to standards." },
+   797→      { title: "Detector deployment", description: "Smoke, heat and flame detectors at the right locations." },
+   798→      { title: "Call points & sounders", description: "Manual call points, sounders and strobes for full-site alerting." },
+   799→      { title: "Panel & programming", description: "Control panel with zones, delays and evacuation logic." },
+   800→      { title: "Integration", description: "Door release for evacuation and link to monitoring." },
+   801→    ],
+   802→    benefits: [
+   803→      "Early, reliable fire detection",
+   804→      "Compliant, insurable life-safety system",
+   805→      "Clear evacuation alerting",
+   806→      "Integrated, safer response",
+   807→    ],
+   808→    tech: ["Conventional & addressable panels", "Smoke/heat/flame detectors", "Sounders & strobes", "Manual call points"],
+   809→    relatedServices: ["fire-detection-safety", "door-access-systems", "burglar-alarm-systems", "managed-services"],
+   810→    relatedIndustries: ["hospitality", "healthcare", "education", "corporate", "industrial", "warehouse"],
+   811→    featured: true,
+   812→  },
+   813→  {
+   814→    slug: "fire-detection-safety",
+   815→    name: "Fire Detection & Safety Systems",
+   816→    categoryId: "alarm-fire",
+   817→    icon: Flame,
+   818→    tagline: "Beyond alarms — full fire-safety engineering",
+   819→    shortDescription:
+   820→      "Comprehensive fire detection, suppression support and safety systems for compliance and protection.",
+   821→    overview:
+   822→      "Fire safety is more than an alarm panel. We cover the wider fire-safety picture — detection design, suppression support interfaces, emergency lighting, signage and evacuation planning — so your premises are protected and compliant, not just alarmed.",
+   823→    problem: [
+   824→      "Partial fire safety with gaps in detection or egress.",
+   825→      "Emergency lighting that fails when power is lost.",
+   826→      "No coordinated evacuation plan or signage.",
+   827→      "Compliance gaps that surface during inspection.",
+   828→    ],
+   829→    solution:
+   830→      "We engineer comprehensive fire detection and safety — detection, suppression interfaces, emergency lighting and evacuation support.",
+   831→    deliverables: [
+   832→      { title: "Detection engineering", description: "Detector selection and coverage for your premises type." },
+   833→      { title: "Suppression interfaces", description: "Integration with suppression and shutdown systems." },
+   834→      { title: "Emergency lighting", description: "Lighting that guides evacuation during power loss." },
+   835→      { title: "Signage & egress", description: "Evacuation signage and exit routing support." },
+   836→      { title: "Compliance documentation", description: "System records for inspection and insurance." },
+   837→    ],
+   838→    benefits: [
+   839→      "Comprehensive, compliant fire safety",
+   840→      "Safer evacuation under any condition",
+   841→      "Reduced liability and insurability",
+   842→      "Coordinated, documented protection",
+   843→    ],
+   844→    tech: ["Detection systems", "Suppression interfaces", "Emergency lighting", "Evacuation signage"],
+   845→    relatedServices: ["fire-alarm-systems", "door-access-systems", "managed-services", "server-data-centre"],
+   846→    relatedIndustries: ["hospitality", "healthcare", "education", "industrial", "warehouse", "corporate"],
+   847→  },
+   848→  {
+   849→    slug: "perimeter-intrusion",
+   850→    name: "Perimeter Intrusion Detection",
+   851→    categoryId: "alarm-fire",
+   852→    icon: ShieldAlert,
+   853→    tagline: "Catch intruders at the fence, not the door",
+   854→    shortDescription:
+   855→      "Perimeter sensors, beam detectors and fence systems for early intrusion warning.",
+   856→    overview:
+   857→      "The earlier you detect an intruder, the more time you have to respond. Perimeter intrusion detection — beam sensors, fence detection and vibration sensors — catches intruders at the boundary, not inside your premises. We design perimeter systems integrated with CCTV and alarms for a layered defence.",
+   858→    problem: [
+   859→      "Intruders detected only after they're inside.",
+   860→      "Large perimeters that can't be watched constantly.",
+   861→      "Need to trigger CCTV recording before entry.",
+   862→      "Outdoor environments that defeat indoor sensors.",
+   863→    ],
+   864→    solution:
+   865→      "We deploy outdoor perimeter detection — beams, fence and vibration sensors — integrated with CCTV and alarms for early warning.",
+   866→    deliverables: [
+   867→      { title: "Perimeter assessment", description: "Boundary survey to choose the right detection technology." },
+   868→      { title: "Sensor deployment", description: "Active/passive beams, fence or vibration sensors." },
+   869→      { title: "CCTV integration", description: "Triggered recording and PTZ camera response." },
+   870→      { title: "Alarm & alerts", description: "Sirens and remote alerts on detection." },
+   871→      { title: "Environmental tuning", description: "Tuning to reduce false triggers from animals and weather." },
+   872→    ],
+   873→    benefits: [
+   874→      "Earlier detection at the boundary",
+   875→      "Time to respond before entry",
+   876→      "Triggered CCTV for evidence",
+   877→      "Layered defence with alarms and surveillance",
+   878→    ],
+   879→    tech: ["Active infrared beams", "Fence & vibration sensors", "Outdoor detectors", "CCTV integration"],
+   880→    relatedServices: ["cctv-installation", "burglar-alarm-systems", "video-monitoring", "access-control-systems"],
+   881→    relatedIndustries: ["industrial", "warehouse", "construction", "residential", "government"],
+   882→  },
+   883→
+   884→  // ───────────────────────── IT INFRASTRUCTURE & SUPPORT ─────────────────────────
+   885→  {
+   886→    slug: "server-data-centre",
+   887→    name: "Server & Data-Centre Solutions",
+   888→    categoryId: "infrastructure",
+   889→    icon: ServerCog,
+   890→    tagline: "Resilient compute, storage and racks",
+   891→    shortDescription:
+   892→      "Server deployment, rack fit-out, storage and backup for reliable business compute.",
+   893→    overview:
+   894→      "Your business runs on servers and storage. We design and deploy server and small-data-centre solutions — physical and virtual servers, storage, rack fit-out, cooling, UPS and backup — engineered for resilience and recoverability, not just uptime on paper.",
+   895→    problem: [
+   896→      "Servers sitting under a desk with no redundancy or backup.",
+   897→      "No proper rack, cooling or power protection.",
+   898→      "Data at risk from failed drives with no backup.",
+   899→      "Recovery that would take days, not hours.",
+   900→    ],
+   901→    solution:
+   902→      "We engineer server and data-centre solutions — compute, storage, racks, UPS and backup — built for resilience and fast recovery.",
+   903→    deliverables: [
+   904→      { title: "Architecture & sizing", description: "Compute, storage and network sized to your workload." },
+   905→      { title: "Rack & environment", description: "Racks, cooling, cable management and layout." },
+   906→      { title: "Power & UPS", description: "UPS protection and power distribution." },
+   907→      { title: "Virtualisation & storage", description: "Hypervisors, RAID storage and capacity planning." },
+   908→      { title: "Backup & recovery", description: "Backup strategy with tested recovery." },
+   909→    ],
+   910→    benefits: [
+   911→      "Reliable business compute",
+   912→      "Protected power and cooling",
+   913→      "Data protected by backup and redundancy",
+   914→      "Faster recovery from failure",
+   915→    ],
+   916→    tech: ["Virtualisation (Hyper-V/Proxmox)", "RAID/NAS storage", "Racks & UPS", "Veeam backup", "APC power"],
+   917→    relatedServices: ["computer-it-support", "managed-services", "network-security", "firewall-endpoint-protection", "network-installation"],
+   918→    relatedIndustries: ["corporate", "finance", "healthcare", "education", "industrial"],
+   919→    featured: true,
+   920→  },
+   921→  {
+   922→    slug: "computer-it-support",
+   923→    name: "Computer & IT Support",
+   924→    categoryId: "infrastructure",
+   925→    icon: MonitorCog,
+   926→    tagline: "Responsive IT support that keeps people productive",
+   927→    shortDescription:
+   928→      "Helpdesk, on-site and remote IT support for workstations, users and day-to-day operations.",
+   929→    overview:
+   930→      "When computers, printers or accounts stop working, productivity stops. We provide responsive IT support — remote helpdesk and on-site assistance — covering workstations, users, networking and day-to-day IT, so issues get resolved fast and staff stay productive.",
+   931→    problem: [
+   932→      "IT issues that stall work for hours or days.",
+   933→      "No responsive support when something breaks.",
+   934→      "Recurring problems nobody gets to the root of.",
+   935→      "Staff wasting time on IT issues instead of their jobs.",
+   936→    ],
+   937→    solution:
+   938→      "We provide responsive remote and on-site IT support — fast helpdesk and root-cause resolution.",
+   939→    deliverables: [
+   940→      { title: "Helpdesk support", description: "Remote support for user and system issues." },
+   941→      { title: "On-site support", description: "Engineers on-site for hands-on issues." },
+   942→      { title: "Workstation management", description: "Setup, updates and troubleshooting of computers." },
+   943→      { title: "User & account support", description: "Account, email and access management." },
+   944→      { title: "Root-cause resolution", description: "Fixing underlying issues, not just symptoms." },
+   945→    ],
+   946→    benefits: [
+   947→      "Faster resolution of IT issues",
+   948→      "Less downtime, more productivity",
+   949→      "Predictable IT support costs",
+   950→      "One number to call for IT",
+   951→    ],
+   952→    tech: ["Remote support tooling", "Helpdesk ticketing", "Workstation management", "User provisioning"],
+   953→    relatedServices: ["managed-services", "server-data-centre", "network-maintenance", "systems-installation-maintenance"],
+   954→    relatedIndustries: ["corporate", "smb", "education", "healthcare", "retail"],
+   955→  },
+   956→  {
+   957→    slug: "systems-installation-maintenance",
+   958→    name: "Systems Installation & Maintenance",
+   959→    categoryId: "infrastructure",
+   960→    icon: Cog,
+   961→    tagline: "Deployed right, maintained properly",
+   962→    shortDescription:
+   963→      "Professional installation and ongoing maintenance for IT and security systems.",
+   964→    overview:
+   965→      "Systems work best when they're installed properly and maintained regularly. We handle the installation and ongoing maintenance of IT and security systems — making sure everything from servers to access control is deployed to standard and kept healthy over its lifetime.",
+   966→    problem: [
+   967→      "Systems installed without proper configuration or testing.",
+   968→      "No maintenance, so systems degrade and fail.",
+   969→      "Multiple vendors with no overall ownership.",
+   970→      "Equipment past warranty with no support path.",
+   971→    ],
+   972→    solution:
+   973→      "We install and maintain your IT and security systems — proper deployment plus scheduled, preventive maintenance.",
+   974→    deliverables: [
+   975→      { title: "Professional installation", description: "Systems deployed, configured and tested to standard." },
+   976→      { title: "Preventive maintenance", description: "Scheduled servicing to keep systems healthy." },
+   977→      { title: "Health monitoring", description: "Monitoring that catches issues early." },
+   978→      { title: "Lifecycle management", description: "Warranty, refresh and replacement planning." },
+   979→      { title: "Single ownership", description: "One partner accountable across systems." },
+   980→    ],
+   981→    benefits: [
+   982→      "Systems that work reliably for longer",
+   983→      "Fewer surprise failures",
+   984→      "Predictable maintenance costs",
+   985→      "One accountable partner",
+   986→    ],
+   987→    tech: ["Installation & commissioning", "Preventive maintenance", "Monitoring", "Lifecycle planning"],
+   988→    relatedServices: ["managed-services", "computer-it-support", "network-maintenance", "server-data-centre"],
+   989→    relatedIndustries: ["corporate", "smb", "education", "healthcare", "industrial"],
+   990→  },
+   991→  {
+   992→    slug: "smart-building-solutions",
+   993→    name: "Smart Building Solutions",
+   994→    categoryId: "infrastructure",
+   995→    icon: Building2,
+   996→    tagline: "Connected, intelligent buildings",
+   997→    shortDescription:
+   998→      "Integrated building systems — security, automation, lighting and energy — working as one.",
+   999→    overview:
+  1000→      "Modern buildings don't need a dozen disconnected systems. We design smart-building solutions that integrate security, access, surveillance, lighting, climate and energy into one manageable platform — so your building is more secure, efficient and comfortable.",
+  1001→    problem: [
+  1002→      "A dozen systems that don't talk to each other.",
+  1003→      "Energy waste from unmanaged lighting and climate.",
+  1004→      "No automation for routine building functions.",
+  1005→      "Complexity that frustrates facility teams.",
+  1006→    ],
+  1007→    solution:
+  1008→      "We design integrated smart-building solutions — security, automation and energy under one platform.",
+  1009→    deliverables: [
+  1010→      { title: "Integration design", description: "Architecture unifying security, automation and energy." },
+  1011→      { title: "Automation", description: "Schedules and rules for lighting, climate and access." },
+  1012→      { title: "Energy management", description: "Monitoring and control to reduce waste." },
+  1013→      { title: "Single platform", description: "One interface for building operations." },
+  1014→      { title: "Scalability", description: "Architecture that grows with the building." },
+  1015→    ],
+  1016→    benefits: [
+  1017→      "Simpler, smarter building operations",
+  1018→      "Lower energy costs",
+  1019→      "Better security and comfort",
+  1020→      "One interface instead of many",
+  1021→    ],
+  1022→    tech: ["Building automation", "IoT integration", "Lighting & climate control", "Unified platforms"],
+  1023→    relatedServices: ["access-control-systems", "intercom-systems", "cctv-installation", "wifi-installation", "server-data-centre"],
+  1024→    relatedIndustries: ["corporate", "hospitality", "residential", "government", "healthcare"],
+  1025→  },
+  1026→  {
+  1027→    slug: "managed-services",
+  1028→    name: "Managed Services & Technical Support",
+  1029→    categoryId: "infrastructure",
+  1030→    icon: LifeBuoy,
+  1031→    tagline: "Your IT and security, fully managed",
+  1032→    shortDescription:
+  1033→      "Ongoing managed services — monitoring, maintenance, support and improvement — under one agreement.",
+  1034→    overview:
+  1035→      "The best systems are the ones that keep working because someone is looking after them. Our managed services put your IT and security under continuous care — monitoring, preventive maintenance, priority support and ongoing improvement — for a predictable monthly fee instead of unpredictable break-fix bills.",
+  1036→    problem: [
+  1037→      "Unpredictable IT and security costs.",
+  1038→      "Systems that degrade because nobody maintains them.",
+  1039→      "Slow, reactive support.",
+  1040→      "No visibility into system health or risk.",
+  1041→    ],
+  1042→    solution:
+  1043→      "We manage your IT and security under one agreement — proactive monitoring, maintenance, support and improvement.",
+  1044→    deliverables: [
+  1045→      { title: "Continuous monitoring", description: "24/7 monitoring of critical systems and security." },
+  1046→      { title: "Preventive maintenance", description: "Scheduled servicing across IT and security." },
+  1047→      { title: "Priority support", description: "Defined SLAs and direct access to engineers." },
+  1048→      { title: "Reporting & visibility", description: "Regular health and activity reporting." },
+  1049→      { title: "Continuous improvement", description: "Recommendations to strengthen and optimise over time." },
+  1050→    ],
+  1051→    benefits: [
+  1052→      "Predictable costs and fewer surprises",
+  1053→      "Healthier systems that fail less",
+  1054→      "Faster, prioritised response",
+  1055→      "Strategic partner, not just a vendor",
+  1056→    ],
+  1057→    tech: ["Monitoring platforms", "RMM tooling", "Ticketing & SLAs", "Security management"],
+  1058→    relatedServices: ["computer-it-support", "network-maintenance", "network-security", "systems-installation-maintenance"],
+  1059→    relatedIndustries: ["corporate", "smb", "finance", "healthcare", "education"],
+  1060→    featured: true,
+  1061→  },
+  1062→];
+  1063→
+  1064→/* Convenience lookups */
+  1065→export const serviceMap: Record<string, Service> = Object.fromEntries(
+  1066→  services.map((s) => [s.slug, s]),
+  1067→);
+  1068→
+  1069→export const categoryMap: Record<string, ServiceCategory> = Object.fromEntries(
+  1070→  serviceCategories.map((c) => [c.id, c]),
+  1071→);
+  1072→
+  1073→export function getServiceBySlug(slug: string): Service | undefined {
+  1074→  return serviceMap[slug];
+  1075→}
+  1076→
+  1077→export function getCategoryById(id: string): ServiceCategory | undefined {
+  1078→  return categoryMap[id];
+  1079→}
+  1080→
+  1081→export function servicesByCategory(categoryId: string): Service[] {
+  1082→  return services.filter((s) => s.categoryId === categoryId);
+  1083→}
+  1084→
+  1085→export function relatedServices(slug: string): Service[] {
+  1086→  const s = serviceMap[slug];
+  1087→  if (!s) return [];
+  1088→  return s.relatedServices.map((r) => serviceMap[r]).filter(Boolean);
+  1089→}
+  1090→
+  1091→export const featuredServices = services.filter((s) => s.featured);
+  1092→
