@@ -1,51 +1,53 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServiceBySlug, getServices, getCategories, getIndustries } from "@/lib/data-access";
+import { services } from "@/lib/data/services";
+import { getServiceBySlug, DatabaseUnavailableError } from "@/lib/data-access";
 import { ServiceDetailView } from "@/components/views/service-detail-view";
 
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  const services = await getServices();
+export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
 }
 
+export const revalidate = 3600;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const service = await getServiceBySlug(slug);
-  if (!service) return { title: "Service not found" };
-  return {
-    title: service.name,
-    description: service.shortDescription,
-  };
+  try {
+    const service = await getServiceBySlug(slug);
+    if (!service) return { title: "Service not found" };
+    return { title: service.name, description: service.shortDescription };
+  } catch {
+    return { title: "Service" };
+  }
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const service = await getServiceBySlug(slug);
-  if (!service) notFound();
+  let dbOk = true;
+  let serviceExists = true;
 
-  // Fetch related data in parallel
-  const [allServices, allCategories, allIndustries] = await Promise.all([
-    getServices(),
-    getCategories(),
-    getIndustries(),
-  ]);
+  try {
+    const service = await getServiceBySlug(slug);
+    if (!service) serviceExists = false;
+  } catch (e) {
+    if (e instanceof DatabaseUnavailableError) {
+      dbOk = false;
+    } else {
+      throw e;
+    }
+  }
 
-  const category = allCategories.find((c) => c.id === service.categoryId || c.slug === service.categoryId);
-  const relatedServices = service.relatedServices
-    .map((s) => allServices.find((x) => x.slug === s))
-    .filter(Boolean) as typeof allServices;
-  const relatedIndustries = service.relatedIndustries
-    .map((id) => allIndustries.find((i) => i.id === id))
-    .filter(Boolean) as typeof allIndustries;
+  if (!dbOk) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
+        <div>
+          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
+          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
+        </div>
+      </div>
+    );
+  }
 
-  return (
-    <ServiceDetailView
-      service={service}
-      category={category}
-      relatedServices={relatedServices}
-      relatedIndustries={relatedIndustries}
-    />
-  );
+  if (!serviceExists) notFound();
+  return <ServiceDetailView />;
 }

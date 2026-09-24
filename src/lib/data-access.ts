@@ -1,15 +1,20 @@
 /**
- * Data Access Layer — the single source of truth for public website content.
+ * Data Access Layer — PostgreSQL is the production source of truth.
  *
- * In production (DATABASE_URL set + Neon reachable): reads from PostgreSQL.
- * In dev/build (no DB): falls back to static TypeScript seed data so the
- * site can still build and render.
+ * ARCHITECTURE:
+ * - generateStaticParams() in route pages uses STATIC seed data to generate
+ *   the path list at build time (no DB query needed — just the slugs).
+ * - Route page components are force-dynamic → they call these functions at
+ *   RUNTIME, which query PostgreSQL.
+ * - Admin CRUD calls revalidatePath() to invalidate cached pages.
+ * - If the DB is unreachable at runtime, functions throw a controlled error
+ *   that the page catches and renders as a user-friendly error state.
+ * - There is NO static fallback in production. The database IS the source.
  *
- * When an admin updates content via the admin API, revalidatePath() is called
- * to invalidate the Next.js cache for the affected public routes.
- *
- * This is NOT a "competing source of truth" — the database IS the production
- * source. The static files exist only as seed data and dev fallback.
+ * The static TypeScript files (src/lib/data/*.ts) exist ONLY as:
+ *   1. Seed source (for scripts/seed.ts)
+ *   2. Build-time path generation (generateStaticParams — slugs only)
+ *   3. Local development fallback (when no DATABASE_URL is set)
  */
 
 import { db } from "@/lib/db";
@@ -38,23 +43,62 @@ import type { Faq } from "@/lib/types";
 import type { BlogPost } from "@/lib/types";
 import type { Solution } from "@/lib/types";
 
-/** Check if the database is available (production). */
-async function dbAvailable(): Promise<boolean> {
-  if (!process.env.DATABASE_URL || process.env.DATABASE_URL.startsWith("file:")) {
-    return false;
+/**
+ * Error thrown when the database is required but unavailable.
+ * Pages catch this and render a user-friendly error state.
+ */
+export class DatabaseUnavailableError extends Error {
+  constructor(message = "Content database is not available") {
+    super(message);
+    this.name = "DatabaseUnavailableError";
   }
+}
+
+/**
+ * Check if we're in a development/preview environment where static fallback
+ * is acceptable. In production with a real DATABASE_URL, the DB is required.
+ */
+function isDevFallback(): boolean {
+  // No DATABASE_URL → local dev, use static data
+  if (!process.env.DATABASE_URL) return true;
+  // SQLite (file:) → local dev, use static data
+  if (process.env.DATABASE_URL.startsWith("file:")) return true;
+  return false;
+}
+
+/**
+ * Check if the database has the required tables.
+ * Throws DatabaseUnavailableError if DB is reachable but tables are missing.
+ */
+async function requireDb(): Promise<boolean> {
+  if (isDevFallback()) return false; // use static data in dev
+
   try {
     await db.$queryRaw`SELECT 1`;
+    // Check if the Service table exists
+    const result = await db.$queryRaw<{ exists: boolean }[]>`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'Service'
+      ) as exists
+    `;
+    if (!result[0]?.exists) {
+      throw new DatabaseUnavailableError(
+        "Database tables not found. Run: prisma migrate deploy && bun run seed",
+      );
+    }
     return true;
-  } catch {
-    return false;
+  } catch (e) {
+    if (e instanceof DatabaseUnavailableError) throw e;
+    throw new DatabaseUnavailableError("Cannot connect to database");
   }
 }
 
 // ─── Categories ─────────────────────────────────────────────────────────
 
 export async function getCategories(): Promise<ServiceCategory[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const cats = await db.category.findMany({ orderBy: { sortOrder: "asc" } });
     return cats.map(mapCategory);
   }
@@ -62,7 +106,7 @@ export async function getCategories(): Promise<ServiceCategory[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<ServiceCategory | undefined> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const cat = await db.category.findUnique({ where: { slug } });
     return cat ? mapCategory(cat) : undefined;
   }
@@ -72,7 +116,7 @@ export async function getCategoryBySlug(slug: string): Promise<ServiceCategory |
 // ─── Services ───────────────────────────────────────────────────────────
 
 export async function getServices(): Promise<Service[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const svcs = await db.service.findMany({
       where: { published: true },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -84,7 +128,7 @@ export async function getServices(): Promise<Service[]> {
 }
 
 export async function getServiceBySlug(slug: string): Promise<Service | undefined> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const svc = await db.service.findUnique({
       where: { slug },
       include: { category: true },
@@ -117,7 +161,7 @@ export async function getRelatedServices(slug: string): Promise<Service[]> {
 // ─── Industries ─────────────────────────────────────────────────────────
 
 export async function getIndustries(): Promise<Industry[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const inds = await db.industry.findMany({ orderBy: { sortOrder: "asc" } });
     return inds.map(mapIndustry);
   }
@@ -125,7 +169,7 @@ export async function getIndustries(): Promise<Industry[]> {
 }
 
 export async function getIndustryById(id: string): Promise<Industry | undefined> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const ind = await db.industry.findUnique({ where: { id } });
     return ind ? mapIndustry(ind) : undefined;
   }
@@ -135,7 +179,7 @@ export async function getIndustryById(id: string): Promise<Industry | undefined>
 // ─── Projects ───────────────────────────────────────────────────────────
 
 export async function getProjects(): Promise<Project[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const projs = await db.project.findMany({
       where: { published: true },
       orderBy: { createdAt: "desc" },
@@ -158,7 +202,7 @@ export async function getProjectsByIndustry(industryId: string): Promise<Project
 // ─── Testimonials ───────────────────────────────────────────────────────
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const tests = await db.testimonial.findMany({ orderBy: { createdAt: "desc" } });
     return tests.map(mapTestimonial);
   }
@@ -168,7 +212,7 @@ export async function getTestimonials(): Promise<Testimonial[]> {
 // ─── FAQs ───────────────────────────────────────────────────────────────
 
 export async function getFaqs(): Promise<Faq[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const faqs = await db.faq.findMany({ orderBy: { sortOrder: "asc" } });
     return faqs.map(mapFaq);
   }
@@ -178,7 +222,7 @@ export async function getFaqs(): Promise<Faq[]> {
 // ─── Blog Posts ─────────────────────────────────────────────────────────
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const posts = await db.blogPost.findMany({
       where: { published: true },
       orderBy: { date: "desc" },
@@ -189,7 +233,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefined> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const post = await db.blogPost.findUnique({ where: { slug } });
     if (!post || !post.published) return undefined;
     return mapBlogPost(post);
@@ -200,7 +244,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | undefi
 // ─── Solutions ──────────────────────────────────────────────────────────
 
 export async function getSolutions(): Promise<Solution[]> {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const sols = await db.solution.findMany({ orderBy: { sortOrder: "asc" } });
     return sols.map(mapSolution);
   }
@@ -210,7 +254,7 @@ export async function getSolutions(): Promise<Solution[]> {
 // ─── Company ─────────────────────────────────────────────────────────────
 
 export async function getCompany() {
-  if (await dbAvailable()) {
+  if (await requireDb()) {
     const settings = await db.companySettings.findUnique({ where: { key: "company" } });
     if (settings) return settings.value as typeof staticCompany;
   }
@@ -240,14 +284,14 @@ function mapCategory(c: {
 function mapService(s: {
   id: string; slug: string; name: string; categoryId: string;
   tagline: string; shortDescription: string; overview: string;
-  problem: string[] | unknown; solution: string;
-  deliverables: unknown; benefits: string[] | unknown; tech: string[] | unknown;
-  relatedServices: string[] | unknown; relatedIndustries: string[] | unknown;
+  problem: unknown; solution: string;
+  deliverables: unknown; benefits: unknown; tech: unknown;
+  relatedServices: unknown; relatedIndustries: unknown;
   faqs: unknown; featured: boolean; iconName: string;
   category?: { slug: string };
 }): Service {
   return {
-    slug: s.slug, name: s.name, categoryId: s.categoryId === s.categoryId ? (s.category?.slug ?? s.categoryId) : s.categoryId,
+    slug: s.slug, name: s.name, categoryId: s.category?.slug ?? s.categoryId,
     icon: getIcon(s.iconName), tagline: s.tagline, shortDescription: s.shortDescription,
     overview: s.overview,
     problem: (s.problem as string[]) ?? [],

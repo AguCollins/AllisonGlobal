@@ -21,12 +21,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { heroMedia, blogMedia } from "@/lib/data/media";
-import { blogCategories } from "@/lib/data/blog";
-import type { BlogPost } from "@/lib/types";
+import { blogPosts, blogCategories } from "@/lib/data/blog";
 
 const ALL = "All";
 
-export function BlogView({ posts: blogPosts }: { posts: BlogPost[] }) {
+export function BlogView() {
   const [active, setActive] = React.useState<string>(ALL);
   const featured = React.useMemo(
     () => blogPosts.find((p) => p.featured) ?? blogPosts[0],
@@ -149,7 +148,7 @@ export function BlogView({ posts: blogPosts }: { posts: BlogPost[] }) {
 /* ------------------------------------------------------------------ */
 /*  Featured post — larger hero card                                    */
 /* ------------------------------------------------------------------ */
-function FeaturedPost({ post }: { post: (typeof blogPosts)[number] }) {
+function FeaturedPost({ post }: { post: typeof blogPosts[number] }) {
   const date = new Date(post.date).toLocaleDateString("en-NG", {
     day: "numeric",
     month: "short",

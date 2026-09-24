@@ -16,25 +16,24 @@ import {
   StatStrip,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
-import { projectCategories } from "@/lib/data/projects";
+import { projects, projectCategories } from "@/lib/data/projects";
 import { projectMedia, heroMedia } from "@/lib/data/media";
 import { industries } from "@/lib/data/industries";
 import { services } from "@/lib/data/services";
-import type { Project } from "@/lib/types";
 
-export function ProjectsView({ projects: projectList }: { projects: Project[] }) {
+export function ProjectsView() {
   const [filter, setFilter] = React.useState<string>("all");
   const [industryFilter, setIndustryFilter] = React.useState<string>("all");
 
   const filtered = React.useMemo(() => {
-    return projectList.filter((p) => {
+    return projects.filter((p) => {
       const catOk = filter === "all" || p.category === filter;
       const indOk = industryFilter === "all" || p.industry === industryFilter;
       return catOk && indOk;
     });
   }, [filter, industryFilter]);
 
-  const featured = projectList.filter((p) => p.featured);
+  const featured = projects.filter((p) => p.featured);
 
   return (
     <>
@@ -61,7 +60,7 @@ export function ProjectsView({ projects: projectList }: { projects: Project[] })
           <div className="mt-12">
             <StatStrip
               stats={[
-                { value: String(projectList.length), label: "Representative case studies", sub: "across sectors" },
+                { value: String(projects.length), label: "Representative case studies", sub: "across sectors" },
                 { value: String(industries.length), label: "Industries served", sub: "homes to heavy industry" },
                 { value: String(services.length), label: "Specialist services", sub: "deployed in the field" },
                 { value: "6", label: "Service domains", sub: "under one team" },

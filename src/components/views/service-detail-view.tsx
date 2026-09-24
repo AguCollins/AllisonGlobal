@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useParams } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
@@ -37,24 +38,40 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { getServiceBySlug, relatedServices, categoryMap } from "@/lib/data/services";
 import { serviceMedia, media } from "@/lib/data/media";
+import { industryMap } from "@/lib/data/industries";
 import { processSteps } from "@/lib/data/process";
 import { company } from "@/lib/data/company";
-import type { Service, ServiceCategory, Industry } from "@/lib/types";
 
-export function ServiceDetailView({
-  service,
-  category,
-  relatedServices: relServices,
-  relatedIndustries: relIndustries,
-}: {
-  service: Service;
-  category?: ServiceCategory;
-  relatedServices: Service[];
-  relatedIndustries: Industry[];
-}) {
-  const rel = relServices;
-  const relInd = relIndustries;
+export function ServiceDetailView() {
+  const params = useParams<{ slug?: string }>();
+  const slug = params.slug;
+  const service = slug ? getServiceBySlug(slug) : undefined;
+
+  if (!service) {
+    return (
+      <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
+        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
+          <HelpCircle className="size-7 text-muted-foreground" />
+        </div>
+        <h1 className="mt-5 font-display text-2xl font-bold">Service not found</h1>
+        <p className="mt-2 text-muted-foreground">
+          The service you're looking for isn't available. Browse all our services to find what you need.
+        </p>
+        <NavButton view="services" className="mt-6">
+          <ArrowLeft className="size-4" />
+          Back to all services
+        </NavButton>
+      </div>
+    );
+  }
+
+  const category = categoryMap[service.categoryId];
+  const rel = relatedServices(service.slug);
+  const relIndustries = service.relatedIndustries
+    .map((id) => industryMap[id])
+    .filter(Boolean);
 
   return (
     <>

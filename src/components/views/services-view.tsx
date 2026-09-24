@@ -25,29 +25,16 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { serviceCategories, services, categoryMap } from "@/lib/data/services";
 import { heroMedia } from "@/lib/data/media";
 import { capabilityStats } from "@/lib/data/company";
-import type { Service, ServiceCategory } from "@/lib/types";
 
-export function ServicesView({
-  services: svcList,
-  categories: catList,
-}: {
-  services: Service[];
-  categories: ServiceCategory[];
-}) {
+export function ServicesView() {
   const [activeCat, setActiveCat] = React.useState<string>("all");
   const [query, setQuery] = React.useState("");
 
-  // Build a category lookup map from the passed-in categories
-  const categoryMap = React.useMemo(() => {
-    const m: Record<string, ServiceCategory> = {};
-    catList.forEach((c) => (m[c.id] = c));
-    return m;
-  }, [catList]);
-
   const filtered = React.useMemo(() => {
-    return svcList.filter((s) => {
+    return services.filter((s) => {
       const catOk = activeCat === "all" || s.categoryId === activeCat;
       const q = query.trim().toLowerCase();
       const qOk =
@@ -120,9 +107,9 @@ export function ServicesView({
                   : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")
               }
             >
-              All services ({svcList.length})
+              All services ({services.length})
             </button>
-            {catList.map((cat) => (
+            {serviceCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => {
@@ -138,7 +125,7 @@ export function ServicesView({
                 }
               >
                 <cat.icon className="size-3.5" />
-                {cat.name} ({cat.svcList.length})
+                {cat.name} ({services.filter((s) => s.categoryId === cat.id).length})
               </button>
             ))}
           </div>
@@ -148,7 +135,7 @@ export function ServicesView({
       {/* Services by category */}
       {activeCat === "all" ? (
         <>
-          {catList.map((cat) => (
+          {serviceCategories.map((cat) => (
             <CategoryBlock key={cat.id} categoryId={cat.id} />
           ))}
         </>
@@ -239,12 +226,16 @@ export function ServicesView({
   );
 }
 
-function CategoryBlock({ categoryId }: { categoryId: string }) {
-  const cat = categoryMap[categoryId];
+function CategoryBlock({ categoryId }: {
+  categoryId: string;
+  
+  
+}) {
+  const cat = serviceCategories.find((c) => c.id === categoryId || c.slug === categoryId);
   if (!cat) return null;
   const catServices = cat.services
-    .map((slug) => svcList.find((s) => s.slug === slug))
-    .filter(Boolean) as Service[];
+    .map((slug) => services.find((s) => s.slug === slug))
+    .filter(Boolean) as typeof services;
 
   return (
     <Section id={`cat-${categoryId}`} className="scroll-mt-28 pt-0">
@@ -261,7 +252,7 @@ function CategoryBlock({ categoryId }: { categoryId: string }) {
             </div>
           </div>
           <div className="text-sm text-muted-foreground">
-            {cat.svcList.length} services
+            {catServices.length} services
           </div>
         </div>
 
