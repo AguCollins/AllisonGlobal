@@ -1,23 +1,86 @@
+# =======================================================================
+#  Allison Global — Caddy reverse proxy configuration
+#  Production: TLS on :443, HTTP→HTTPS redirect, security headers.
+# =======================================================================
+
+# --- Production site (replace allisonglobal.tech with the real domain) ---
+allisonglobal.tech, www.allisonglobal.tech {
+        encode zstd gzip
+
+        # --- Security headers (defense-in-depth; CSP nonce is set by Next.js middleware) ---
+        # Note: Content-Security-Policy with per-request nonce is set by the
+        # Next.js middleware (src/middleware.ts), NOT here — a static CSP in Caddy
+        # cannot include the per-request nonce needed for Next.js hydration scripts.
+        header {
+                # HTTPS enforcement
+                Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+
+                # Prevent MIME-type sniffing
+                X-Content-Type-Options "nosniff"
+
+                # Referrer policy — only send origin to cross-origin (wa.me, etc.)
+                Referrer-Policy "strict-origin-when-cross-origin"
+
+                # Lock down powerful browser APIs
+                Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+
+                # Clickjacking protection (belt-and-suspenders with CSP frame-ancestors)
+                X-Frame-Options "DENY"
+
+                # Cross-origin isolation for fetched resources
+                Cross-Origin-Resource-Policy "same-site"
+
+                # Cache control for HTML (prevent caching of dynamic pages)
+                -Cache-Control
+                Cache-Control "no-cache, must-revalidate"
+        }
+
+        # --- Reverse proxy to Next.js standalone server ---
+        reverse_proxy localhost:3000 {
+                header_up Host {host}
+                header_up X-Forwarded-For {remote_host}
+                header_up X-Forwarded-Proto {scheme}
+                header_up X-Real-IP {remote_host}
+        }
+}
+
+# --- HTTP → HTTPS redirect (port 80) ---
+:80 {
+        redir https://{host}{uri} permanent
+}
+
+# =======================================================================
+#  Sandbox gateway (port 81) — used by the preview environment.
+#  Same security headers; no TLS (TLS is terminated upstream).
+# =======================================================================
 :81 {
-	@transform_port_query {
-		query XTransformPort=*
-	}
+        @transform_port_query {
+                query XTransformPort=*
+        }
 
-	handle @transform_port_query {
-		reverse_proxy localhost:{query.XTransformPort} {
-			header_up Host {host}
-			header_up X-Forwarded-For {remote_host}
-			header_up X-Forwarded-Proto {scheme}
-			header_up X-Real-IP {remote_host}
-		}
-	}
+        handle @transform_port_query {
+                reverse_proxy localhost:{query.XTransformPort} {
+                        header_up Host {host}
+                        header_up X-Forwarded-For {remote_host}
+                        header_up X-Forwarded-Proto {scheme}
+                        header_up X-Real-IP {remote_host}
+                }
+        }
 
-	handle {
-		reverse_proxy localhost:3000 {
-			header_up Host {host}
-			header_up X-Forwarded-For {remote_host}
-			header_up X-Forwarded-Proto {scheme}
-			header_up X-Real-IP {remote_host}
-		}
-	}
+        handle {
+                header {
+                        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.ui.com data:; media-src 'self' https://www.ui.com; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'; object-src 'none'"
+                        X-Content-Type-Options "nosniff"
+                        Referrer-Policy "strict-origin-when-cross-origin"
+                        Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+                        X-Frame-Options "DENY"
+                        Cross-Origin-Resource-Policy "same-site"
+                }
+                reverse_proxy localhost:3000 {
+                        header_up Host {host}
+                        header_up X-Forwarded-For {remote_host}
+                        header_up X-Forwarded-Proto {scheme}
+                        header_up X-Real-IP {remote_host}
+                }
+        }
 }

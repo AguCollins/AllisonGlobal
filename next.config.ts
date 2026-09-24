@@ -2,11 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
+  // Type errors now fail the build — do not silently ship them.
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
-  reactStrictMode: false,
+  // Catch impure effects / double-invocation bugs early in dev.
+  reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "www.ui.com", pathname: "/microsite/static/**" },
+    ],
+  },
+  allowedDevOrigins: ["127.0.0.1"],
 };
 
 export default nextConfig;

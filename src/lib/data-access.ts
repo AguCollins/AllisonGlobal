@@ -59,16 +59,20 @@ export class DatabaseUnavailableError extends Error {
  * is acceptable. In production with a real DATABASE_URL, the DB is required.
  */
 function isDevFallback(): boolean {
+  const url = process.env.DATABASE_URL;
   // No DATABASE_URL → local dev, use static data
-  if (!process.env.DATABASE_URL) return true;
+  if (!url) return true;
   // SQLite (file:) → local dev, use static data
-  if (process.env.DATABASE_URL.startsWith("file:")) return true;
+  if (url.startsWith("file:")) return true;
+  // Not a PostgreSQL URL → local dev or misconfigured, use static data
+  if (!url.startsWith("postgresql://") && !url.startsWith("postgres://")) return true;
   return false;
 }
 
 /**
  * Check if the database has the required tables.
- * Throws DatabaseUnavailableError if DB is reachable but tables are missing.
+ * Returns true if DB is available, false if using static fallback (dev).
+ * Throws DatabaseUnavailableError if DB is required but unavailable (prod).
  */
 async function requireDb(): Promise<boolean> {
   if (isDevFallback()) return false; // use static data in dev
@@ -85,12 +89,13 @@ async function requireDb(): Promise<boolean> {
     `;
     if (!result[0]?.exists) {
       throw new DatabaseUnavailableError(
-        "Database tables not found. Run: prisma migrate deploy && bun run seed",
+        "Database tables not found. Run the SQL seed script (scripts/neon-seed.sql) in your Neon SQL Editor.",
       );
     }
     return true;
   } catch (e) {
     if (e instanceof DatabaseUnavailableError) throw e;
+    // Connection errors, proxy errors, timeout — all map to unavailable
     throw new DatabaseUnavailableError("Cannot connect to database");
   }
 }
