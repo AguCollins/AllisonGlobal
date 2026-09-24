@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { SiteShell } from "@/components/site/site-shell";
+import { AuthSessionProvider } from "@/components/site/session-provider";
 import { company } from "@/lib/data/company";
 
 const inter = Inter({
@@ -128,7 +129,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SiteShell>{children}</SiteShell>
+          <AuthSessionProvider>
+            <SiteShell>{children}</SiteShell>
+          </AuthSessionProvider>
           <SonnerToaster position="top-right" richColors />
         </ThemeProvider>
       </body>
