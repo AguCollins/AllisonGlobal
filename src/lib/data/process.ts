@@ -5,8 +5,9 @@ import {
   Wrench,
   Plug,
   GraduationCap,
-  type LucideIcon,
 } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
+import type { LucideIcon } from "lucide-react";
 import type { ProcessStep } from "@/lib/types";
 
 export const processSteps: ProcessStep[] = [

@@ -24,6 +24,7 @@ import {
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { solutions } from "@/lib/data/solutions";
+import { heroMedia } from "@/lib/data/media";
 import { serviceMap } from "@/lib/data/services";
 import { industryMap } from "@/lib/data/industries";
 import { motion } from "framer-motion";
@@ -69,6 +70,7 @@ export function SolutionsView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["solutions"]}
         eyebrow="Solutions"
         icon={Puzzle}
         title="Start with the problem, not the product"

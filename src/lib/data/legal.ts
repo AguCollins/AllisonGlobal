@@ -1,7 +1,7 @@
 export const privacyPolicy = {
-  updated: "November 2024",
+  updated: "January 2026",
   intro:
-    "Allison Global Technologies (“Allison Global”, “we”, “us”) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use and protect information when you interact with our website and services. This policy is provided as a template and should be reviewed to ensure it meets your specific legal obligations.",
+    "Allison Global Ltd (“Allison Global”, “we”, “us”) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use and protect information when you interact with our website and services. This policy is provided as a template and should be reviewed to ensure it meets your specific legal obligations.",
   sections: [
     {
       heading: "1. Information We Collect",
@@ -71,7 +71,7 @@ export const privacyPolicy = {
 };
 
 export const termsAndConditions = {
-  updated: "November 2024",
+  updated: "January 2026",
   intro:
     "These Terms and Conditions govern your use of the Allison Global website and the engagement of our services. This document is provided as a template and should be reviewed to ensure it meets your specific legal requirements.",
   sections: [

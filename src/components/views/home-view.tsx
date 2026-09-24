@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   ArrowRight,
   PhoneCall,
   ShieldCheck,
-  CheckCircle2,
   Network,
   Lock,
   Camera,
@@ -17,14 +17,14 @@ import {
   ChevronRight,
   Cpu,
   Layers,
-  Handshake,
   Map as MapIcon,
   Zap,
   LifeBuoy,
   Scale,
   FileCheck,
 } from "lucide-react";
-import { useSite } from "@/store/site-store";
+import { href } from "@/lib/nav";
+import { media } from "@/lib/data/media";
 import {
   Section,
   SectionHeader,
@@ -38,12 +38,12 @@ import {
 import {
   ConversionPathCTA,
   StatStrip,
-  ServiceCard,
   IndustryCard,
   ProjectCard,
   BlogCard,
   TrustLine,
 } from "@/components/site/sections";
+import { RemoteImage } from "@/components/site/sections";
 import { motion } from "framer-motion";
 import {
   company,
@@ -51,9 +51,10 @@ import {
   differentiators,
   technologyPlatforms,
 } from "@/lib/data/company";
-import { serviceCategories, services, featuredServices } from "@/lib/data/services";
+import { serviceCategories, services } from "@/lib/data/services";
 import { industries } from "@/lib/data/industries";
 import { projects } from "@/lib/data/projects";
+import { projectMedia, categoryMedia, blogMedia } from "@/lib/data/media";
 import { processSteps } from "@/lib/data/process";
 import { testimonials } from "@/lib/data/testimonials";
 import { blogPosts } from "@/lib/data/blog";
@@ -84,53 +85,66 @@ export function HomeView() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero                                                               */
+/*  Hero — sharp contrast: dark typography zone (left) + image (right) */
 /* ------------------------------------------------------------------ */
 function Hero() {
-  const { navigate } = useSite();
   return (
     <section className="relative overflow-hidden band-ink">
-      {/* Background layers */}
-      <div className="absolute inset-0 bg-grid-dark opacity-50" />
-      <div className="absolute inset-0 bg-radial-fade opacity-70" />
-      <div className="absolute -right-32 -top-32 size-[28rem] rounded-full bg-emerald-500/20 blur-3xl" />
-      <div className="absolute -left-20 top-1/3 size-72 rounded-full bg-amber-500/10 blur-3xl" />
+      {/* Right-side product imagery + ambient video. Left side darkened for
+          high-contrast typography; right side shows the moving infrastructure. */}
+      <div className="absolute inset-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          poster={media.industryLeading}
+          className="size-full object-cover"
+          aria-hidden="true"
+        >
+          <source src={media.videoRack} type="video/mp4" />
+        </video>
+        {/* Deliberate L→R gradient: dark on the left for text, transparent right */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.16_0.03_235)] via-[oklch(0.16_0.03_235/0.85)] to-[oklch(0.16_0.03_235/0.45)]" />
+        {/* subtle bottom fade for the stats row legibility */}
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[oklch(0.16_0.03_235)] to-transparent" />
+      </div>
 
-      <div className="relative mx-auto grid w-full max-w-7xl gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:pb-28 lg:pt-20">
+      <div className="relative mx-auto grid w-full max-w-7xl gap-10 px-4 pb-16 pt-12 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8 lg:pb-20 lg:pt-16">
+        {/* Left — typography zone (dark, high contrast) */}
         <div className="lg:col-span-7">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-emerald-300 backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-white backdrop-blur-sm"
           >
             <span className="relative flex size-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
             </span>
-            Engineering-led ICT & security partner · {company.location.city}, Nigeria
+            ICT &amp; security partner · Lagos, Nigeria
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-balance text-4xl font-bold leading-[1.05] text-white sm:text-5xl lg:text-6xl xl:text-[4.2rem]"
+            className="mt-6 text-balance text-4xl font-bold leading-[1.08] text-white drop-shadow-sm sm:text-5xl lg:text-[3.4rem] xl:text-[3.7rem]"
           >
-            Engineering Trust.{" "}
-            <span className="text-gradient-brand">Securing Futures.</span>
+            Networks, security &amp; surveillance —{" "}
+            <span className="text-brand">engineered as one.</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-white/70"
+            className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-white/85"
           >
-            We are <strong className="font-semibold text-white">Allison Global</strong> — a technology
-            and security solutions partner integrating networking, cybersecurity,
-            CCTV, access control, fire safety and IT infrastructure under one
-            accountable team. From assessment to long-term support, we own the outcome.
+            We design, install and maintain ICT, cybersecurity, CCTV, access
+            control, fire safety and IT infrastructure — under one accountable
+            engineering team.
           </motion.p>
 
           <motion.div
@@ -139,41 +153,43 @@ function Hero() {
             transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
             className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            <Button_primary onClick={() => navigate("quote")}>
+            <Button_primary href={href("quote")}>
               Request a Quote
               <ArrowRight className="size-4" />
             </Button_primary>
-            <Button_secondary onClick={() => navigate("contact")}>
+            <Button_secondary href={href("contact")}>
               <PhoneCall className="size-4" />
               Talk to an Expert
             </Button_secondary>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          {/* Dominant stat proof points — strong contrast, scannable */}
+          <motion.dl
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3 }}
-            className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3"
+            className="mt-12 grid max-w-xl grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4"
           >
             {[
-              "6 service domains",
-              "24+ specialist services",
-              "13 industries served",
-              "< 4h priority response",
-            ].map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center gap-1.5 text-sm text-white/60"
-              >
-                <CheckCircle2 className="size-4 text-emerald-400" />
-                {t}
-              </span>
+              { v: "6", l: "Service domains" },
+              { v: "24+", l: "Specialist services" },
+              { v: "13", l: "Industries served" },
+              { v: "<4h", l: "Priority response" },
+            ].map((s) => (
+              <div key={s.l}>
+                <dt className="font-display text-3xl font-bold tabular-nums text-white">
+                  {s.v}
+                </dt>
+                <dd className="mt-0.5 text-xs font-medium uppercase tracking-wide text-white/65">
+                  {s.l}
+                </dd>
+              </div>
             ))}
-          </motion.div>
+          </motion.dl>
         </div>
 
-        {/* Visual panel */}
-        <div className="lg:col-span-5">
+        {/* Right — smaller, reinforcing visual only (not a second hero) */}
+        <div className="hidden lg:col-span-5 lg:block">
           <HeroVisual />
         </div>
       </div>
@@ -181,117 +197,86 @@ function Hero() {
   );
 }
 
-/* Local button styles to keep hero on-brand */
+/* Primary CTA — gold, strong. Secondary CTA — dark teal text, ghost style. */
 function Button_primary({
   children,
-  onClick,
+  href: to,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  href: string;
 }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      href={to}
       className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-gold px-7 text-sm font-semibold text-gold-foreground shadow-lg shadow-amber-900/20 transition-all hover:bg-gold/90 hover:shadow-xl"
     >
       {children}
-    </button>
+    </Link>
   );
 }
 function Button_secondary({
   children,
-  onClick,
+  href: to,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  href: string;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/15 bg-white/5 px-7 text-sm font-semibold text-white backdrop-blur transition-all hover:bg-white/10"
+    <Link
+      href={to}
+      className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/25 bg-transparent px-7 text-sm font-semibold text-white transition-all hover:border-white/50 hover:bg-white/10"
     >
       {children}
-    </button>
+    </Link>
   );
 }
 
 function HeroVisual() {
   const domains = [
-    { icon: Network, label: "Networking", color: "text-emerald-300" },
-    { icon: Lock, label: "Cybersecurity", color: "text-emerald-300" },
-    { icon: Camera, label: "Surveillance", color: "text-amber-300" },
-    { icon: Fingerprint, label: "Access Control", color: "text-emerald-300" },
-    { icon: Flame, label: "Fire Safety", color: "text-amber-300" },
-    { icon: ServerCog, label: "IT Infrastructure", color: "text-emerald-300" },
+    { icon: Network, label: "Networking" },
+    { icon: Lock, label: "Cybersecurity" },
+    { icon: Camera, label: "Surveillance" },
+    { icon: Fingerprint, label: "Access Control" },
+    { icon: Flame, label: "Fire Safety" },
+    { icon: ServerCog, label: "IT Infrastructure" },
   ];
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.96 }}
+      initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="relative"
+      transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      className="relative mx-auto mt-4 max-w-sm"
     >
-      <div className="glass rounded-3xl p-6 shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
+      <div className="rounded-2xl border border-white/15 bg-[oklch(0.2_0.03_235/0.85)] p-5 shadow-2xl backdrop-blur-md">
+        <div className="mb-3.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-300">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-brand/20 text-brand">
               <ShieldCheck className="size-4.5" />
             </div>
             <span className="text-sm font-semibold text-white">
               Integrated Security Stack
             </span>
           </div>
-          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[0.65rem] font-semibold text-emerald-300">
-            ONE TEAM
+          <span className="rounded-full bg-brand/20 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-brand">
+            One team
           </span>
         </div>
-        <div className="grid grid-cols-2 gap-2.5">
-          {domains.map((d, i) => (
-            <motion.div
+        <div className="grid grid-cols-2 gap-2">
+          {domains.map((d) => (
+            <div
               key={d.label}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + i * 0.08 }}
-              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5"
+              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] px-2.5 py-2"
             >
-              <d.icon className={`size-4.5 ${d.color}`} />
-              <span className="text-sm font-medium text-white/85">{d.label}</span>
-            </motion.div>
+              <d.icon className="size-4 text-brand" />
+              <span className="text-[0.8rem] font-medium text-white/90">{d.label}</span>
+            </div>
           ))}
         </div>
-        <div className="mt-4 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-emerald-300">System Status</span>
-            <span className="text-white/50">Assessment → Design → Install → Support</span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 1.4, delay: 0.6, ease: "easeInOut" }}
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-amber-300"
-            />
-          </div>
+        <div className="mt-3.5 flex items-center justify-between rounded-lg border border-brand/30 bg-brand/10 px-3 py-2 text-xs">
+          <span className="font-semibold text-brand">System status</span>
+          <span className="text-white/60">Assess → Design → Install → Support</span>
         </div>
       </div>
-
-      {/* Floating badge */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.8 }}
-        className="absolute -bottom-5 -right-3 hidden rounded-2xl border border-white/10 bg-background p-4 shadow-xl sm:block"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
-            <Handshake className="size-5" />
-          </div>
-          <div>
-            <div className="font-display text-sm font-bold">Single Accountability</div>
-            <div className="text-xs text-muted-foreground">One partner. Full stack.</div>
-          </div>
-        </div>
-      </motion.div>
     </motion.div>
   );
 }
@@ -313,7 +298,6 @@ function TrustStrip() {
 /*  What we do — service categories                                    */
 /* ------------------------------------------------------------------ */
 function WhatWeDo() {
-  const { navigate } = useSite();
   return (
     <Section>
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -336,11 +320,20 @@ function WhatWeDo() {
               params={{ anchor: `cat-${cat.id}` }}
               className="group block h-full"
             >
-              <div className="relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
+              <div className="relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
+                <div className="relative aspect-[16/8] overflow-hidden border-b border-border/60 bg-muted">
+                  <RemoteImage
+                    src={categoryMedia[cat.id] || media.industryLeading}
+                    alt={`${cat.name} — equipment Allison Global deploys`}
+                    className="size-full"
+                    imgClassName="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                    query={cat.id}
+                  />
+                </div>
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${cat.accent} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                  className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${cat.accent}`}
                 />
-                <div className="relative">
+                <div className="p-6">
                   <div className="flex items-center justify-between">
                     <IconBadge icon={cat.icon} variant="brand" />
                     <span className="text-xs font-medium text-muted-foreground">
@@ -420,7 +413,6 @@ function WhyChooseUs() {
 /*  Process preview                                                    */
 /* ------------------------------------------------------------------ */
 function ProcessPreview() {
-  const { navigate } = useSite();
   return (
     <Section>
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -545,7 +537,7 @@ function ProjectsPreview() {
       <Stagger className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {featured.map((p) => (
           <motion.div key={p.id} variants={staggerItem}>
-            <ProjectCard project={p} />
+            <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
           </motion.div>
         ))}
       </Stagger>
@@ -557,7 +549,6 @@ function ProjectsPreview() {
 /*  Solutions preview                                                  */
 /* ------------------------------------------------------------------ */
 function SolutionsPreview() {
-  const { navigate } = useSite();
   const items = [
     {
       icon: ShieldCheck,
@@ -595,8 +586,8 @@ function SolutionsPreview() {
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((s, i) => (
           <Reveal key={s.slug} delay={i * 0.05}>
-            <button
-              onClick={() => navigate("solutions", { anchor: `sol-${s.slug}` })}
+            <Link
+              href={href("solutions", { anchor: `sol-${s.slug}` })}
               className="group block h-full w-full rounded-2xl border border-border/70 bg-card p-6 text-left transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg"
             >
               <IconBadge icon={s.icon} variant="brand" />
@@ -606,7 +597,7 @@ function SolutionsPreview() {
                 Explore solution
                 <ChevronRight className="size-4" />
               </span>
-            </button>
+            </Link>
           </Reveal>
         ))}
       </div>
@@ -680,7 +671,7 @@ function InsightsPreview() {
       <Stagger className="mt-12 grid gap-6 md:grid-cols-3">
         {posts.map((p) => (
           <motion.div key={p.slug} variants={staggerItem}>
-            <BlogCard post={p} />
+            <BlogCard post={p} imageUrl={blogMedia[p.slug]} />
           </motion.div>
         ))}
       </Stagger>
@@ -692,7 +683,6 @@ function InsightsPreview() {
 /*  Founder note                                                       */
 /* ------------------------------------------------------------------ */
 function FounderNote() {
-  const { navigate } = useSite();
   return (
     <Section>
       <div className="grid items-center gap-10 lg:grid-cols-12">

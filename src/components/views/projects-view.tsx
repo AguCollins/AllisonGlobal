@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Filter, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Building2, Filter, CheckCircle2 } from "lucide-react";
 import {
   Section,
   SectionHeader,
   Reveal,
   Stagger,
   staggerItem,
-  NavButton,
 } from "@/components/site/primitives";
 import {
   PageHero,
@@ -17,27 +16,30 @@ import {
   StatStrip,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
-import { projects, projectCategories } from "@/lib/data/projects";
-import { industries, industryMap } from "@/lib/data/industries";
+import { projectCategories } from "@/lib/data/projects";
+import { projectMedia, heroMedia } from "@/lib/data/media";
+import { industries } from "@/lib/data/industries";
 import { services } from "@/lib/data/services";
+import type { Project } from "@/lib/types";
 
-export function ProjectsView() {
+export function ProjectsView({ projects: projectList }: { projects: Project[] }) {
   const [filter, setFilter] = React.useState<string>("all");
   const [industryFilter, setIndustryFilter] = React.useState<string>("all");
 
   const filtered = React.useMemo(() => {
-    return projects.filter((p) => {
+    return projectList.filter((p) => {
       const catOk = filter === "all" || p.category === filter;
       const indOk = industryFilter === "all" || p.industry === industryFilter;
       return catOk && indOk;
     });
   }, [filter, industryFilter]);
 
-  const featured = projects.filter((p) => p.featured);
+  const featured = projectList.filter((p) => p.featured);
 
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["projects"]}
         eyebrow="Projects & Portfolio"
         title="Representative engagements"
         subtitle="A selection of the work we deliver across industries — each engineered, documented and supported as a complete system. Presented as representative case studies by sector and scope."
@@ -59,7 +61,7 @@ export function ProjectsView() {
           <div className="mt-12">
             <StatStrip
               stats={[
-                { value: String(projects.length), label: "Representative case studies", sub: "across sectors" },
+                { value: String(projectList.length), label: "Representative case studies", sub: "across sectors" },
                 { value: String(industries.length), label: "Industries served", sub: "homes to heavy industry" },
                 { value: String(services.length), label: "Specialist services", sub: "deployed in the field" },
                 { value: "6", label: "Service domains", sub: "under one team" },
@@ -81,7 +83,7 @@ export function ProjectsView() {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featured.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} />
+                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
               </motion.div>
             ))}
           </Stagger>
@@ -139,7 +141,7 @@ export function ProjectsView() {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} />
+                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
               </motion.div>
             ))}
           </Stagger>
@@ -202,7 +204,7 @@ function FilterPill({
     <button
       onClick={onClick}
       className={
-        "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors " +
+        "rounded-full border px-4 py-2 text-xs font-medium transition-colors " +
         (active
           ? "border-brand bg-brand text-brand-foreground"
           : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")

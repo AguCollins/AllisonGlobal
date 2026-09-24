@@ -23,9 +23,9 @@ import {
   Cog,
   Building2,
   LifeBuoy,
-  ClipboardCheck,
-  type LucideIcon,
 } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
+import type { LucideIcon } from "lucide-react";
 import type { ServiceCategory, Service } from "@/lib/types";
 
 export const serviceCategories: ServiceCategory[] = [

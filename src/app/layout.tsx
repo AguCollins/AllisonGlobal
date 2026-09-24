@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Sora, JetBrains_Mono } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { SiteShell } from "@/components/site/site-shell";
+import { company } from "@/lib/data/company";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -18,13 +18,8 @@ const sora = Sora({
   display: "swap",
 });
 
-const jetbrains = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const siteUrl = "https://allisonglobal.example";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.allisonglobal.tech";
 const description =
   "Allison Global is a Nigerian technology and security solutions partner delivering ICT, networking, cybersecurity, CCTV surveillance, access control, fire safety and IT infrastructure — engineered to protect homes, businesses and institutions.";
 
@@ -53,17 +48,19 @@ export const metadata: Metadata = {
   publisher: "Allison Global",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Allison Global — Engineering Trust. Securing Futures.",
+    title: "Allison Global — Technology without limits",
     description,
     url: siteUrl,
     siteName: "Allison Global",
     type: "website",
     locale: "en_NG",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Allison Global Ltd" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Allison Global — ICT, Networking, Cybersecurity & Electronic Security",
+    title: "Allison Global — Technology without limits",
     description,
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -71,7 +68,7 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
   icons: {
-    icon: "/logo.svg",
+    icon: "/favicon.png",
   },
   category: "technology",
 };
@@ -90,19 +87,48 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // LocalBusiness / Organization structured data for SEO.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: company.legalName,
+    alternateName: company.name,
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    image: `${siteUrl}/og-image.png`,
+    description: company.shortPitch,
+    telephone: company.contact.phoneIntl,
+    email: company.contact.email,
+    areaServed: "Nigeria",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: company.location.city,
+      addressCountry: company.location.country,
+    },
+    foundingDate: "2025-10",
+    founder: {
+      "@type": "Person",
+      name: company.founder.name,
+      jobTitle: company.founder.title,
+    },
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${sora.variable} ${jetbrains.variable} antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${sora.variable} antialiased bg-background text-foreground`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <SiteShell>{children}</SiteShell>
           <SonnerToaster position="top-right" richColors />
         </ThemeProvider>
       </body>

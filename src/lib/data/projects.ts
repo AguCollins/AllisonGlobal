@@ -25,7 +25,7 @@ export const projects: Project[] = [
       "Reduced shrinkage and faster incident review",
     ],
     imageQuery: "retail store surveillance camera system installation",
-    year: "2024",
+    year: "2025",
     featured: true,
   },
   {
@@ -45,7 +45,7 @@ export const projects: Project[] = [
       "Access control with audit trail across the building",
     ],
     imageQuery: "modern corporate office server room and network racks",
-    year: "2024",
+    year: "2025",
     featured: true,
   },
   {
@@ -65,7 +65,7 @@ export const projects: Project[] = [
       "Video intercom with remote gate unlock",
     ],
     imageQuery: "boutique hotel lobby fire safety and access control systems",
-    year: "2023",
+    year: "2025",
     featured: true,
   },
   {
@@ -85,7 +85,7 @@ export const projects: Project[] = [
       "Integrated alarm and alerting",
     ],
     imageQuery: "warehouse perimeter security infrared beam cameras at night",
-    year: "2023",
+    year: "2025",
   },
   {
     id: "p-005",
@@ -104,7 +104,7 @@ export const projects: Project[] = [
       "Access control for labs and offices",
     ],
     imageQuery: "school campus wifi access points and security cameras",
-    year: "2024",
+    year: "2025",
   },
   {
     id: "p-006",
@@ -123,7 +123,7 @@ export const projects: Project[] = [
       "Ongoing managed IT support",
     ],
     imageQuery: "hospital server room with racks ups and cooling",
-    year: "2023",
+    year: "2025",
   },
   {
     id: "p-007",
@@ -142,7 +142,7 @@ export const projects: Project[] = [
       "Reduced material losses",
     ],
     imageQuery: "construction site mobile surveillance cameras at night",
-    year: "2024",
+    year: "2025",
   },
   {
     id: "p-008",
@@ -161,7 +161,7 @@ export const projects: Project[] = [
       "Estate-wide Wi-Fi for management",
     ],
     imageQuery: "gated residential estate gate access control and cameras",
-    year: "2023",
+    year: "2025",
   },
   {
     id: "p-009",
@@ -180,7 +180,7 @@ export const projects: Project[] = [
       "Compliance-ready documentation",
     ],
     imageQuery: "manufacturing plant fire safety and network infrastructure",
-    year: "2024",
+    year: "2025",
   },
 ];
 

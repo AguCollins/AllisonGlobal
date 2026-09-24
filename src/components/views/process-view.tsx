@@ -26,6 +26,7 @@ import {
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { processSteps } from "@/lib/data/process";
+import { heroMedia } from "@/lib/data/media";
 
 /* ------------------------------------------------------------------ */
 /*  ProcessView                                                        */
@@ -34,6 +35,7 @@ export function ProcessView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["process"]}
         eyebrow="Our Process"
         title="A process built for outcomes, not transactions"
         subtitle="Every engagement follows the same engineering-led path — from understanding your site to supporting it for years after."

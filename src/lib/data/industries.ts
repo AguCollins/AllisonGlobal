@@ -12,8 +12,9 @@ import {
   Church,
   PiggyBank,
   Store,
-  type LucideIcon,
 } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
+import type { LucideIcon } from "lucide-react";
 import type { Industry } from "@/lib/types";
 
 export const industries: Industry[] = [

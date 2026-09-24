@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,14 +19,12 @@ import {
 } from "lucide-react";
 import {
   Section,
-  IconBadge,
   NavButton,
 } from "@/components/site/primitives";
 import { PageHero } from "@/components/site/sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -34,8 +33,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { serviceCategories, services } from "@/lib/data/services";
+import { heroMedia } from "@/lib/data/media";
 import { industries } from "@/lib/data/industries";
 import { company } from "@/lib/data/company";
+import { Field as FormField, FormSection } from "@/components/site/form";
 
 const schema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -43,7 +44,7 @@ const schema = z.object({
   phone: z.string().min(7, "Please enter a contact number"),
   company: z.string().optional(),
   industry: z.string().optional(),
-  services: z.array(z.string()).optional().default([]),
+  services: z.array(z.string()).optional(),
   budget: z.string().optional(),
   timeline: z.string().optional(),
   siteLocation: z.string().optional(),
@@ -74,9 +75,11 @@ const timelineOptions = [
 
 const siteCountOptions = ["1 site", "2–5 sites", "6–10 sites", "10+ sites"];
 
-export function QuoteView({ initialSubject }: { initialSubject?: string }) {
+export function QuoteView() {
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
+  const searchParams = useSearchParams();
+  const initialSubject = searchParams.get("subject") ?? "";
   const [selectedServices, setSelectedServices] = React.useState<string[]>(
     initialSubject ? extractSlugs(initialSubject) : [],
   );
@@ -94,7 +97,7 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
       timeline: "",
       siteLocation: "",
       siteCount: "",
-      subject: initialSubject ?? "",
+      subject: initialSubject,
       message: "",
       website: "",
     },
@@ -144,6 +147,7 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["quote"]}
         eyebrow="Request a Quote"
         title="Tell us what you need — we'll engineer a response"
         subtitle="The more we understand about your site, goals and constraints, the more precise and useful our proposal will be. No obligation, no generic templates."
@@ -173,18 +177,26 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
                 step={1}
               >
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Full name" error={form.formState.errors.name?.message} required>
-                    <Input placeholder="e.g. Ada Okafor" {...form.register("name")} />
-                  </Field>
-                  <Field label="Phone" error={form.formState.errors.phone?.message} required>
-                    <Input placeholder="0801 234 5678" {...form.register("phone")} />
-                  </Field>
-                  <Field label="Email" error={form.formState.errors.email?.message} required>
-                    <Input type="email" placeholder="you@company.com" {...form.register("email")} />
-                  </Field>
-                  <Field label="Company / Organisation" error={form.formState.errors.company?.message}>
-                    <Input placeholder="Your organisation" {...form.register("company")} />
-                  </Field>
+                  <FormField label="Full name" error={form.formState.errors.name?.message} required>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} aria-invalid={ai} aria-describedby={db} placeholder="e.g. Ada Okafor" {...form.register("name")} />
+                    )}
+                  </FormField>
+                  <FormField label="Phone" error={form.formState.errors.phone?.message} required>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} aria-invalid={ai} aria-describedby={db} placeholder="0801 234 5678" {...form.register("phone")} />
+                    )}
+                  </FormField>
+                  <FormField label="Email" error={form.formState.errors.email?.message} required>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} type="email" aria-invalid={ai} aria-describedby={db} placeholder="you@company.com" {...form.register("email")} />
+                    )}
+                  </FormField>
+                  <FormField label="Company / Organisation" error={form.formState.errors.company?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} aria-invalid={ai} aria-describedby={db} placeholder="Your organisation" {...form.register("company")} />
+                    )}
+                  </FormField>
                 </div>
               </FormSection>
 
@@ -213,7 +225,7 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
                               type="button"
                               onClick={() => toggleService(slug)}
                               className={
-                                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all " +
+                                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium transition-all " +
                                 (active
                                   ? "border-brand bg-brand text-brand-foreground"
                                   : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")
@@ -242,50 +254,58 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
                 step={3}
               >
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Industry / sector" error={form.formState.errors.industry?.message}>
-                    <Controller
-                      control={form.control}
-                      name="industry"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your sector" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {industries.map((ind) => (
-                              <SelectItem key={ind.id} value={ind.id}>
-                                {ind.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </Field>
-                  <Field label="Site location" error={form.formState.errors.siteLocation?.message}>
-                    <Input placeholder="e.g. Lekki, Lagos" {...form.register("siteLocation")} />
-                  </Field>
-                  <Field label="Number of sites" error={form.formState.errors.siteCount?.message}>
-                    <Controller
-                      control={form.control}
-                      name="siteCount"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="How many locations?" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {siteCountOptions.map((o) => (
-                              <SelectItem key={o} value={o}>{o}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </Field>
-                  <Field label="Project name / reference" error={form.formState.errors.subject?.message}>
-                    <Input placeholder="Optional" {...form.register("subject")} />
-                  </Field>
+                  <FormField label="Industry / sector" error={form.formState.errors.industry?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Controller
+                        control={form.control}
+                        name="industry"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <SelectTrigger id={id} aria-invalid={ai} aria-describedby={db}>
+                              <SelectValue placeholder="Select your sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {industries.map((ind) => (
+                                <SelectItem key={ind.id} value={ind.id}>
+                                  {ind.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </FormField>
+                  <FormField label="Site location" error={form.formState.errors.siteLocation?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} aria-invalid={ai} aria-describedby={db} placeholder="e.g. Lekki, Lagos" {...form.register("siteLocation")} />
+                    )}
+                  </FormField>
+                  <FormField label="Number of sites" error={form.formState.errors.siteCount?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Controller
+                        control={form.control}
+                        name="siteCount"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <SelectTrigger id={id} aria-invalid={ai} aria-describedby={db}>
+                              <SelectValue placeholder="How many locations?" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {siteCountOptions.map((o) => (
+                                <SelectItem key={o} value={o}>{o}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </FormField>
+                  <FormField label="Project name / reference" error={form.formState.errors.subject?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Input id={id} aria-invalid={ai} aria-describedby={db} placeholder="Optional" {...form.register("subject")} />
+                    )}
+                  </FormField>
                 </div>
               </FormSection>
 
@@ -297,42 +317,46 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
                 subtitle="Honest guidance helps us recommend the right approach — not just the most expensive one."
               >
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Estimated budget" error={form.formState.errors.budget?.message}>
-                    <Controller
-                      control={form.control}
-                      name="budget"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a range" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {budgetOptions.map((o) => (
-                              <SelectItem key={o} value={o}>{o}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </Field>
-                  <Field label="Timeline" error={form.formState.errors.timeline?.message}>
-                    <Controller
-                      control={form.control}
-                      name="timeline"
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="When do you need this?" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {timelineOptions.map((o) => (
-                              <SelectItem key={o} value={o}>{o}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  </Field>
+                  <FormField label="Estimated budget" error={form.formState.errors.budget?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Controller
+                        control={form.control}
+                        name="budget"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <SelectTrigger id={id} aria-invalid={ai} aria-describedby={db}>
+                              <SelectValue placeholder="Select a range" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {budgetOptions.map((o) => (
+                                <SelectItem key={o} value={o}>{o}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </FormField>
+                  <FormField label="Timeline" error={form.formState.errors.timeline?.message}>
+                    {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                      <Controller
+                        control={form.control}
+                        name="timeline"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <SelectTrigger id={id} aria-invalid={ai} aria-describedby={db}>
+                              <SelectValue placeholder="When do you need this?" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timelineOptions.map((o) => (
+                                <SelectItem key={o} value={o}>{o}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </FormField>
                 </div>
               </FormSection>
 
@@ -343,13 +367,18 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
                 step={5}
                 subtitle="Share anything that helps us understand your goals, constraints or existing systems."
               >
-                <Field label="Tell us about your project" error={form.formState.errors.message?.message} required>
-                  <Textarea
-                    rows={6}
-                    placeholder="e.g. We're a 3-floor office in Victoria Island needing CCTV, access control and a network refresh. Currently have an old analogue system and consumer Wi-Fi that keeps dropping…"
-                    {...form.register("message")}
-                  />
-                </Field>
+                <FormField label="Tell us about your project" error={form.formState.errors.message?.message} required>
+                  {({ id, "aria-invalid": ai, "aria-describedby": db }) => (
+                    <Textarea
+                      id={id}
+                      aria-invalid={ai}
+                      aria-describedby={db}
+                      rows={6}
+                      placeholder="e.g. We're a 3-floor office in Victoria Island needing CCTV, access control and a network refresh. Currently have an old analogue system and consumer Wi-Fi that keeps dropping…"
+                      {...form.register("message")}
+                    />
+                  )}
+                </FormField>
               </FormSection>
 
               <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-muted/30 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -442,63 +471,6 @@ export function QuoteView({ initialSubject }: { initialSubject?: string }) {
   );
 }
 
-function FormSection({
-  icon: Icon,
-  title,
-  subtitle,
-  step,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  subtitle?: string;
-  step: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-card p-6 sm:p-7">
-      <div className="flex items-start gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-brand/10 font-display text-sm font-bold text-brand">
-            {step}
-          </div>
-          <IconBadge icon={Icon} variant="outline" />
-        </div>
-        <div>
-          <h3 className="font-display text-lg font-semibold">{title}</h3>
-          {subtitle && (
-            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
-          )}
-        </div>
-      </div>
-      <div className="mt-5">{children}</div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <Label className="mb-1.5 block text-sm font-medium">
-        {label}
-        {required && <span className="ml-0.5 text-destructive">*</span>}
-      </Label>
-      {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-    </div>
-  );
-}
-
 function SuccessScreen() {
   return (
     <section className="relative overflow-hidden band-ink">
@@ -511,7 +483,7 @@ function SuccessScreen() {
         <h1 className="mt-6 font-display text-3xl font-bold text-white sm:text-4xl">
           Request received — thank you
         </h1>
-        <p className="mt-4 text-pretty text-lg text-white/70">
+        <p className="mt-4 text-pretty text-lg text-white/85">
           Your quote request has been submitted. One of our engineers will review your
           requirements and get back to you shortly — typically within one business day.
         </p>
@@ -521,13 +493,13 @@ function SuccessScreen() {
           </NavButton>
           <a
             href={`tel:${company.contact.phoneIntl}`}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-white/15 bg-white/5 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-white/25 bg-white/5 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             <PhoneCall className="size-4" />
             Call us now
           </a>
         </div>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/50">
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/75">
           <span>Need something urgent? Call {company.contact.phoneDisplay}</span>
         </div>
       </div>

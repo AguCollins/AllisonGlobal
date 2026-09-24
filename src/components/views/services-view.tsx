@@ -25,15 +25,29 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { serviceCategories, services, categoryMap } from "@/lib/data/services";
+import { heroMedia } from "@/lib/data/media";
 import { capabilityStats } from "@/lib/data/company";
+import type { Service, ServiceCategory } from "@/lib/types";
 
-export function ServicesView() {
+export function ServicesView({
+  services: svcList,
+  categories: catList,
+}: {
+  services: Service[];
+  categories: ServiceCategory[];
+}) {
   const [activeCat, setActiveCat] = React.useState<string>("all");
   const [query, setQuery] = React.useState("");
 
+  // Build a category lookup map from the passed-in categories
+  const categoryMap = React.useMemo(() => {
+    const m: Record<string, ServiceCategory> = {};
+    catList.forEach((c) => (m[c.id] = c));
+    return m;
+  }, [catList]);
+
   const filtered = React.useMemo(() => {
-    return services.filter((s) => {
+    return svcList.filter((s) => {
       const catOk = activeCat === "all" || s.categoryId === activeCat;
       const q = query.trim().toLowerCase();
       const qOk =
@@ -48,7 +62,6 @@ export function ServicesView() {
   // Smooth scroll to category anchor if coming from nav
   React.useEffect(() => {
     const hash = window.location.hash;
-    const fromParams = (window as unknown as { __navAnchor?: string }).__navAnchor;
     // anchor-based scroll handled by store; here we just support hash on mount
     if (hash) {
       const el = document.querySelector(hash);
@@ -59,6 +72,7 @@ export function ServicesView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["services"]}
         eyebrow="Our Services"
         title="One team. The full ICT & security stack."
         subtitle="From structured cabling to cybersecurity, CCTV to fire safety, access control to managed IT — six domains, twenty-six specialist services, engineered together under one accountable partner."
@@ -100,15 +114,15 @@ export function ServicesView() {
             <button
               onClick={() => setActiveCat("all")}
               className={
-                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors " +
+                "rounded-full border px-4 py-2 text-sm font-medium transition-colors " +
                 (activeCat === "all"
                   ? "border-brand bg-brand text-brand-foreground"
                   : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")
               }
             >
-              All services ({services.length})
+              All services ({svcList.length})
             </button>
-            {serviceCategories.map((cat) => (
+            {catList.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => {
@@ -117,14 +131,14 @@ export function ServicesView() {
                   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
                 className={
-                  "inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors " +
+                  "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium transition-colors " +
                   (activeCat === cat.id
                     ? "border-brand bg-brand text-brand-foreground"
                     : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")
                 }
               >
                 <cat.icon className="size-3.5" />
-                {cat.name} ({cat.services.length})
+                {cat.name} ({cat.svcList.length})
               </button>
             ))}
           </div>
@@ -134,7 +148,7 @@ export function ServicesView() {
       {/* Services by category */}
       {activeCat === "all" ? (
         <>
-          {serviceCategories.map((cat) => (
+          {catList.map((cat) => (
             <CategoryBlock key={cat.id} categoryId={cat.id} />
           ))}
         </>
@@ -229,8 +243,8 @@ function CategoryBlock({ categoryId }: { categoryId: string }) {
   const cat = categoryMap[categoryId];
   if (!cat) return null;
   const catServices = cat.services
-    .map((slug) => services.find((s) => s.slug === slug))
-    .filter(Boolean) as typeof services;
+    .map((slug) => svcList.find((s) => s.slug === slug))
+    .filter(Boolean) as Service[];
 
   return (
     <Section id={`cat-${categoryId}`} className="scroll-mt-28 pt-0">
@@ -247,7 +261,7 @@ function CategoryBlock({ categoryId }: { categoryId: string }) {
             </div>
           </div>
           <div className="text-sm text-muted-foreground">
-            {cat.services.length} services
+            {cat.svcList.length} services
           </div>
         </div>
 

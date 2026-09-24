@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Menu,
-  X,
   ChevronDown,
   PhoneCall,
   Moon,
@@ -28,32 +28,32 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { LogoMark, NavButton, NavLink } from "@/components/site/primitives";
-import { useSite } from "@/store/site-store";
+import { LogoMark, NavButton } from "@/components/site/primitives";
 import { mainNav, utilityNav, company } from "@/lib/data/company";
 import { serviceCategories, services } from "@/lib/data/services";
+import { href, isActiveView } from "@/lib/nav";
 import type { ViewId } from "@/lib/types";
 
 export function Header() {
   const [scrolled, setScrolled] = React.useState(false);
   const [megaOpen, setMegaOpen] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const { view, navigate } = useSite();
+  const pathname = usePathname();
   const megaRef = React.useRef<HTMLDivElement>(null);
   const closeTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close mobile sheet on view change
+  // Close mobile sheet on route change
   React.useEffect(() => {
     setMobileOpen(false);
     setMegaOpen(false);
-  }, [view]);
+  }, [pathname]);
 
   const openMega = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -68,46 +68,42 @@ export function Header() {
       className={cn(
         "sticky top-0 z-50 w-full transition-all duration-300",
         scrolled
-          ? "border-b border-border bg-background/85 backdrop-blur-md shadow-sm"
-          : "border-b border-transparent bg-background",
+          ? "border-b border-border bg-background/90 backdrop-blur-md shadow-sm"
+          : "border-b border-border/60 bg-background",
       )}
     >
-      {/* Top utility bar */}
+      {/* Top utility bar — slim */}
       <div className="hidden border-b border-border/60 bg-muted/40 lg:block">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-1.5 text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-8 py-1 text-[0.7rem] text-muted-foreground">
+          <div className="flex items-center gap-5">
             <a
               href={`tel:${company.contact.phoneIntl}`}
               className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
             >
-              <PhoneCall className="size-3.5 text-brand" />
+              <PhoneCall className="size-3 text-brand" />
               {company.contact.phoneDisplay}
             </a>
             <a
               href={`mailto:${company.contact.email}`}
               className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
             >
-              <Mail className="size-3.5 text-brand" />
+              <Mail className="size-3 text-brand" />
               {company.contact.email}
             </a>
           </div>
           <div className="flex items-center gap-4">
             <span>{company.location.city}, {company.location.country}</span>
             <span className="text-border">|</span>
-            <span>{company.contact.hours}</span>
+            <span>Mon–Sat 8am–6pm · 24/7 emergency support</span>
           </div>
         </div>
       </div>
 
       {/* Main nav */}
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-        <button
-          type="button"
-          onClick={() => navigate("home")}
-          aria-label="Allison Global home"
-        >
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
+        <Link href="/" aria-label="Allison Global — home" className="shrink-0">
           <LogoMark />
-        </button>
+        </Link>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-0.5 lg:flex">
@@ -120,12 +116,11 @@ export function Header() {
                 onMouseEnter={openMega}
                 onMouseLeave={closeMega}
               >
-                <button
-                  type="button"
-                  onClick={() => navigate("services")}
+                <Link
+                  href={href(item.view as ViewId)}
                   className={cn(
                     "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    view === "services" || view === "service-detail"
+                    isActiveView(item.view as ViewId, pathname)
                       ? "text-brand"
                       : "text-foreground/80 hover:text-foreground",
                   )}
@@ -137,23 +132,22 @@ export function Header() {
                       megaOpen && "rotate-180",
                     )}
                   />
-                </button>
+                </Link>
                 {megaOpen && <ServiceMegaMenu />}
               </div>
             ) : (
-              <button
+              <Link
                 key={item.view}
-                type="button"
-                onClick={() => navigate(item.view as ViewId)}
+                href={href(item.view as ViewId)}
                 className={cn(
                   "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  view === item.view
+                  isActiveView(item.view as ViewId, pathname)
                     ? "text-brand"
                     : "text-foreground/80 hover:text-foreground",
                 )}
               >
                 {item.label}
-              </button>
+              </Link>
             ),
           )}
         </nav>
@@ -227,7 +221,6 @@ export function Header() {
 /*  Service mega menu                                                  */
 /* ------------------------------------------------------------------ */
 function ServiceMegaMenu() {
-  const { navigate } = useSite();
   return (
     <div className="absolute left-1/2 top-full z-50 w-[min(56rem,92vw)] -translate-x-1/2 pt-3">
       <div className="overflow-hidden rounded-2xl border border-border bg-popover shadow-2xl">
@@ -240,9 +233,8 @@ function ServiceMegaMenu() {
                 "transition-colors hover:bg-accent/40",
               )}
             >
-              <button
-                type="button"
-                onClick={() => navigate("services", { anchor: `cat-${cat.id}` })}
+              <Link
+                href={href("services", { anchor: `cat-${cat.id}` })}
                 className="flex w-full items-start gap-3 text-left"
               >
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/15 dark:bg-emerald-500/15 dark:text-emerald-300">
@@ -256,21 +248,20 @@ function ServiceMegaMenu() {
                     {cat.tagline}
                   </span>
                 </span>
-              </button>
+              </Link>
               <ul className="mt-3 space-y-1">
                 {cat.services.map((slug) => {
                   const svc = services.find((s) => s.slug === slug);
                   if (!svc) return null;
                   return (
                     <li key={slug}>
-                      <button
-                        type="button"
-                        onClick={() => navigate("service-detail", { slug })}
+                      <Link
+                        href={href("service-detail", { slug })}
                         className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-[0.8rem] text-muted-foreground transition-colors hover:bg-background hover:text-brand"
                       >
                         <span className="size-1 rounded-full bg-brand/50" />
                         {svc.name}
-                      </button>
+                      </Link>
                     </li>
                   );
                 })}
@@ -283,19 +274,11 @@ function ServiceMegaMenu() {
             Not sure what you need? Browse solutions by outcome.
           </p>
           <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("solutions")}
-            >
-              Solutions
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/solutions">Solutions</Link>
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("industries")}
-            >
-              Industries
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/industries">Industries</Link>
             </Button>
           </div>
         </div>
@@ -308,7 +291,6 @@ function ServiceMegaMenu() {
 /*  Mobile nav (inside sheet)                                         */
 /* ------------------------------------------------------------------ */
 function MobileNav() {
-  const { navigate } = useSite();
   return (
     <div className="px-2 py-3">
       <Accordion type="multiple" className="w-full">
@@ -322,29 +304,25 @@ function MobileNav() {
                 <div className="space-y-3 px-3">
                   {serviceCategories.map((cat) => (
                     <div key={cat.id}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          navigate("services", { anchor: `cat-${cat.id}` })
-                        }
+                      <Link
+                        href={href("services", { anchor: `cat-${cat.id}` })}
                         className="flex items-center gap-2 text-left text-sm font-semibold text-foreground"
                       >
                         <cat.icon className="size-4 text-brand" />
                         {cat.name}
-                      </button>
+                      </Link>
                       <ul className="mt-1 space-y-0.5 pl-6">
                         {cat.services.map((slug) => {
                           const svc = services.find((s) => s.slug === slug);
                           if (!svc) return null;
                           return (
                             <li key={slug}>
-                              <button
-                                type="button"
-                                onClick={() => navigate("service-detail", { slug })}
+                              <Link
+                                href={href("service-detail", { slug })}
                                 className="text-left text-[0.8rem] text-muted-foreground hover:text-brand"
                               >
                                 {svc.name}
-                              </button>
+                              </Link>
                             </li>
                           );
                         })}
@@ -356,14 +334,13 @@ function MobileNav() {
             </AccordionItem>
           ) : (
             <div key={item.view} className="border-b border-border/60">
-              <button
-                type="button"
-                onClick={() => navigate(item.view as ViewId)}
+              <Link
+                href={href(item.view as ViewId)}
                 className="flex w-full items-center justify-between px-3 py-3 text-sm font-medium"
               >
                 {item.label}
                 <ArrowRight className="size-4 text-muted-foreground" />
-              </button>
+              </Link>
             </div>
           ),
         )}
@@ -374,15 +351,14 @@ function MobileNav() {
           More
         </p>
         {utilityNav.map((item) => (
-          <button
+          <Link
             key={item.view}
-            type="button"
-            onClick={() => navigate(item.view as ViewId)}
+            href={href(item.view as ViewId)}
             className="flex w-full items-center justify-between border-b border-border/40 py-2.5 text-sm font-medium text-foreground/80 hover:text-brand"
           >
             {item.label}
             <ArrowRight className="size-4 text-muted-foreground" />
-          </button>
+          </Link>
         ))}
       </div>
     </div>
@@ -393,12 +369,12 @@ function MobileNav() {
 /*  Theme toggle                                                       */
 /* ------------------------------------------------------------------ */
 function ThemeToggle() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
   if (!mounted) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Toggle theme" className="size-9">
+      <Button variant="ghost" size="icon" aria-label="Toggle theme" className="size-10">
         <Sun className="size-4" />
       </Button>
     );
@@ -409,7 +385,7 @@ function ThemeToggle() {
       variant="ghost"
       size="icon"
       aria-label="Toggle theme"
-      className="size-9"
+      className="size-10"
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}

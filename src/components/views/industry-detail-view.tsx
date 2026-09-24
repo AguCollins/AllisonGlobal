@@ -1,11 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { useParams } from "next/navigation";
 import {
   ArrowRight,
   ArrowLeft,
   AlertCircle,
-  Target,
   CheckCircle2,
   PhoneCall,
   Building2,
@@ -14,26 +14,26 @@ import {
 import {
   Section,
   SectionHeader,
-  Reveal,
   Stagger,
   staggerItem,
-  IconBadge,
   NavButton,
-  NavLink,
 } from "@/components/site/primitives";
 import {
   PageHero,
   ConversionPathCTA,
   ServiceCard,
   ProjectCard,
+  RemoteImage,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
 import { industryMap } from "@/lib/data/industries";
 import { serviceMap } from "@/lib/data/services";
 import { projectsByIndustry } from "@/lib/data/projects";
-import { company } from "@/lib/data/company";
+import { projectMedia, industryMedia, media } from "@/lib/data/media";
 
-export function IndustryDetailView({ id }: { id?: string }) {
+export function IndustryDetailView() {
+  const params = useParams<{ slug?: string }>();
+  const id = params.slug;
   const industry = id ? industryMap[id] : undefined;
 
   if (!industry) {
@@ -103,25 +103,36 @@ export function IndustryDetailView({ id }: { id?: string }) {
             </div>
           </div>
           <div className="lg:col-span-4">
-            <div className="rounded-2xl border border-border/70 bg-muted/40 p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Building2 className="size-4 text-brand" />
-                Sector snapshot
+            <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+              <div className="relative aspect-[4/3] bg-muted">
+                <RemoteImage
+                  src={industryMedia[industry.id] || media.industryLeading}
+                  alt={`${industry.name} — representative solution Allison Global deploys`}
+                  className="size-full"
+                  imgClassName="object-contain p-6"
+                  query={industry.id}
+                />
               </div>
-              <dl className="mt-4 space-y-3 text-sm">
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Tailored services</dt>
-                  <dd className="font-medium">{sectorServices.length}</dd>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Building2 className="size-4 text-brand" />
+                  Sector snapshot
                 </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Example projects</dt>
-                  <dd className="font-medium">{sectorProjects.length}</dd>
-                </div>
-                <div className="flex justify-between gap-3">
-                  <dt className="text-muted-foreground">Service domains</dt>
-                  <dd className="font-medium">6</dd>
-                </div>
-              </dl>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Tailored services</dt>
+                    <dd className="font-medium">{sectorServices.length}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Example projects</dt>
+                    <dd className="font-medium">{sectorProjects.length}</dd>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-muted-foreground">Service domains</dt>
+                    <dd className="font-medium">6</dd>
+                  </div>
+                </dl>
+              </div>
             </div>
           </div>
         </div>
@@ -218,7 +229,7 @@ export function IndustryDetailView({ id }: { id?: string }) {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sectorProjects.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} />
+                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
               </motion.div>
             ))}
           </Stagger>

@@ -1,18 +1,21 @@
 /**
- * Allison Global — company identity & contact.
+ * Allison Global Ltd — company identity & contact.
  * Original brand. CEO/Founder: Agu Chisom Alvin (Electrical & Electronics Engineer).
+ * Established October 2025. RC: 8939118.
  */
 export const company = {
   name: "Allison Global",
-  legalName: "Allison Global Technologies",
-  tagline: "Engineering Trust. Securing Futures.",
+  legalName: "Allison Global Ltd",
+  tagline: "Technology without limits.",
   descriptor:
     "ICT, Networking, Cybersecurity & Electronic Security Solutions",
-  foundedYear: "2017",
+  foundedYear: "2025",
+  foundedLabel: "Established October 2025",
+  rcNumber: "RC: 8939118",
   shortPitch:
-    "A Nigerian technology and security solutions partner. We assess, design, supply, install, integrate and maintain the systems that keep your people, data and property secure — under one accountable team.",
+    "A Nigerian technology and security solutions partner established in October 2025. We assess, design, supply, install, integrate and maintain the systems that keep your people, data and property secure — under one accountable team.",
   longPitch:
-    "Allison Global is a technology and security solutions partner serving homes, offices, businesses, institutions and industries across Nigeria. We bring together ICT, networking, cybersecurity and electronic security under one engineering-led team — so your infrastructure, surveillance, access control and fire safety systems are designed to work as one, not as isolated products. From the first site assessment to long-term managed support, we own the outcome.",
+    "Allison Global Ltd is a technology and security solutions partner serving homes, offices, businesses, institutions and industries across Nigeria. We bring together ICT, networking, cybersecurity and electronic security under one engineering-led team — so your infrastructure, surveillance, access control and fire safety systems are designed to work as one, not as isolated products. From the first site assessment to long-term managed support, we own the outcome.",
   location: {
     city: "Lagos",
     country: "Nigeria",
@@ -40,7 +43,7 @@ export const company = {
     name: "Agu Chisom Alvin",
     title: "Founder & Chief Executive Officer",
     discipline: "Electrical & Electronics Engineer",
-    bio: "Agu Chisom Alvin is an Electrical & Electronics Engineer who founded Allison Global to close a gap he kept seeing on site: organisations buying good equipment, then losing value because nobody engineered the whole system end-to-end. He leads Allison Global with a field-first, engineering-led approach — every project is treated as a system, not a shopping list, and every client gets a single accountable partner from assessment through to long-term support.",
+    bio: "Agu Chisom Alvin is an Electrical & Electronics Engineer who founded Allison Global Ltd in October 2025 to close a gap he kept seeing on site: organisations buying good equipment, then losing value because nobody engineered the whole system end-to-end. He leads Allison Global with a field-first, engineering-led approach — every project is treated as a system, not a shopping list, and every client gets a single accountable partner from assessment through to long-term support.",
     phone: "09152158801",
   },
 };

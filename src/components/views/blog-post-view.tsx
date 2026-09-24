@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -21,7 +22,6 @@ import {
   Stagger,
   staggerItem,
   NavButton,
-  NavLink,
   PhoneLink,
 } from "@/components/site/primitives";
 import {
@@ -33,9 +33,12 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getPostBySlug, blogPosts } from "@/lib/data/blog";
+import { blogMedia } from "@/lib/data/media";
 import type { BlogPost } from "@/lib/types";
 
-export function BlogPostView({ slug }: { slug?: string }) {
+export function BlogPostView() {
+  const params = useParams<{ slug?: string }>();
+  const slug = params.slug;
   const post = slug ? getPostBySlug(slug) : undefined;
 
   if (!post) {
@@ -51,6 +54,7 @@ export function BlogPostView({ slug }: { slug?: string }) {
         title={post.title}
         subtitle={post.excerpt}
         icon={BookOpen}
+        backgroundImage={blogMedia[post.slug]}
         breadcrumb={[
           { label: "Home", view: "home" },
           { label: "Insights", view: "blog" },
@@ -65,7 +69,7 @@ export function BlogPostView({ slug }: { slug?: string }) {
             {/* Hero image */}
             <Reveal>
               <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
-                <ProjectImage query={post.imageQuery} alt={post.title} />
+                <ProjectImage query={post.imageQuery} alt={post.title} url={blogMedia[post.slug]} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute left-4 top-4">
                   <Badge className="bg-background/90 text-foreground backdrop-blur">
@@ -270,7 +274,7 @@ export function BlogPostView({ slug }: { slug?: string }) {
         <Stagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {related.map((p: BlogPost) => (
             <motion.div key={p.slug} variants={staggerItem}>
-              <BlogCard post={p} />
+              <BlogCard post={p} imageUrl={blogMedia[p.slug]} />
             </motion.div>
           ))}
         </Stagger>

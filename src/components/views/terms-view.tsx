@@ -17,6 +17,7 @@ import {
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { termsAndConditions } from "@/lib/data/legal";
+import { heroMedia } from "@/lib/data/media";
 import { company } from "@/lib/data/company";
 
 /** Build a stable, URL-safe id from a heading like "1. Acceptance of Terms". */
@@ -37,6 +38,7 @@ export function TermsView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["terms"]}
         eyebrow="Legal"
         title="Terms & Conditions"
         subtitle="The terms that govern your use of our website and the engagement of our services — kept straightforward so you know where you stand."

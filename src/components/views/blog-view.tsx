@@ -20,11 +20,13 @@ import {
 } from "@/components/site/sections";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { blogPosts, blogCategories } from "@/lib/data/blog";
+import { heroMedia, blogMedia } from "@/lib/data/media";
+import { blogCategories } from "@/lib/data/blog";
+import type { BlogPost } from "@/lib/types";
 
 const ALL = "All";
 
-export function BlogView() {
+export function BlogView({ posts: blogPosts }: { posts: BlogPost[] }) {
   const [active, setActive] = React.useState<string>(ALL);
   const featured = React.useMemo(
     () => blogPosts.find((p) => p.featured) ?? blogPosts[0],
@@ -41,6 +43,7 @@ export function BlogView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["blog"]}
         eyebrow="Insights & Resources"
         title="Practical guidance from our engineers"
         subtitle="Learn how to choose, secure and maintain the systems that protect your business — in plain language."
@@ -94,7 +97,7 @@ export function BlogView() {
           <Stagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((post) => (
               <motion.div key={post.slug} variants={staggerItem}>
-                <BlogCard post={post} />
+                <BlogCard post={post} imageUrl={blogMedia[post.slug]} />
               </motion.div>
             ))}
           </Stagger>
@@ -162,7 +165,7 @@ function FeaturedPost({ post }: { post: (typeof blogPosts)[number] }) {
               slug={post.slug}
               className="group relative block aspect-[16/10] w-full overflow-hidden lg:aspect-auto"
             >
-              <ProjectImage query={post.imageQuery} alt={post.title} />
+              <ProjectImage query={post.imageQuery} alt={post.title} url={blogMedia[post.slug]} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute left-4 top-4 flex items-center gap-2">
                 <Badge className="bg-gold text-gold-foreground shadow">

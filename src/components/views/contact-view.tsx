@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useSearchParams } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -26,7 +27,6 @@ import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -35,7 +35,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { company } from "@/lib/data/company";
+import { heroMedia } from "@/lib/data/media";
 import { industries } from "@/lib/data/industries";
+import { Field as FormField } from "@/components/site/form";
 
 const schema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -50,8 +52,10 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function ContactView({ initialSubject }: { initialSubject?: string }) {
+export function ContactView() {
   const [submitting, setSubmitting] = React.useState(false);
+  const searchParams = useSearchParams();
+  const initialSubject = searchParams.get("subject") ?? "";
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -61,7 +65,7 @@ export function ContactView({ initialSubject }: { initialSubject?: string }) {
       phone: "",
       company: "",
       industry: "",
-      subject: initialSubject ?? "",
+      subject: initialSubject,
       message: "",
       website: "",
     },
@@ -137,6 +141,7 @@ export function ContactView({ initialSubject }: { initialSubject?: string }) {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["contact"]}
         eyebrow="Contact Us"
         title="Let's talk about your project"
         subtitle="Whether you need a quote, a consultation, or just have a question — reach out. One conversation with our engineering team is usually all it takes to get clarity."
@@ -192,7 +197,7 @@ export function ContactView({ initialSubject }: { initialSubject?: string }) {
                 subtitle="The more detail you share, the more useful our response will be. We typically reply within one business day."
               />
               <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-5">
-                {/* Honeypot */}
+                {/* Honeypot — visually hidden, not labeled; must stay empty */}
                 <input
                   type="text"
                   tabIndex={-1}
@@ -202,47 +207,59 @@ export function ContactView({ initialSubject }: { initialSubject?: string }) {
                   {...form.register("website")}
                 />
                 <div className="grid gap-5 sm:grid-cols-2">
-                  <Field label="Full name" error={form.formState.errors.name?.message} required>
-                    <Input placeholder="e.g. Ada Okafor" {...form.register("name")} />
-                  </Field>
-                  <Field label="Email" error={form.formState.errors.email?.message} required>
-                    <Input type="email" placeholder="you@company.com" {...form.register("email")} />
-                  </Field>
-                  <Field label="Phone" error={form.formState.errors.phone?.message}>
-                    <Input placeholder="0801 234 5678" {...form.register("phone")} />
-                  </Field>
-                  <Field label="Company / Organisation" error={form.formState.errors.company?.message}>
-                    <Input placeholder="Your organisation" {...form.register("company")} />
-                  </Field>
-                  <Field label="Industry" error={form.formState.errors.industry?.message}>
-                    <Select onValueChange={(v) => form.setValue("industry", v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your sector" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {industries.map((ind) => (
-                          <SelectItem key={ind.id} value={ind.id}>
-                            {ind.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="Subject" error={form.formState.errors.subject?.message} required>
-                    <Input placeholder="What's this about?" {...form.register("subject")} />
-                  </Field>
+                  <FormField label="Full name" error={form.formState.errors.name?.message} required>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Input id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy} placeholder="e.g. Ada Okafor" {...form.register("name")} />
+                    )}
+                  </FormField>
+                  <FormField label="Email" error={form.formState.errors.email?.message} required>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Input id={id} type="email" aria-invalid={ariaInvalid} aria-describedby={describedBy} placeholder="you@company.com" {...form.register("email")} />
+                    )}
+                  </FormField>
+                  <FormField label="Phone" error={form.formState.errors.phone?.message}>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Input id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy} placeholder="0801 234 5678" {...form.register("phone")} />
+                    )}
+                  </FormField>
+                  <FormField label="Company / Organisation" error={form.formState.errors.company?.message}>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Input id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy} placeholder="Your organisation" {...form.register("company")} />
+                    )}
+                  </FormField>
+                  <FormField label="Industry" error={form.formState.errors.industry?.message}>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Controller
+                        control={form.control}
+                        name="industry"
+                        render={({ field }) => (
+                          <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                            <SelectTrigger id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy}>
+                              <SelectValue placeholder="Select your sector" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {industries.map((ind) => (
+                                <SelectItem key={ind.id} value={ind.id}>
+                                  {ind.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    )}
+                  </FormField>
+                  <FormField label="Subject" error={form.formState.errors.subject?.message} required>
+                    {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                      <Input id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy} placeholder="What's this about?" {...form.register("subject")} />
+                    )}
+                  </FormField>
                 </div>
-                <Field
-                  label="How can we help?"
-                  error={form.formState.errors.message?.message}
-                  required
-                >
-                  <Textarea
-                    rows={5}
-                    placeholder="Tell us about your site, your goals, or the problem you're trying to solve…"
-                    {...form.register("message")}
-                  />
-                </Field>
+                <FormField label="How can we help?" error={form.formState.errors.message?.message} required>
+                  {({ id, "aria-invalid": ariaInvalid, "aria-describedby": describedBy }) => (
+                    <Textarea id={id} aria-invalid={ariaInvalid} aria-describedby={describedBy} rows={5} placeholder="Tell us about your site, your goals, or the problem you're trying to solve…" {...form.register("message")} />
+                  )}
+                </FormField>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-xs text-muted-foreground">
                     By submitting, you agree to our privacy policy. We never share your data.
@@ -334,28 +351,5 @@ export function ContactView({ initialSubject }: { initialSubject?: string }) {
 
       <ConversionPathCTA />
     </>
-  );
-}
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <Label className="mb-1.5 block text-sm font-medium">
-        {label}
-        {required && <span className="ml-0.5 text-destructive">*</span>}
-      </Label>
-      {children}
-      {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-    </div>
   );
 }

@@ -1,10 +1,7 @@
 "use client";
 
 import {
-  ArrowRight,
   Building2,
-  MapPin,
-  CheckCircle2,
   Map as MapIcon,
   Layers as LayersIcon,
   Plug as PlugIcon,
@@ -17,8 +14,6 @@ import {
   Stagger,
   staggerItem,
   IconBadge,
-  NavButton,
-  NavLink,
 } from "@/components/site/primitives";
 import {
   PageHero,
@@ -28,12 +23,14 @@ import {
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
 import { industries } from "@/lib/data/industries";
+import { heroMedia } from "@/lib/data/media";
 import { capabilityStats } from "@/lib/data/company";
 
 export function IndustriesView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["industries"]}
         eyebrow="Industries We Serve"
         title="Solutions engineered for your sector"
         subtitle="Different environments face different risks. We tailor our approach to the realities of your industry — from homes to heavy industry, from clinics to construction sites."

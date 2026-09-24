@@ -17,6 +17,7 @@ import {
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { privacyPolicy } from "@/lib/data/legal";
+import { heroMedia } from "@/lib/data/media";
 import { company } from "@/lib/data/company";
 
 /** Build a stable, URL-safe id from a heading like "1. Information We Collect". */
@@ -37,6 +38,7 @@ export function PrivacyView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["privacy"]}
         eyebrow="Legal"
         title="Privacy Policy"
         subtitle="How we collect, use and protect your personal data when you interact with Allison Global — written plainly, not buried in legalese."

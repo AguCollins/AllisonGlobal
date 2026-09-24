@@ -1,37 +1,56 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Prisma schema for Allison Global — PostgreSQL (Neon) production datasource.
+// SQLite is no longer the production datasource.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ──────────────────────────── Authentication ────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("admin") // "admin" | "superadmin"
+  active       Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([role])
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ──────────────────────────── Audit Log ─────────────────────────────────
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String    // LOGIN | LOGOUT | CREATE | UPDATE | DELETE | PUBLISH | UNPUBLISH | ROLE_CHANGE
+  resource   String    // "service" | "project" | "blog" | "lead" | "user" | etc.
+  resourceId String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
 }
 
-/// Inbound enquiries from the website (contact + quote forms).
+// ──────────────────────────── Leads ─────────────────────────────────────
+
 model Lead {
   id        String   @id @default(cuid())
   type      String   // "contact" | "quote" | "consultation" | "assessment" | "support"
@@ -41,11 +60,206 @@ model Lead {
   company   String?
   industry  String?
   subject   String?
-  services  String?  // comma-separated service slugs (for quote)
+  services  String?  // comma-separated service slugs
   budget    String?
   timeline  String?
   message   String
   status    String   @default("new") // new | contacted | qualified | won | lost
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@index([status, createdAt])
+}
+
+// ──────────────────────────── Content: Categories ───────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  tagline     String
+  description String
+  iconName    String
+  accent      String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+
+  @@index([slug])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Services ────────────────────────
+
+model Service {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  categoryId        String
+  tagline           String
+  shortDescription  String
+  overview          String
+  problem           Json
+  solution          String
+  deliverables      Json
+  benefits          Json
+  tech              Json
+  relatedServices   Json
+  relatedIndustries Json
+  faqs              Json?
+  featured          Boolean  @default(false)
+  published         Boolean  @default(true)
+  iconName          String
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([published])
+  @@index([featured])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Projects ─────────────────────────
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  industry    String
+  services    Json   // array of service slugs
+  location    String
+  scope       String
+  description String
+  highlights  Json   // array of strings
+  imageQuery  String
+  year        String
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([industry])
+  @@index([published])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Content: Blog ─────────────────────────────
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  excerpt   String
+  category  String
+  readTime  String
+  date      String
+  author    String
+  authorRole String
+  imageQuery String
+  content   Json   // array of { heading?: string, body: string }
+  tags      Json   // array of strings
+  featured  Boolean  @default(false)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([published])
+  @@index([featured])
+  @@index([date])
+}
+
+// ──────────────────────────── Content: Industries ───────────────────────
+
+model Industry {
+  id        String   @id @default(cuid())
+  name      String
+  tagline   String
+  summary   String
+  challenges Json   // array of strings
+  solutions  Json   // array of service slugs
+  outcomes   Json   // array of strings
+  imageQuery String
+  iconName   String
+  sortOrder  Int     @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([name])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Testimonials ─────────────────────
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  quote       String
+  authorRole  String
+  sector      String
+  rating      Int      @default(5)
+  projectType String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sector])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Content: FAQs ─────────────────────────────
+
+model Faq {
+  id       String   @id @default(cuid())
+  category String
+  question String
+  answer   String
+  sortOrder Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Solutions ────────────────────────
+
+model Solution {
+  id          String   @id @default(cuid())
+  name        String
+  summary     String
+  description String
+  components  Json   // array of service slugs
+  outcomes    Json   // array of strings
+  bestFor     Json   // array of industry ids
+  iconName    String
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Company Settings ─────────────────────────
+
+model CompanySettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
 }

@@ -46,6 +46,7 @@ import {
   guarantees,
   technologyPlatforms,
 } from "@/lib/data/company";
+import { heroMedia } from "@/lib/data/media";
 
 /* ------------------------------------------------------------------ */
 /*  Icon maps (string → lucide component)                             */
@@ -73,8 +74,9 @@ export function AboutView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["about"]}
         eyebrow="About Allison Global"
-        title="Engineering trust into every system we deploy"
+        title="Technology without limits, engineered into every system we deploy"
         subtitle={company.longPitch}
         icon={Building2}
         breadcrumb={[
@@ -121,7 +123,7 @@ function OurStory() {
           />
           <div className="mt-6 space-y-5 text-base leading-relaxed text-muted-foreground">
             <p>
-              Allison Global was founded in {company.foundedYear} by{" "}
+              Allison Global was founded in {company.foundedLabel.replace("Established ", "")} by{" "}
               <strong className="font-semibold text-foreground">
                 {company.founder.name}
               </strong>
@@ -207,7 +209,7 @@ function OurStory() {
                         Founded
                       </div>
                       <div className="mt-1 text-sm font-semibold text-white">
-                        {company.foundedYear}
+                        October 2025
                       </div>
                     </div>
                   </div>

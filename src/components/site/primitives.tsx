@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useInView, type Variants } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
-import { useSite } from "@/store/site-store";
+import { href } from "@/lib/nav";
 import type { ViewId, NavParam } from "@/lib/types";
 
 /* ------------------------------------------------------------------ */
@@ -204,7 +205,7 @@ export function IconBadge({
 }
 
 /* ------------------------------------------------------------------ */
-/*  LogoMark — Allison Global brand mark (shield + circuit nodes)     */
+/*  LogoMark — Allison Global brand mark (real emblem + wordmark)     */
 /* ------------------------------------------------------------------ */
 export function LogoMark({
   className,
@@ -217,40 +218,15 @@ export function LogoMark({
 }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <svg
-        viewBox="0 0 40 40"
-        className="size-9 shrink-0"
-        fill="none"
-        aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="ag-grad" x1="0" y1="0" x2="40" y2="40">
-            <stop offset="0%" stopColor="oklch(0.55 0.11 168)" />
-            <stop offset="100%" stopColor="oklch(0.45 0.10 175)" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M20 2.5 5 8.2v10.3c0 9.1 6.3 17.6 15 19 8.7-1.4 15-9.9 15-19V8.2L20 2.5Z"
-          fill="url(#ag-grad)"
-        />
-        <path
-          d="M20 2.5 5 8.2v10.3c0 9.1 6.3 17.6 15 19 8.7-1.4 15-9.9 15-19V8.2L20 2.5Z"
-          stroke="oklch(0.78 0.14 78)"
-          strokeOpacity="0.5"
-          strokeWidth="1"
-          fill="none"
-        />
-        {/* circuit nodes forming an 'A' */}
-        <circle cx="20" cy="12" r="2" fill="oklch(0.95 0.02 90)" />
-        <circle cx="13" cy="27" r="2" fill="oklch(0.95 0.02 90)" />
-        <circle cx="27" cy="27" r="2" fill="oklch(0.95 0.02 90)" />
-        <path
-          d="M20 12 13 27M20 12l7 15M15 22h10"
-          stroke="oklch(0.95 0.02 90)"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
-      </svg>
+      {/* Real geometric emblem from the supplied logo */}
+      <Image
+        src="/logo-emblem.png"
+        alt=""
+        width={36}
+        height={36}
+        priority
+        className="size-9 shrink-0 object-contain"
+      />
       {withText && (
         <span className="flex flex-col leading-none">
           <span
@@ -263,11 +239,11 @@ export function LogoMark({
           </span>
           <span
             className={cn(
-              "mt-0.5 text-[0.62rem] font-medium uppercase tracking-[0.22em]",
-              light ? "text-white/50" : "text-muted-foreground",
+              "mt-0.5 text-[0.6rem] font-medium uppercase tracking-[0.2em]",
+              light ? "text-white/55" : "text-muted-foreground",
             )}
           >
-            ICT · Security
+            Technology without limits
           </span>
         </span>
       )}
@@ -276,7 +252,7 @@ export function LogoMark({
 }
 
 /* ------------------------------------------------------------------ */
-/*  NavButton — a Button that drives client-side navigation           */
+/*  NavButton — a Button rendered as a real <Link> to a unique URL    */
 /* ------------------------------------------------------------------ */
 type NavButtonProps = {
   view: ViewId;
@@ -299,22 +275,19 @@ export function NavButton({
   slug,
   subject,
 }: NavButtonProps) {
-  const navigate = useSite((s) => s.navigate);
+  const to = href(view, {
+    ...params,
+    slug: slug ?? params?.slug,
+    subject: subject ?? params?.subject,
+  });
   return (
-    <Button
-      variant={variant}
-      size={size}
-      className={className}
-      onClick={() =>
-        navigate(view, { ...params, slug: slug ?? params?.slug, subject: subject ?? params?.subject })
-      }
-    >
-      {children}
+    <Button asChild variant={variant} size={size} className={className}>
+      <Link href={to}>{children}</Link>
     </Button>
   );
 }
 
-/** A link-styled element that drives view navigation. */
+/** A link-styled element that navigates to a real URL. */
 export function NavLink({
   view,
   params,
@@ -332,27 +305,20 @@ export function NavLink({
   className?: string;
   onClick?: () => void;
 }) {
-  const navigate = useSite((s) => s.navigate);
+  const to = href(view, {
+    ...params,
+    slug: slug ?? params?.slug,
+    subject: subject ?? params?.subject,
+  });
   return (
-    <button
-      type="button"
-      onClick={() => {
-        navigate(view, {
-          ...params,
-          slug: slug ?? params?.slug,
-          subject: subject ?? params?.subject,
-        });
-        onClick?.();
-      }}
-      className={cn("text-left", className)}
-    >
+    <Link href={to} onClick={onClick} className={cn("text-left", className)}>
       {children}
-    </button>
+    </Link>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/*  PhoneLink / ExternalLink                                          */
+/*  PhoneLink                                                          */
 /* ------------------------------------------------------------------ */
 export function PhoneLink({
   className,
@@ -368,26 +334,3 @@ export function PhoneLink({
     </a>
   );
 }
-
-export function WhatsAppLink({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const wa = "2349152158801";
-  return (
-    <a
-      href={`https://wa.me/${wa}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={className}
-    >
-      {children}
-    </a>
-  );
-}
-
-/** Next.js Link shim (kept for any standard href use). */
-export { Link };

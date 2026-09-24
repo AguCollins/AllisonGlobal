@@ -34,6 +34,7 @@ import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { heroMedia } from "@/lib/data/media";
 import { jobs, careersIntro, careersPerks } from "@/lib/data/careers";
 import { company } from "@/lib/data/company";
 import type { Job } from "@/lib/types";
@@ -52,6 +53,7 @@ export function CareersView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["careers"]}
         eyebrow="Careers"
         title="Build a career engineering trust"
         subtitle={careersIntro}

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import {
   ArrowRight,
   PhoneCall,
@@ -16,7 +17,6 @@ import {
   SectionHeader,
   Reveal,
   IconBadge,
-  NavButton,
   NavLink,
 } from "@/components/site/primitives";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +34,7 @@ export function PageHero({
   icon: Icon,
   breadcrumb,
   children,
+  backgroundImage,
 }: {
   eyebrow?: string;
   title: React.ReactNode;
@@ -41,25 +42,42 @@ export function PageHero({
   icon?: LucideIcon;
   breadcrumb?: { label: string; view?: ViewId }[];
   children?: React.ReactNode;
+  backgroundImage?: string;
 }) {
   return (
     <section className="relative overflow-hidden band-ink">
-      <div className="absolute inset-0 bg-grid-dark opacity-50" />
-      <div className="absolute inset-0 bg-radial-fade opacity-60" />
-      <div className="absolute -right-20 -top-20 size-72 rounded-full bg-emerald-500/20 blur-3xl" />
-      <div className="absolute -bottom-24 left-1/3 size-72 rounded-full bg-amber-500/10 blur-3xl" />
+      {/* Optional real product imagery as a right-side backdrop */}
+      {backgroundImage ? (
+        <div className="absolute inset-0">
+          <RemoteImage
+            src={backgroundImage}
+            alt=""
+            className="size-full"
+            imgClassName="object-cover"
+          />
+          {/* L→R gradient keeps the left typography zone dark & legible */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.16_0.03_235)] via-[oklch(0.16_0.03_235/0.92)] to-[oklch(0.16_0.03_235/0.55)]" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[oklch(0.16_0.03_235)] to-transparent" />
+        </div>
+      ) : (
+        <>
+          <div className="absolute inset-0 bg-grid-dark opacity-50" />
+          <div className="absolute inset-0 bg-radial-fade opacity-60" />
+        </>
+      )}
+      <div className="absolute -right-20 -top-20 size-72 rounded-full bg-brand/15 blur-3xl" />
       <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
         {breadcrumb && (
-          <nav className="mb-5 flex items-center gap-1.5 text-sm text-white/50">
+          <nav aria-label="Breadcrumb" className="mb-5 flex flex-wrap items-center gap-1.5 text-sm text-white/75">
             {breadcrumb.map((b, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <span className="text-white/30">/</span>}
+                {i > 0 && <span className="text-white/40" aria-hidden="true">/</span>}
                 {b.view ? (
-                  <NavLink view={b.view} className="transition-colors hover:text-white">
+                  <NavLink view={b.view} className="font-medium transition-colors hover:text-white">
                     {b.label}
                   </NavLink>
                 ) : (
-                  <span className="text-white/80">{b.label}</span>
+                  <span className="text-white">{b.label}</span>
                 )}
               </React.Fragment>
             ))}
@@ -67,7 +85,7 @@ export function PageHero({
         )}
         <div className="max-w-3xl">
           {eyebrow && (
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300 backdrop-blur">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
               {Icon && <Icon className="size-3.5" />}
               {eyebrow}
             </div>
@@ -76,7 +94,7 @@ export function PageHero({
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-white/70">
+            <p className="mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-white/85">
               {subtitle}
             </p>
           )}
@@ -149,20 +167,20 @@ export function ConversionPathCTA({
               <NavLink
                 view={p.view}
                 subject={p.subject}
-                className="group block h-full rounded-2xl border border-white/10 bg-white/5 p-6 text-left backdrop-blur transition-all hover:border-emerald-400/40 hover:bg-white/[0.07]"
+                className="group block h-full rounded-2xl border border-white/15 bg-white/5 p-6 text-left backdrop-blur transition-all hover:border-brand/50 hover:bg-white/[0.08]"
               >
                 <IconBadge
                   icon={p.icon}
                   variant="brand"
-                  className="mb-4 ring-1 ring-emerald-400/30"
+                  className="mb-4 ring-1 ring-brand/30"
                 />
                 <h3 className="font-display text-lg font-semibold text-white">
                   {p.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/60">
+                <p className="mt-2 text-sm leading-relaxed text-white/80">
                   {p.description}
                 </p>
-                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-300 transition-transform group-hover:translate-x-1">
+                <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-transform group-hover:translate-x-1">
                   {p.cta}
                   <ArrowRight className="size-4" />
                 </span>
@@ -170,11 +188,11 @@ export function ConversionPathCTA({
             </Reveal>
           ))}
         </div>
-        <div className="mt-10 flex flex-col items-center justify-center gap-3 text-white/70 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-center gap-3 text-white/85 sm:flex-row">
           <span className="text-sm">Prefer to talk now?</span>
           <a
             href={`tel:${company.contact.phoneIntl}`}
-            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15"
+            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/15"
           >
             <PhoneCall className="size-4" />
             {company.contact.phoneDisplay}
@@ -209,8 +227,8 @@ export function StatStrip({
           <div className="text-center sm:text-left">
             <div
               className={cn(
-                "font-display text-4xl font-bold sm:text-5xl",
-                light ? "text-white" : "text-gradient-brand",
+                "font-display text-4xl font-bold tabular-nums sm:text-5xl",
+                light ? "text-white" : "text-brand",
               )}
             >
               {s.value}
@@ -320,11 +338,11 @@ export function IndustryCard({ industry }: { industry: Industry }) {
   );
 }
 
-export function ProjectCard({ project }: { project: Project }) {
+export function ProjectCard({ project, imageUrl }: { project: Project; imageUrl?: string }) {
   return (
     <Card className="group h-full overflow-hidden border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-        <ProjectImage query={project.imageQuery} alt={project.title} />
+        <ProjectImage query={project.imageQuery} alt={project.title} url={imageUrl} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
           <Badge className="bg-brand text-brand-foreground shadow">{project.category}</Badge>
@@ -360,7 +378,7 @@ export function ProjectCard({ project }: { project: Project }) {
   );
 }
 
-export function BlogCard({ post }: { post: BlogPost }) {
+export function BlogCard({ post, imageUrl }: { post: BlogPost; imageUrl?: string }) {
   const date = new Date(post.date).toLocaleDateString("en-NG", {
     day: "numeric",
     month: "short",
@@ -370,7 +388,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
     <NavLink view="blog-post" slug={post.slug} className="group block h-full">
       <Card className="group h-full overflow-hidden border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
         <div className="relative aspect-[16/9] overflow-hidden bg-muted">
-          <ProjectImage query={post.imageQuery} alt={post.title} />
+          <ProjectImage query={post.imageQuery} alt={post.title} url={imageUrl} />
           <div className="absolute left-4 top-4">
             <Badge className="bg-background/90 text-foreground backdrop-blur">
               {post.category}
@@ -400,20 +418,24 @@ export function BlogCard({ post }: { post: BlogPost }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  ProjectImage — AI-generated or gradient placeholder              */
-/*  Uses a deterministic gradient + query label as a tasteful         */
-/*  stand-in for imagery. Kept lightweight for performance.          */
+/*  RemoteImage / ProjectImage — real product imagery (ui.com) with a   */
+/*  graceful gradient fallback if the remote image fails to load.       */
 /* ------------------------------------------------------------------ */
 export function ProjectImage({
   query,
   alt,
   className,
+  url,
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
 }: {
   query: string;
   alt: string;
   className?: string;
+  url?: string;
+  sizes?: string;
 }) {
-  // Deterministic gradient from query string for visual variety
+  const [failed, setFailed] = React.useState(false);
+  // Deterministic gradient from query string for fallback variety
   const hash = React.useMemo(() => {
     let h = 0;
     for (let i = 0; i < query.length; i++) h = (h * 31 + query.charCodeAt(i)) >>> 0;
@@ -421,6 +443,23 @@ export function ProjectImage({
   }, [query]);
   const hue1 = 150 + (hash % 50);
   const hue2 = 175 + ((hash >> 3) % 40);
+
+  if (url && !failed) {
+    return (
+      <div className={cn("relative size-full overflow-hidden bg-muted", className)}>
+        <Image
+          src={url}
+          alt={alt}
+          fill
+          sizes={sizes}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      </div>
+    );
+  }
   return (
     <div
       role="img"
@@ -436,6 +475,62 @@ export function ProjectImage({
           {query}
         </span>
       </div>
+    </div>
+  );
+}
+
+/** Standalone remote image with gradient fallback (used outside cards). */
+export function RemoteImage({
+  src,
+  alt,
+  className,
+  imgClassName,
+  query = "allison global",
+  sizes = "(max-width: 1024px) 100vw, 50vw",
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  imgClassName?: string;
+  query?: string;
+  sizes?: string;
+  priority?: boolean;
+}) {
+  const [failed, setFailed] = React.useState(false);
+  const hash = React.useMemo(() => {
+    let h = 0;
+    for (let i = 0; i < query.length; i++) h = (h * 31 + query.charCodeAt(i)) >>> 0;
+    return h;
+  }, [query]);
+  const hue1 = 150 + (hash % 50);
+  const hue2 = 175 + ((hash >> 3) % 40);
+
+  if (failed) {
+    return (
+      <div
+        role="img"
+        aria-label={alt}
+        className={cn("relative size-full", className)}
+        style={{
+          background: `linear-gradient(135deg, oklch(0.4 0.09 ${hue1}) 0%, oklch(0.3 0.06 ${hue2}) 50%, oklch(0.22 0.04 ${hue2}) 100%)`,
+        }}
+      >
+        <div className="absolute inset-0 bg-grid-dark opacity-30" />
+      </div>
+    );
+  }
+  return (
+    <div className={cn("relative size-full overflow-hidden bg-muted", className)}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        onError={() => setFailed(true)}
+        className={imgClassName ?? "object-cover"}
+      />
     </div>
   );
 }

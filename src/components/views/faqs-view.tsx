@@ -21,6 +21,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { faqs, faqCategories } from "@/lib/data/faqs";
+import { heroMedia } from "@/lib/data/media";
 import { company } from "@/lib/data/company";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,7 @@ export function FaqsView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["faqs"]}
         eyebrow="FAQs"
         icon={HelpCircle}
         title="Answers to the questions we hear most"

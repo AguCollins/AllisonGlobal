@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   PhoneCall,
   Mail,
@@ -15,14 +16,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { LogoMark, NavLink } from "@/components/site/primitives";
-import { useSite } from "@/store/site-store";
+import { LogoMark } from "@/components/site/primitives";
 import { company, mainNav, utilityNav, legalNav } from "@/lib/data/company";
 import { serviceCategories } from "@/lib/data/services";
 import { industries } from "@/lib/data/industries";
+import { href } from "@/lib/nav";
+import type { ViewId } from "@/lib/types";
 
 export function Footer() {
-  const { navigate } = useSite();
   return (
     <footer className="mt-auto band-ink relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-dark opacity-30" />
@@ -39,12 +40,8 @@ export function Footer() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              size="lg"
-              className="bg-gold text-gold-foreground hover:bg-gold/90"
-              onClick={() => navigate("quote")}
-            >
-              Request a Quote
+            <Button asChild size="lg" className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Link href="/quote">Request a Quote</Link>
             </Button>
             <a
               href={`tel:${company.contact.phoneIntl}`}
@@ -123,25 +120,23 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               {serviceCategories.map((cat) => (
                 <li key={cat.id}>
-                  <button
-                    type="button"
-                    onClick={() => navigate("services", { anchor: `cat-${cat.id}` })}
+                  <Link
+                    href={href("services", { anchor: `cat-${cat.id}` })}
                     className="flex items-center gap-1.5 text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     <ChevronRight className="size-3.5 text-emerald-400/60" />
                     {cat.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
               <li>
-                <button
-                  type="button"
-                  onClick={() => navigate("solutions")}
+                <Link
+                  href="/solutions"
                   className="flex items-center gap-1.5 text-sm text-white/60 transition-colors hover:text-emerald-300"
                 >
                   <ChevronRight className="size-3.5 text-emerald-400/60" />
                   Solutions by Outcome
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -154,13 +149,12 @@ export function Footer() {
             <ul className="mt-4 space-y-2.5">
               {[...mainNav, ...utilityNav].map((item) => (
                 <li key={item.label}>
-                  <button
-                    type="button"
-                    onClick={() => navigate(item.view)}
+                  <Link
+                    href={href(item.view as ViewId)}
                     className="text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     {item.label}
-                  </button>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -174,23 +168,21 @@ export function Footer() {
             <ul className="mt-4 grid grid-cols-1 gap-2.5">
               {industries.slice(0, 7).map((ind) => (
                 <li key={ind.id}>
-                  <button
-                    type="button"
-                    onClick={() => navigate("industry-detail", { slug: ind.id })}
+                  <Link
+                    href={href("industry-detail", { slug: ind.id })}
                     className="text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     {ind.name}
-                  </button>
+                  </Link>
                 </li>
               ))}
               <li>
-                <button
-                  type="button"
-                  onClick={() => navigate("industries")}
+                <Link
+                  href="/industries"
                   className="text-sm font-semibold text-emerald-300 transition-colors hover:text-emerald-200"
                 >
                   View all industries →
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -203,14 +195,13 @@ export function Footer() {
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {legalNav.map((item) => (
-              <button
+              <Link
                 key={item.view}
-                type="button"
-                onClick={() => navigate(item.view)}
+                href={href(item.view as ViewId)}
                 className="text-xs text-white/50 transition-colors hover:text-white"
               >
                 {item.label}
-              </button>
+              </Link>
             ))}
           </div>
         </div>

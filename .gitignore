@@ -1,7 +1,27 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ============================================================
+#  Allison Global — .gitignore
+# ============================================================
 
-# dependencies
-node_modules
+# ─── Secrets & Environment ─────────────────────────────────
+# NEVER commit .env files with real credentials
+.env
+.env.local
+.env.production
+.env.*.local
+# .env.example IS committed (contains no secrets — just variable names)
+
+# ─── Database ───────────────────────────────────────────────
+# SQLite local dev database (do not commit)
+db/
+*.db
+*.db-journal
+*.sqlite
+
+# Prisma migrations (commit these — they define the schema history)
+!prisma/migrations/
+
+# ─── Dependencies ──────────────────────────────────────────
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -10,45 +30,59 @@ node_modules
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# ─── Next.js ────────────────────────────────────────────────
 /.next/
 /out/
+/build/
+/.next/standalone/
 
-# production
-/build
+# ─── Build artifacts ────────────────────────────────────────
+*.tsbuildinfo
+next-env.d.ts
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# ─── Logs ───────────────────────────────────────────────────
+*.log
+dev.log
+server.log
+prod.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ─── OS files ───────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.pem
 
-# vercel
+# ─── Uploads & temp files ──────────────────────────────────
+upload/
+tmp/
+temp/
+
+# ─── IDE / Editor ───────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Vercel ────────────────────────────────────────────────
 .vercel
 
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-local-*
+# ─── Claude / AI config (sandbox-only) ─────────────────────
 .claude
 .z-ai-config
-*.log
-dev.log
-dev.out.log
-test
-prompt
+.zscripts/
 
-server.log
-# Skills directory
+# ─── Skills (sandbox-only) ─────────────────────────────────
 /skills/
+/examples/
+/tests/
+/mini-services/
+/tool-results/
+/download/
+/prompt
+
+# ─── Misc ──────────────────────────────────────────────────
+local-*

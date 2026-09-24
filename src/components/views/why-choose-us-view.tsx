@@ -32,6 +32,7 @@ import {
   differentiators,
   guarantees,
 } from "@/lib/data/company";
+import { heroMedia } from "@/lib/data/media";
 import { industries } from "@/lib/data/industries";
 
 /* ------------------------------------------------------------------ */
@@ -62,6 +63,7 @@ export function WhyChooseUsView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["why-choose-us"]}
         eyebrow="Why Allison Global"
         title="More than a vendor — your technology & security partner"
         subtitle="Organisations choose us because we engineer outcomes, not transactions. Here is what that actually looks like — in practice, not in a brochure."

@@ -3,14 +3,12 @@
 import * as React from "react";
 import { Header } from "@/components/site/header";
 import { Footer } from "@/components/site/footer";
-import { useSite } from "@/store/site-store";
 
 /**
- * SiteShell renders the persistent Header + Footer and the active view.
- * Views are loaded lazily for performance and code-splitting.
+ * SiteShell renders the persistent Header + Footer around every route.
+ * Lives in the root layout so every page inherits it.
  */
 export function SiteShell({ children }: { children: React.ReactNode }) {
-  useSite(); // subscribe so layout re-renders on navigation
   return (
     <div className="flex min-h-screen flex-col">
       <a

@@ -38,6 +38,7 @@ import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { company } from "@/lib/data/company";
+import { heroMedia } from "@/lib/data/media";
 import { serviceCategories } from "@/lib/data/services";
 
 /* ------------------------------------------------------------------ */
@@ -211,6 +212,7 @@ export function SupportView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["support"]}
         eyebrow="Maintenance & Support"
         title="Systems that keep working — because someone is looking after them"
         subtitle="The best systems are the ones that stay healthy. Our maintenance and managed-support plans keep your IT and security infrastructure reliable for years."

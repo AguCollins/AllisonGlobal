@@ -21,6 +21,7 @@ import {
   StatStrip,
 } from "@/components/site/sections";
 import { testimonials, testimonialStats } from "@/lib/data/testimonials";
+import { heroMedia } from "@/lib/data/media";
 import { industries, industryMap } from "@/lib/data/industries";
 
 /* ------------------------------------------------------------------ */
@@ -42,6 +43,7 @@ export function TestimonialsView() {
   return (
     <>
       <PageHero
+        backgroundImage={heroMedia["testimonials"]}
         eyebrow="Client Feedback"
         icon={Quote}
         title="What working with us feels like"
