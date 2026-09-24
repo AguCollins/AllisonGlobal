@@ -16,14 +16,38 @@ import {
   Menu,
   ClipboardList,
   Wrench,
+  Newspaper,
+  Briefcase,
+  Building2,
+  HelpCircle,
+  Quote,
+  Puzzle,
+  Settings as SettingsIcon,
+  Navigation as NavigationIcon,
+  Megaphone,
+  Workflow,
+  FileText,
+  Compass,
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/leads", label: "Leads", icon: ClipboardList },
   { href: "/admin/services", label: "Services", icon: Wrench },
+  { href: "/admin/solutions", label: "Solutions", icon: Puzzle },
+  { href: "/admin/industries", label: "Industries", icon: Building2 },
+  { href: "/admin/projects", label: "Projects", icon: Briefcase },
+  { href: "/admin/blog", label: "Blog", icon: Newspaper },
+  { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
+  { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+  { href: "/admin/process", label: "Process", icon: Workflow },
+  { href: "/admin/careers", label: "Careers", icon: Compass },
+  { href: "/admin/ctas", label: "CTAs", icon: Megaphone },
+  { href: "/admin/navigation", label: "Navigation", icon: NavigationIcon },
+  { href: "/admin/legal", label: "Legal", icon: FileText },
   { href: "/admin/users", label: "Users", icon: UsersIcon },
   { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
+  { href: "/admin/settings", label: "Settings", icon: SettingsIcon },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

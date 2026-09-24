@@ -26,17 +26,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Wrench,
+  Building2,
   PlusCircle,
   Search,
   Pencil,
   Trash2,
   ExternalLink,
-  Eye,
-  EyeOff,
   Loader2,
 } from "lucide-react";
-import { serviceCategories, services as staticServices } from "@/lib/data/services";
+import { industries as staticIndustries } from "@/lib/data/industries";
 import {
   PageHeader,
   EmptyState,
@@ -44,50 +42,38 @@ import {
   API,
 } from "@/components/admin/shared";
 
-interface ServiceRow {
+interface IndustryRow {
   id: string;
-  slug: string;
   name: string;
-  categoryId: string;
-  featured: boolean;
-  published: boolean;
-  sortOrder?: number;
+  tagline: string;
+  iconName: string;
+  sortOrder: number;
 }
 
 interface ListResponse {
-  items: ServiceRow[];
+  items: IndustryRow[];
   total: number;
-  page: number;
-  pages: number;
 }
 
-function categoryName(id: string): string {
-  return serviceCategories.find((c) => c.id === id)?.name ?? id;
-}
-
-function staticFallback(): ServiceRow[] {
-  return staticServices.map((s, i) => ({
-    id: s.slug,
-    slug: s.slug,
-    name: s.name,
-    categoryId: s.categoryId,
-    featured: Boolean(s.featured),
-    published: true,
-    sortOrder: i,
+function staticFallback(): IndustryRow[] {
+  return staticIndustries.map((i, idx) => ({
+    id: i.id,
+    name: i.name,
+    tagline: i.tagline,
+    iconName: "Building2",
+    sortOrder: idx,
   }));
 }
 
-export default function AdminServicesPage() {
+export default function AdminIndustriesPage() {
   const router = useRouter();
-  const [items, setItems] = React.useState<ServiceRow[]>([]);
+  const [items, setItems] = React.useState<IndustryRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [search, setSearch] = React.useState("");
   const [debounced, setDebounced] = React.useState("");
-
-  const [pendingPublishId, setPendingPublishId] = React.useState<string | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<ServiceRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<IndustryRow | null>(null);
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 300);
@@ -98,15 +84,13 @@ export default function AdminServicesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API.services}?drafts=true&limit=200`, {
+      const res = await fetch(`${API.industries}?drafts=true&limit=200`, {
         cache: "no-store",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as ListResponse;
       setItems(json.items ?? []);
     } catch (e) {
-      // API unavailable (DB not configured). Fall back to static data so the
-      // admin UI remains usable for review in dev/preview environments.
       setItems(staticFallback());
       setError(
         e instanceof Error
@@ -122,42 +106,22 @@ export default function AdminServicesPage() {
     load();
   }, [load]);
 
-  async function togglePublish(svc: ServiceRow) {
-    setPendingPublishId(svc.id);
-    try {
-      const res = await fetch(API.services, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: svc.id, published: !svc.published }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setItems((prev) =>
-        prev.map((s) => (s.id === svc.id ? { ...s, published: !s.published } : s)),
-      );
-      toast.success(svc.published ? "Service unpublished" : "Service published");
-    } catch {
-      toast.error("Failed to update service");
-    } finally {
-      setPendingPublishId(null);
-    }
-  }
-
   async function confirmDelete() {
     if (!deleteTarget) return;
     setDeletingId(deleteTarget.id);
     try {
       const res = await fetch(
-        `${API.services}?id=${encodeURIComponent(deleteTarget.id)}`,
+        `${API.industries}?id=${encodeURIComponent(deleteTarget.id)}`,
         { method: "DELETE" },
       );
       if (!res.ok) {
         const j = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(j?.error || `HTTP ${res.status}`);
       }
-      setItems((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-      toast.success("Service deleted");
+      setItems((prev) => prev.filter((i) => i.id !== deleteTarget.id));
+      toast.success("Industry deleted");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete service");
+      toast.error(e instanceof Error ? e.message : "Failed to delete industry");
     } finally {
       setDeletingId(null);
       setDeleteTarget(null);
@@ -167,28 +131,23 @@ export default function AdminServicesPage() {
   const filtered = React.useMemo(() => {
     if (!debounced) return items;
     const q = debounced.toLowerCase();
-    return items.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.slug.toLowerCase().includes(q) ||
-        s.categoryId.toLowerCase().includes(q),
-    );
+    return items.filter((i) => i.name.toLowerCase().includes(q));
   }, [items, debounced]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={Wrench}
-        title="Services"
-        description={`${items.length} services across ${serviceCategories.length} categories`}
+        icon={Building2}
+        title="Industries"
+        description={`${items.length} sectors served`}
         action={
           <Button
             size="lg"
             className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90"
-            onClick={() => router.push("/admin/services/new")}
+            onClick={() => router.push("/admin/industries/new")}
           >
             <PlusCircle className="size-4" />
-            Create Service
+            New Industry
           </Button>
         }
       />
@@ -199,33 +158,31 @@ export default function AdminServicesPage() {
         </div>
       )}
 
-      {/* Search */}
       <div className="relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, slug, category…"
-          aria-label="Search services"
+          placeholder="Search industries…"
+          aria-label="Search industries"
           className="h-10 pl-9"
         />
       </div>
 
-      {/* Table / states */}
       {loading ? (
-        <TableSkeleton rows={6} cols={6} />
+        <TableSkeleton rows={6} cols={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={Wrench}
-          title={debounced ? "No matching services" : "No services yet"}
+          icon={Building2}
+          title={debounced ? "No matching industries" : "No industries yet"}
           description={
             debounced
               ? "Try a different search term."
-              : "Create your first service to start building the catalogue."
+              : "Add your first industry sector."
           }
-          actionLabel={debounced ? undefined : "Create Service"}
-          actionHref={debounced ? undefined : "/admin/services/new"}
+          actionLabel={debounced ? undefined : "New Industry"}
+          actionHref={debounced ? undefined : "/admin/industries/new"}
         />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border">
@@ -233,47 +190,26 @@ export default function AdminServicesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="px-4">Name</TableHead>
-                <TableHead className="px-4">Slug</TableHead>
-                <TableHead className="px-4">Category</TableHead>
-                <TableHead className="px-4">Featured</TableHead>
-                <TableHead className="px-4">Published</TableHead>
+                <TableHead className="px-4">Tagline</TableHead>
+                <TableHead className="px-4">Icon</TableHead>
+                <TableHead className="px-4">Sort</TableHead>
                 <TableHead className="px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="px-4 py-3 font-medium">{s.name}</TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                    {s.slug}
+              {filtered.map((i) => (
+                <TableRow key={i.id}>
+                  <TableCell className="px-4 py-3 font-medium">{i.name}</TableCell>
+                  <TableCell className="max-w-[320px] truncate px-4 py-3 text-sm text-muted-foreground">
+                    {i.tagline || "—"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    <Badge variant="secondary">{categoryName(s.categoryId)}</Badge>
+                    <Badge variant="secondary" className="font-mono">
+                      {i.iconName || "—"}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="px-4 py-3">
-                    {s.featured ? (
-                      <Badge className="bg-brand text-brand-foreground">Yes</Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="min-h-9 gap-1.5"
-                      disabled={pendingPublishId === s.id}
-                      onClick={() => togglePublish(s)}
-                    >
-                      {pendingPublishId === s.id ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : s.published ? (
-                        <Eye className="size-3.5 text-emerald-600" />
-                      ) : (
-                        <EyeOff className="size-3.5 text-muted-foreground" />
-                      )}
-                      {s.published ? "Published" : "Draft"}
-                    </Button>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {i.sortOrder ?? 0}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
@@ -284,7 +220,7 @@ export default function AdminServicesPage() {
                         asChild
                         title="View on site"
                       >
-                        <Link href={`/services/${s.slug}`} target="_blank">
+                        <Link href={`/industries/${i.id}`} target="_blank">
                           <ExternalLink className="size-4" />
                         </Link>
                       </Button>
@@ -295,7 +231,7 @@ export default function AdminServicesPage() {
                         asChild
                         title="Edit"
                       >
-                        <Link href={`/admin/services/${s.id}`}>
+                        <Link href={`/admin/industries/${i.id}`}>
                           <Pencil className="size-4" />
                         </Link>
                       </Button>
@@ -304,10 +240,10 @@ export default function AdminServicesPage() {
                         size="icon"
                         className="size-10 hover:text-destructive"
                         title="Delete"
-                        disabled={deletingId === s.id}
-                        onClick={() => setDeleteTarget(s)}
+                        disabled={deletingId === i.id}
+                        onClick={() => setDeleteTarget(i)}
                       >
-                        {deletingId === s.id ? (
+                        {deletingId === i.id ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
                           <Trash2 className="size-4" />
@@ -322,14 +258,13 @@ export default function AdminServicesPage() {
         </div>
       )}
 
-      {/* Delete confirmation */}
       <AlertDialog
         open={Boolean(deleteTarget)}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete service?</AlertDialogTitle>
+            <AlertDialogTitle>Delete industry?</AlertDialogTitle>
             <AlertDialogDescription>
               You are about to permanently delete{" "}
               <span className="font-medium text-foreground">

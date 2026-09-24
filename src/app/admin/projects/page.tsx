@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Wrench,
+  Briefcase,
   PlusCircle,
   Search,
   Pencil,
@@ -36,7 +36,8 @@ import {
   EyeOff,
   Loader2,
 } from "lucide-react";
-import { serviceCategories, services as staticServices } from "@/lib/data/services";
+import { projects as staticProjects } from "@/lib/data/projects";
+import { industries } from "@/lib/data/industries";
 import {
   PageHeader,
   EmptyState,
@@ -44,42 +45,40 @@ import {
   API,
 } from "@/components/admin/shared";
 
-interface ServiceRow {
+interface ProjectRow {
   id: string;
-  slug: string;
-  name: string;
-  categoryId: string;
+  title: string;
+  category: string;
+  industry: string;
+  year: string;
   featured: boolean;
   published: boolean;
-  sortOrder?: number;
 }
 
 interface ListResponse {
-  items: ServiceRow[];
+  items: ProjectRow[];
   total: number;
-  page: number;
-  pages: number;
 }
 
-function categoryName(id: string): string {
-  return serviceCategories.find((c) => c.id === id)?.name ?? id;
+function industryName(id: string): string {
+  return industries.find((i) => i.id === id)?.name ?? id;
 }
 
-function staticFallback(): ServiceRow[] {
-  return staticServices.map((s, i) => ({
-    id: s.slug,
-    slug: s.slug,
-    name: s.name,
-    categoryId: s.categoryId,
-    featured: Boolean(s.featured),
+function staticFallback(): ProjectRow[] {
+  return staticProjects.map((p) => ({
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    industry: p.industry,
+    year: p.year,
+    featured: Boolean(p.featured),
     published: true,
-    sortOrder: i,
   }));
 }
 
-export default function AdminServicesPage() {
+export default function AdminProjectsPage() {
   const router = useRouter();
-  const [items, setItems] = React.useState<ServiceRow[]>([]);
+  const [items, setItems] = React.useState<ProjectRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [search, setSearch] = React.useState("");
@@ -87,7 +86,7 @@ export default function AdminServicesPage() {
 
   const [pendingPublishId, setPendingPublishId] = React.useState<string | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<ServiceRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<ProjectRow | null>(null);
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 300);
@@ -98,15 +97,13 @@ export default function AdminServicesPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API.services}?drafts=true&limit=200`, {
+      const res = await fetch(`${API.projects}?drafts=true&limit=200`, {
         cache: "no-store",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as ListResponse;
       setItems(json.items ?? []);
     } catch (e) {
-      // API unavailable (DB not configured). Fall back to static data so the
-      // admin UI remains usable for review in dev/preview environments.
       setItems(staticFallback());
       setError(
         e instanceof Error
@@ -122,21 +119,21 @@ export default function AdminServicesPage() {
     load();
   }, [load]);
 
-  async function togglePublish(svc: ServiceRow) {
-    setPendingPublishId(svc.id);
+  async function togglePublish(row: ProjectRow) {
+    setPendingPublishId(row.id);
     try {
-      const res = await fetch(API.services, {
+      const res = await fetch(API.projects, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: svc.id, published: !svc.published }),
+        body: JSON.stringify({ id: row.id, published: !row.published }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setItems((prev) =>
-        prev.map((s) => (s.id === svc.id ? { ...s, published: !s.published } : s)),
+        prev.map((p) => (p.id === row.id ? { ...p, published: !p.published } : p)),
       );
-      toast.success(svc.published ? "Service unpublished" : "Service published");
+      toast.success(row.published ? "Project unpublished" : "Project published");
     } catch {
-      toast.error("Failed to update service");
+      toast.error("Failed to update project");
     } finally {
       setPendingPublishId(null);
     }
@@ -146,18 +143,17 @@ export default function AdminServicesPage() {
     if (!deleteTarget) return;
     setDeletingId(deleteTarget.id);
     try {
-      const res = await fetch(
-        `${API.services}?id=${encodeURIComponent(deleteTarget.id)}`,
-        { method: "DELETE" },
-      );
+      const res = await fetch(`${API.projects}?id=${encodeURIComponent(deleteTarget.id)}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const j = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(j?.error || `HTTP ${res.status}`);
       }
-      setItems((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-      toast.success("Service deleted");
+      setItems((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      toast.success("Project deleted");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to delete service");
+      toast.error(e instanceof Error ? e.message : "Failed to delete project");
     } finally {
       setDeletingId(null);
       setDeleteTarget(null);
@@ -168,27 +164,27 @@ export default function AdminServicesPage() {
     if (!debounced) return items;
     const q = debounced.toLowerCase();
     return items.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.slug.toLowerCase().includes(q) ||
-        s.categoryId.toLowerCase().includes(q),
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.industry.toLowerCase().includes(q),
     );
   }, [items, debounced]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        icon={Wrench}
-        title="Services"
-        description={`${items.length} services across ${serviceCategories.length} categories`}
+        icon={Briefcase}
+        title="Projects"
+        description={`${items.length} case studies`}
         action={
           <Button
             size="lg"
             className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90"
-            onClick={() => router.push("/admin/services/new")}
+            onClick={() => router.push("/admin/projects/new")}
           >
             <PlusCircle className="size-4" />
-            Create Service
+            New Project
           </Button>
         }
       />
@@ -199,59 +195,63 @@ export default function AdminServicesPage() {
         </div>
       )}
 
-      {/* Search */}
       <div className="relative max-w-md">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, slug, category…"
-          aria-label="Search services"
+          placeholder="Search projects…"
+          aria-label="Search projects"
           className="h-10 pl-9"
         />
       </div>
 
-      {/* Table / states */}
       {loading ? (
         <TableSkeleton rows={6} cols={6} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={Wrench}
-          title={debounced ? "No matching services" : "No services yet"}
+          icon={Briefcase}
+          title={debounced ? "No matching projects" : "No projects yet"}
           description={
             debounced
               ? "Try a different search term."
-              : "Create your first service to start building the catalogue."
+              : "Add your first project case study."
           }
-          actionLabel={debounced ? undefined : "Create Service"}
-          actionHref={debounced ? undefined : "/admin/services/new"}
+          actionLabel={debounced ? undefined : "New Project"}
+          actionHref={debounced ? undefined : "/admin/projects/new"}
         />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="px-4">Name</TableHead>
-                <TableHead className="px-4">Slug</TableHead>
+                <TableHead className="px-4">Title</TableHead>
                 <TableHead className="px-4">Category</TableHead>
+                <TableHead className="px-4">Industry</TableHead>
+                <TableHead className="px-4">Year</TableHead>
                 <TableHead className="px-4">Featured</TableHead>
                 <TableHead className="px-4">Published</TableHead>
                 <TableHead className="px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="px-4 py-3 font-medium">{s.name}</TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                    {s.slug}
+              {filtered.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="max-w-[280px] truncate px-4 py-3 font-medium">
+                    {p.title}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    <Badge variant="secondary">{categoryName(s.categoryId)}</Badge>
+                    <Badge variant="secondary">{p.category}</Badge>
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm">
+                    {industryName(p.industry)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {p.year}
                   </TableCell>
                   <TableCell className="px-4 py-3">
-                    {s.featured ? (
+                    {p.featured ? (
                       <Badge className="bg-brand text-brand-foreground">Yes</Badge>
                     ) : (
                       <span className="text-muted-foreground">—</span>
@@ -262,17 +262,17 @@ export default function AdminServicesPage() {
                       variant="ghost"
                       size="sm"
                       className="min-h-9 gap-1.5"
-                      disabled={pendingPublishId === s.id}
-                      onClick={() => togglePublish(s)}
+                      disabled={pendingPublishId === p.id}
+                      onClick={() => togglePublish(p)}
                     >
-                      {pendingPublishId === s.id ? (
+                      {pendingPublishId === p.id ? (
                         <Loader2 className="size-3.5 animate-spin" />
-                      ) : s.published ? (
+                      ) : p.published ? (
                         <Eye className="size-3.5 text-emerald-600" />
                       ) : (
                         <EyeOff className="size-3.5 text-muted-foreground" />
                       )}
-                      {s.published ? "Published" : "Draft"}
+                      {p.published ? "Published" : "Draft"}
                     </Button>
                   </TableCell>
                   <TableCell className="px-4 py-3">
@@ -284,7 +284,7 @@ export default function AdminServicesPage() {
                         asChild
                         title="View on site"
                       >
-                        <Link href={`/services/${s.slug}`} target="_blank">
+                        <Link href="/projects" target="_blank">
                           <ExternalLink className="size-4" />
                         </Link>
                       </Button>
@@ -295,7 +295,7 @@ export default function AdminServicesPage() {
                         asChild
                         title="Edit"
                       >
-                        <Link href={`/admin/services/${s.id}`}>
+                        <Link href={`/admin/projects/${p.id}`}>
                           <Pencil className="size-4" />
                         </Link>
                       </Button>
@@ -304,10 +304,10 @@ export default function AdminServicesPage() {
                         size="icon"
                         className="size-10 hover:text-destructive"
                         title="Delete"
-                        disabled={deletingId === s.id}
-                        onClick={() => setDeleteTarget(s)}
+                        disabled={deletingId === p.id}
+                        onClick={() => setDeleteTarget(p)}
                       >
-                        {deletingId === s.id ? (
+                        {deletingId === p.id ? (
                           <Loader2 className="size-4 animate-spin" />
                         ) : (
                           <Trash2 className="size-4" />
@@ -322,18 +322,17 @@ export default function AdminServicesPage() {
         </div>
       )}
 
-      {/* Delete confirmation */}
       <AlertDialog
         open={Boolean(deleteTarget)}
         onOpenChange={(o) => !o && setDeleteTarget(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete service?</AlertDialogTitle>
+            <AlertDialogTitle>Delete project?</AlertDialogTitle>
             <AlertDialogDescription>
               You are about to permanently delete{" "}
               <span className="font-medium text-foreground">
-                {deleteTarget?.name}
+                {deleteTarget?.title}
               </span>
               . This action cannot be undone.
             </AlertDialogDescription>
