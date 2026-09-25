@@ -55,15 +55,13 @@ export async function GET() {
     const rows = await db.companySettings.findMany();
     const settings: Record<string, unknown> = {};
     for (const row of rows) {
-      // Coerce Prisma JSON (Prisma.JsonValue) to a plain JS value.
       settings[row.key] = row.value as unknown;
     }
     return NextResponse.json({ settings });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
     console.error("[admin] settings GET failed:", msg.slice(0, 200));
-    // DB unavailable — return empty settings so the UI can use static fallback.
-    return NextResponse.json({ settings: {} }, { status: 200 });
+    return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 }
 

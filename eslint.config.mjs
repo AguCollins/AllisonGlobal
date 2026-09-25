@@ -4,6 +4,7 @@ import nextTypescript from "eslint-config-next/typescript";
 const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
   rules: {
     // TypeScript — allow implicit any (project uses noImplicitAny: false)
+    // Prisma dynamic access requires any — documented
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/ban-ts-comment": "off",
