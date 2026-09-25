@@ -3,15 +3,13 @@ import { PrismaClient } from "@prisma/client";
 /**
  * Prisma client initialization — Vercel/serverless compatible.
  *
- * PROBLEM: Prisma validates DATABASE_URL against the schema provider at
- * import time. If the schema says "postgresql" but the env var is a
- * SQLite `file:` path (or missing), Prisma throws immediately —
- * crashing the build.
+ * Only creates a real PrismaClient when DATABASE_URL is a valid
+ * PostgreSQL URL. Otherwise returns a safe proxy that throws
+ * controlled errors (caught by data-access layer).
  *
- * SOLUTION: Only instantiate PrismaClient when DATABASE_URL is a valid
- * PostgreSQL URL. In development without a DB, return a no-op proxy that
- * throws controlled errors (caught by data-access.ts) instead of crashing
- * at import time.
+ * IMPORTANT: The global singleton is only used in development.
+ * In production, a new client is created per serverless invocation
+ * (Vercel handles this efficiently with connection pooling).
  */
 
 function isValidPostgresUrl(url: string | undefined): boolean {
@@ -20,13 +18,11 @@ function isValidPostgresUrl(url: string | undefined): boolean {
 }
 
 function createSafeProxy(): PrismaClient {
-  // A proxy that throws a clear error on any method access, instead of
-  // crashing at import time. The data-access layer catches these.
   const handler: ProxyHandler<Record<string, unknown>> = {
     get(_target, prop) {
       if (prop === "$queryRaw" || prop === "$executeRaw") {
         return async () => {
-          throw new Error("Database not configured (DATABASE_URL is not a PostgreSQL URL)");
+          throw new Error("Database not configured");
         };
       }
       if (prop === "$connect" || prop === "$disconnect") {
@@ -35,7 +31,8 @@ function createSafeProxy(): PrismaClient {
       if (typeof prop === "string") {
         return new Proxy({}, {
           get(_t, p) {
-            if (p === "then") return undefined; // Not a promise
+            if (p === "then") return undefined;
+            if (p === "toJSON") return undefined;
             return async () => {
               throw new Error(`Database not configured — cannot call ${prop}.${String(p)}`);
             };
@@ -49,27 +46,13 @@ function createSafeProxy(): PrismaClient {
   return new Proxy({} as Record<string, unknown>, handler) as unknown as PrismaClient;
 }
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
 function createClient(): PrismaClient {
   const url = process.env.DATABASE_URL;
 
-  // If no valid PostgreSQL URL, return a safe proxy (no crash)
   if (!isValidPostgresUrl(url)) {
-    if (process.env.NODE_ENV === "production" && url) {
-      // In production with a non-PostgreSQL URL — this is a misconfiguration
-      console.error(
-        "[database] DATABASE_URL is not a PostgreSQL URL. " +
-        "Set it to your Neon connection string (postgresql://...). " +
-        "See .env.example for details.",
-      );
-    }
     return createSafeProxy();
   }
 
-  // Valid PostgreSQL URL — create real PrismaClient
   const log: ("query" | "error" | "warn")[] =
     process.env.NODE_ENV === "production" ? ["error", "warn"] : ["query", "error", "warn"];
 
@@ -77,6 +60,11 @@ function createClient(): PrismaClient {
 }
 
 // Singleton pattern — prevent multiple instances in dev (hot reload)
+// In production (Vercel), each invocation gets a fresh client
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
 export const db = globalForPrisma.prisma ?? createClient();
 
 if (process.env.NODE_ENV !== "production") {

@@ -51,10 +51,19 @@ export function createCrudHandlers(config: CrudConfig) {
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const includeDrafts = searchParams.get("drafts") === "true";
+    const limit = parseInt(searchParams.get("limit") || "100");
+    const search = searchParams.get("q") || undefined;
 
-    const where = includeDrafts ? {} : { published: true };
+    // Admin sees ALL records (published + drafts) — no published filter
+    // The public data-access layer handles published filtering for public pages
+    const where = search ? {
+      OR: [
+        { name: { contains: search, mode: "insensitive" as const } },
+        { title: { contains: search, mode: "insensitive" as const } },
+        { slug: { contains: search, mode: "insensitive" as const } },
+      ],
+    } : {};
+
     const [items, total] = await Promise.all([
       table.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit }),
       table.count({ where }),
