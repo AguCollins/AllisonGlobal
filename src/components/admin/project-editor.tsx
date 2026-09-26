@@ -51,6 +51,7 @@ import {
 } from "@/components/admin/shared";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { SeoTab, type SeoState } from "@/components/admin/seo-tab";
+import { RichTextField } from "@/components/admin/rich-text-field";
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -519,12 +520,16 @@ export function ProjectEditor({
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
+                  <RichTextField
                     value={form.description}
-                    onChange={(e) => update("description", e.target.value)}
-                    rows={5}
+                    onChange={(doc) => update("description", doc as string)}
+                    placeholder="Project description — supports formatting"
+                    minHeight={200}
+                    label="Project description"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Supports bold, italic, headings, lists, and links.
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -733,6 +738,9 @@ export function ProjectEditor({
             slug={form.slug}
             pathPrefix="/projects/"
             fallbackImage={galleryUrls[0]}
+            bodyText={form.description}
+            excerpt={form.scope}
+            category={form.category}
           />
 
           <Separator />

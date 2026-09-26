@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MediaPicker } from "@/components/admin/media-picker";
+import { SeoSuggestCard } from "@/components/admin/seo-suggest-card";
+import { generateSeoSuggestions } from "@/components/admin/seo-suggest";
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -34,6 +36,12 @@ export interface SeoTabProps {
   pathPrefix: string;
   /** Featured/hero image URL from the Content tab — used as OG fallback. */
   fallbackImage?: string;
+  /** Body text content for SEO analysis (overview/description). */
+  bodyText?: string;
+  /** Excerpt/short description for SEO suggestions. */
+  excerpt?: string;
+  /** Category label for SEO suggestions. */
+  category?: string;
 }
 
 // ───────────────────────── Helpers ─────────────────────────
@@ -97,6 +105,9 @@ export function SeoTab({
   slug,
   pathPrefix,
   fallbackImage,
+  bodyText,
+  excerpt,
+  category,
 }: SeoTabProps) {
   function update<K extends keyof SeoState>(key: K, next: SeoState[K]) {
     onChange({ ...value, [key]: next });
@@ -117,6 +128,34 @@ export function SeoTab({
 
   return (
     <div className="space-y-6">
+      {/* Smart SEO Suggestions */}
+      <SeoSuggestCard
+        input={{
+          title,
+          excerpt,
+          bodyText,
+          category,
+        }}
+        current={{
+          metaTitle: value.metaTitle,
+          metaDescription: value.metaDescription,
+        }}
+        onAccept={(field, val) => {
+          if (field === "all") {
+            const s = generateSeoSuggestions({ title, excerpt, bodyText, category });
+            if (s) {
+              onChange({
+                ...value,
+                metaTitle: s.metaTitle,
+                metaDescription: s.metaDescription,
+              });
+            }
+          } else {
+            onChange({ ...value, [field]: val });
+          }
+        }}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Search engine metadata</CardTitle>

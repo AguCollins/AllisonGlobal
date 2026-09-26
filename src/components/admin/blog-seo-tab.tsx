@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SeoSuggestCard } from "@/components/admin/seo-suggest-card";
+import { generateSeoSuggestions } from "@/components/admin/seo-suggest";
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -30,6 +32,14 @@ export interface BlogSeoTabProps {
   slug: string;
   /** Featured image URL from the Media tab — used as OG image fallback. */
   featuredImage: string;
+  /** Full body content (TipTap JSON or BlogBlock[]) for SEO analysis. */
+  content?: unknown;
+  /** Excerpt from the Content tab — used for SEO suggestions. */
+  excerpt?: string;
+  /** Category from the Content tab — used for SEO suggestions. */
+  category?: string;
+  /** Tags from the Publishing tab — used for SEO suggestions. */
+  tags?: string[];
 }
 
 // ───────────────────────── Helpers ─────────────────────────
@@ -92,6 +102,10 @@ export function BlogSeoTab({
   title,
   slug,
   featuredImage,
+  content,
+  excerpt,
+  category,
+  tags,
 }: BlogSeoTabProps) {
   function update<K extends keyof BlogSeoState>(
     key: K,
@@ -114,6 +128,39 @@ export function BlogSeoTab({
 
   return (
     <div className="space-y-6">
+      {/* Smart SEO Suggestions */}
+      <SeoSuggestCard
+        input={{
+          title,
+          excerpt,
+          bodyText: content as string | undefined,
+          category,
+          tags,
+        }}
+        current={{
+          metaTitle: value.metaTitle,
+          metaDescription: value.metaDescription,
+          ogTitle: value.ogTitle,
+          ogDescription: value.ogDescription,
+        }}
+        onAccept={(field, val) => {
+          if (field === "all") {
+            const s = generateSeoSuggestions({ title, excerpt, bodyText: content as string | undefined, category, tags });
+            if (s) {
+              onChange({
+                ...value,
+                metaTitle: s.metaTitle,
+                metaDescription: s.metaDescription,
+                ogTitle: s.ogTitle,
+                ogDescription: s.ogDescription,
+              });
+            }
+          } else {
+            onChange({ ...value, [field]: val });
+          }
+        }}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Search engine metadata</CardTitle>

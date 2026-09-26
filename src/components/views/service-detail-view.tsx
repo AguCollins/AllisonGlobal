@@ -13,6 +13,7 @@ import {
   Building2,
 } from "lucide-react";
 import { Icon } from "@/components/site/icon";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import {
   Section,
   SectionHeader,
@@ -183,9 +184,9 @@ export function ServiceDetailView({
               eyebrow="Overview"
               title={`What is ${service.name.toLowerCase()}?`}
             />
-            <p className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
-              {service.overview}
-            </p>
+            <div className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
+              <RichTextContent content={service.overview} />
+            </div>
             <div className="mt-6 flex flex-wrap gap-2">
               {service.tech.map((t) => (
                 <Badge key={t} variant="secondary" className="font-normal">

@@ -723,6 +723,10 @@ export function BlogEditor({
             title={state.title}
             slug={state.slug}
             featuredImage={state.featuredImage}
+            content={state.content}
+            excerpt={state.excerpt}
+            category={state.category}
+            tags={state.publishing.tags}
           />
         </TabsContent>
 

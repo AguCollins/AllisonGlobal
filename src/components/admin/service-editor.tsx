@@ -53,6 +53,7 @@ import {
 } from "@/components/admin/shared";
 import { MediaPicker } from "@/components/admin/media-picker";
 import { SeoTab, type SeoState } from "@/components/admin/seo-tab";
+import { RichTextField } from "@/components/admin/rich-text-field";
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -552,13 +553,16 @@ export function ServiceEditor({
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="overview">Overview</Label>
-                  <Textarea
-                    id="overview"
+                  <RichTextField
                     value={form.overview}
-                    onChange={(e) => update("overview", e.target.value)}
-                    rows={5}
-                    placeholder="Long-form description of the service"
+                    onChange={(doc) => update("overview", doc as string)}
+                    placeholder="Long-form description of the service — supports formatting"
+                    minHeight={200}
+                    label="Service overview"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Supports bold, italic, headings, lists, and links.
+                  </p>
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="solution">Solution</Label>
@@ -752,6 +756,9 @@ export function ServiceEditor({
             slug={form.slug}
             pathPrefix="/services/"
             fallbackImage={form.imageUrl}
+            bodyText={form.overview}
+            excerpt={form.shortDescription}
+            category={form.categoryId}
           />
 
           <Separator />
