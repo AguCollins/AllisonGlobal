@@ -14,6 +14,7 @@ import {
   TriangleAlert,
   CheckCircle2,
 } from "lucide-react";
+import { TipTapRenderer as TipTapRendererLazy } from "./tiptap-renderer";
 
 // ───────────────────────── Block type ─────────────────────────
 
@@ -308,24 +309,29 @@ function BlockRenderer({ block }: { block: ContentBlock }) {
 }
 
 export interface BlogBlockRendererProps {
-  /** A mix of typed blocks and legacy {heading, body} blocks. */
-  blocks: ContentBlock[];
+  /** Content — can be BlogBlock[], legacy {heading, body}[], or TipTap JSON. */
+  content: unknown;
   /** Optional className for the wrapper. */
   className?: string;
 }
 
 /**
- * Render an array of blog content blocks. Used by:
- *  - the admin editor's live preview
- *  - the public blog-post view
- *
- * Stays in sync because both consumers import the same component.
+ * Render blog content — auto-detects format:
+ * - TipTap JSON ({ type: "doc", ... }) → TipTapRenderer (new WYSIWYG format)
+ * - BlogBlock[] or legacy {heading, body}[] → block renderer (old format)
  */
-export function BlogBlockRenderer({ blocks, className }: BlogBlockRendererProps) {
+export function BlogBlockRenderer({ content, className }: BlogBlockRendererProps) {
+  // TipTap JSON format → use the new renderer
+  if (content && typeof content === "object" && (content as Record<string, unknown>).type === "doc") {
+    return <TipTapRendererLazy doc={content as import("./format-converter").TipTapDoc} />;
+  }
+
+  // Old format: array of blocks
+  const blocks = normalizeBlocks(content);
   if (!blocks || blocks.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic">
-        No content yet. Add blocks above to see a preview.
+        No content yet. Start writing in the editor above.
       </p>
     );
   }

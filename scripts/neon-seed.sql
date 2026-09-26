@@ -41,6 +41,7 @@ DROP TABLE IF EXISTS "Industry" CASCADE;
 DROP TABLE IF EXISTS "Category" CASCADE;
 DROP TABLE IF EXISTS "AdminUser" CASCADE;
 DROP TABLE IF EXISTS "_prisma_migrations" CASCADE;
+DROP FUNCTION IF EXISTS "set_updated_at"() CASCADE;
 
 -- ═══════════════════════════════════════════════════════════
 --  CREATE TABLES & INDEXES (matches prisma/schema.prisma)
@@ -57,7 +58,7 @@ CREATE TABLE "AdminUser" (
     "active" BOOLEAN NOT NULL DEFAULT true,
     "lastLogin" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AdminUser_pkey" PRIMARY KEY ("id")
 );
@@ -92,7 +93,7 @@ CREATE TABLE "Lead" (
     "message" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'new',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Lead_pkey" PRIMARY KEY ("id")
 );
@@ -109,7 +110,7 @@ CREATE TABLE "Category" (
     "imageUrl" TEXT,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -142,7 +143,7 @@ CREATE TABLE "Service" (
     "canonicalUrl" TEXT,
     "noindex" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Service_pkey" PRIMARY KEY ("id")
 );
@@ -174,7 +175,7 @@ CREATE TABLE "Project" (
     "canonicalUrl" TEXT,
     "noindex" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
 );
@@ -207,7 +208,7 @@ CREATE TABLE "BlogPost" (
     "noindex" BOOLEAN NOT NULL DEFAULT false,
     "nofollow" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "BlogPost_pkey" PRIMARY KEY ("id")
 );
@@ -233,7 +234,7 @@ CREATE TABLE "Industry" (
     "canonicalUrl" TEXT,
     "noindex" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Industry_pkey" PRIMARY KEY ("id")
 );
@@ -250,7 +251,7 @@ CREATE TABLE "Testimonial" (
     "published" BOOLEAN NOT NULL DEFAULT true,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Testimonial_pkey" PRIMARY KEY ("id")
 );
@@ -264,7 +265,7 @@ CREATE TABLE "Faq" (
     "published" BOOLEAN NOT NULL DEFAULT true,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Faq_pkey" PRIMARY KEY ("id")
 );
@@ -289,7 +290,7 @@ CREATE TABLE "Solution" (
     "canonicalUrl" TEXT,
     "noindex" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Solution_pkey" PRIMARY KEY ("id")
 );
@@ -299,7 +300,7 @@ CREATE TABLE "CompanySettings" (
     "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,
     "key" TEXT NOT NULL,
     "value" JSONB NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "CompanySettings_pkey" PRIMARY KEY ("id")
 );
@@ -312,7 +313,7 @@ CREATE TABLE "PageContent" (
     "metaDescription" TEXT,
     "hero" JSONB,
     "sections" JSONB,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PageContent_pkey" PRIMARY KEY ("id")
 );
@@ -325,7 +326,7 @@ CREATE TABLE "Redirect" (
     "type" INTEGER NOT NULL DEFAULT 301,
     "note" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Redirect_pkey" PRIMARY KEY ("id")
 );
@@ -343,7 +344,7 @@ CREATE TABLE "Media" (
     "caption" TEXT,
     "category" TEXT NOT NULL DEFAULT 'general',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
 );
@@ -548,6 +549,35 @@ ALTER TABLE "Service" ADD CONSTRAINT "Service_categoryId_fkey" FOREIGN KEY ("cat
 -- ═══════════════════════════════════════════════════════════
 --  SEED CONTENT
 -- ═══════════════════════════════════════════════════════════
+
+-- AUTO-UPDATE TRIGGER for updatedAt columns
+-- Ensures updatedAt is always set to CURRENT_TIMESTAMP on UPDATE,
+-- even for raw SQL operations (Prisma handles this at the ORM level,
+-- but this trigger provides defense-in-depth at the database level).
+CREATE OR REPLACE FUNCTION "set_updated_at"()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW."updatedAt" = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Apply the trigger to all tables with an updatedAt column
+CREATE TRIGGER update_AdminUser_updatedAt BEFORE UPDATE ON "AdminUser" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_AuditLog_updatedAt BEFORE UPDATE ON "AuditLog" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Lead_updatedAt BEFORE UPDATE ON "Lead" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Category_updatedAt BEFORE UPDATE ON "Category" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Service_updatedAt BEFORE UPDATE ON "Service" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Project_updatedAt BEFORE UPDATE ON "Project" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_BlogPost_updatedAt BEFORE UPDATE ON "BlogPost" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Industry_updatedAt BEFORE UPDATE ON "Industry" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Testimonial_updatedAt BEFORE UPDATE ON "Testimonial" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Faq_updatedAt BEFORE UPDATE ON "Faq" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Solution_updatedAt BEFORE UPDATE ON "Solution" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_CompanySettings_updatedAt BEFORE UPDATE ON "CompanySettings" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_PageContent_updatedAt BEFORE UPDATE ON "PageContent" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Redirect_updatedAt BEFORE UPDATE ON "Redirect" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
+CREATE TRIGGER update_Media_updatedAt BEFORE UPDATE ON "Media" FOR EACH ROW EXECUTE FUNCTION "set_updated_at"();
 
 -- SEED: ADMIN USER
 -- Email:    admin@allisonglobal.tech

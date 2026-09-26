@@ -271,3 +271,144 @@
     color: transparent;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   WYSIWYG Blog Editor — TipTap styles
+   Makes the editor look like a Word document: proper prose
+   spacing, heading sizes, list indentation, link colors, etc.
+   ═══════════════════════════════════════════════════════════ */
+
+.blog-wysiwyg-surface .ProseMirror {
+  min-height: 400px;
+  outline: none;
+}
+
+.blog-wysiwyg-surface .ProseMirror:focus {
+  outline: none;
+}
+
+/* Placeholder for empty editor */
+.blog-wysiwyg-surface .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgb(0 0 0 / 0.25);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings inside the editor */
+.blog-wysiwyg-surface .ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.blog-wysiwyg-surface .ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.blog-wysiwyg-surface .ProseMirror h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* Paragraphs */
+.blog-wysiwyg-surface .ProseMirror p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+/* Lists */
+.blog-wysiwyg-surface .ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.blog-wysiwyg-surface .ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.blog-wysiwyg-surface .ProseMirror li {
+  margin-bottom: 0.375rem;
+  line-height: 1.6;
+}
+
+/* Blockquote */
+.blog-wysiwyg-surface .ProseMirror blockquote {
+  border-left: 4px solid hsl(var(--brand) / 0.4);
+  padding-left: 1.5rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Code block */
+.blog-wysiwyg-surface .ProseMirror pre {
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+}
+
+.blog-wysiwyg-surface .ProseMirror code {
+  background: hsl(var(--muted) / 0.7);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.875rem;
+  color: hsl(var(--brand));
+}
+
+/* Inline code (not in code block) */
+.blog-wysiwyg-surface .ProseMirror p code {
+  background: hsl(var(--muted));
+  color: hsl(var(--brand));
+}
+
+/* Images */
+.blog-wysiwyg-surface .ProseMirror img {
+  border-radius: 0.5rem;
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+}
+
+.blog-wysiwyg-surface .ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid hsl(var(--brand) / 0.5);
+  outline-offset: 2px;
+}
+
+/* Links */
+.blog-wysiwyg-surface .ProseMirror a {
+  color: hsl(var(--brand));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Horizontal rule */
+.blog-wysiwyg-surface .ProseMirror hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 2rem 0;
+}
+
+/* Selected text */
+.blog-wysiwyg-surface .ProseMirror ::selection {
+  background: hsl(var(--brand) / 0.2);
+}

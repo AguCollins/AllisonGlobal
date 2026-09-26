@@ -99,7 +99,7 @@ export function BlogPostView({
             {/* Body content */}
             <Reveal className="mt-8">
               <div className="mx-auto max-w-3xl">
-                <BlogBlockRenderer blocks={post.content} />
+                <BlogBlockRenderer content={post.content} />
               </div>
             </Reveal>
 

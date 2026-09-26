@@ -564,7 +564,7 @@ export function BlogBlockEditor({ blocks, onChange }: BlogBlockEditorProps) {
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none rounded-lg border border-border bg-background p-6">
-            <BlogBlockRenderer blocks={blocks} />
+            <BlogBlockRenderer content={blocks} />
           </div>
         </CardContent>
       </Card>

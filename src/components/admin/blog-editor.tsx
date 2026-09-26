@@ -39,7 +39,6 @@ import {
   slugify,
   useUnsavedChanges,
 } from "@/components/admin/shared";
-import { BlogBlockEditor } from "@/components/admin/blog-block-editor";
 import { BlogSeoTab, type BlogSeoState } from "@/components/admin/blog-seo-tab";
 import {
   BlogPublishingTab,
@@ -47,10 +46,9 @@ import {
   type BlogStatus,
 } from "@/components/admin/blog-publishing-tab";
 import {
-  type BlogBlock,
-  normalizeBlocks,
-  createEmptyBlock,
-} from "@/components/blog/blog-block-renderer";
+  WysiwygEditor,
+  type TipTapDoc,
+} from "@/components/blog/wysiwyg-editor";
 
 // ───────────────────────── Types ─────────────────────────
 
@@ -60,7 +58,7 @@ export interface BlogEditorState {
   slug: string;
   excerpt: string;
   category: string;
-  content: BlogBlock[];
+  content: TipTapDoc | unknown;
   // Media
   featuredImage: string;
   imageQuery: string;
@@ -122,7 +120,7 @@ function emptyState(): BlogEditorState {
     slug: "",
     excerpt: "",
     category: "Surveillance",
-    content: [{ type: "paragraph", text: "" }],
+    content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "" }] }] },
     featuredImage: "",
     imageQuery: "",
     seo: {
@@ -149,13 +147,14 @@ function emptyState(): BlogEditorState {
 }
 
 function stateFromRecord(rec: BlogRecord): BlogEditorState {
-  const blocks = normalizeBlocks(rec.content);
   return {
     title: rec.title ?? "",
     slug: rec.slug ?? "",
     excerpt: rec.excerpt ?? "",
     category: rec.category ?? "",
-    content: blocks.length > 0 ? blocks : [createEmptyBlock("paragraph")],
+    // Content is stored as TipTap JSON (new) or BlogBlock[] (old).
+    // The WYSIWYG editor handles both — it converts old format on load.
+    content: rec.content,
     featuredImage: rec.featuredImage ?? "",
     imageQuery: rec.imageQuery ?? "",
     seo: {
@@ -650,9 +649,10 @@ export function BlogEditor({
             </CardContent>
           </Card>
 
-          <BlogBlockEditor
-            blocks={state.content}
-            onChange={(blocks) => update("content", blocks)}
+          <WysiwygEditor
+            value={state.content}
+            onChange={(doc) => update("content", doc)}
+            placeholder="Start writing your article…"
           />
         </TabsContent>
 
