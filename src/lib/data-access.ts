@@ -621,7 +621,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | undefine
 
 function mapProject(p: {
   id: string; slug: string; title: string; category: string; industry: string;
-  services: unknown; location: string; scope: string; description: string;
+  services: unknown; location: string; scope: string; description: unknown;
   highlights: unknown; imageQuery: string; year: string; featured: boolean;
 }): Project {
   return {
