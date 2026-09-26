@@ -1,36 +1,47 @@
 import type { Metadata } from "next";
-import { getIndustries, DatabaseUnavailableError } from "@/lib/data-access";
+import {
+  getIndustries,
+  getCompany,
+  DatabaseUnavailableError,
+  type CompanyInfo,
+} from "@/lib/data-access";
+import type { Industry, Stat } from "@/lib/types";
 import { IndustriesView } from "@/components/views/industries-view";
+import { DataError } from "@/components/site/data-error";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Industries We Serve",
   description: "From homes and offices to hospitals, hotels, factories and construction sites — see how we tailor ICT and security solutions to your sector.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let industries: Industry[] = [];
+  let company: CompanyInfo | null = null;
+
   try {
-    await getIndustries();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [industries, company] = await Promise.all([getIndustries(), getCompany()]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  return <IndustriesView />;
+  const capabilityStats: Stat[] = company?.capabilityStats ?? [];
+
+  return (
+    <IndustriesView
+      industries={industries}
+      capabilityStats={capabilityStats}
+      heroImage=""
+    />
+  );
 }

@@ -1,36 +1,51 @@
 import type { Metadata } from "next";
-import { getSolutions, DatabaseUnavailableError } from "@/lib/data-access";
+import {
+  getSolutions,
+  getServices,
+  getIndustries,
+  DatabaseUnavailableError,
+} from "@/lib/data-access";
+import type { Solution, Service, Industry } from "@/lib/types";
 import { SolutionsView } from "@/components/views/solutions-view";
+import { DataError } from "@/components/site/data-error";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Solutions — Outcomes, Not Products",
   description: "Explore bundled solutions that solve real problems — unified security, resilient networks, cyber defence, life safety, smart buildings and managed IT.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let solutions: Solution[] = [];
+  let services: Service[] = [];
+  let industries: Industry[] = [];
+
   try {
-    await getSolutions();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [solutions, services, industries] = await Promise.all([
+      getSolutions(),
+      getServices(),
+      getIndustries(),
+    ]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  return <SolutionsView />;
+  return (
+    <SolutionsView
+      solutions={solutions}
+      services={services}
+      industries={industries}
+      heroImage=""
+    />
+  );
 }

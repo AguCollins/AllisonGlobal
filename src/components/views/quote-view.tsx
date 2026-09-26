@@ -17,6 +17,7 @@ import {
   MapPin,
   Layers,
 } from "lucide-react";
+import { Icon } from "@/components/site/icon";
 import {
   Section,
   NavButton,
@@ -32,11 +33,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { serviceCategories, services } from "@/lib/data/services";
-import { heroMedia } from "@/lib/data/media";
-import { industries } from "@/lib/data/industries";
-import { company } from "@/lib/data/company";
+import type { CompanyInfo } from "@/lib/data-access";
+import type { ServiceCategory, Service, Industry } from "@/lib/types";
 import { Field as FormField, FormSection } from "@/components/site/form";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/rack-D_Hb7KFT.jpg";
+
+export interface QuoteViewProps {
+  company: CompanyInfo;
+  categories: ServiceCategory[];
+  services: Service[];
+  industries: Industry[];
+  heroImage: string;
+}
 
 const schema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -75,13 +84,20 @@ const timelineOptions = [
 
 const siteCountOptions = ["1 site", "2–5 sites", "6–10 sites", "10+ sites"];
 
-export function QuoteView() {
+export function QuoteView({
+  company,
+  categories,
+  services,
+  industries,
+  heroImage,
+}: QuoteViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const searchParams = useSearchParams();
   const initialSubject = searchParams.get("subject") ?? "";
   const [selectedServices, setSelectedServices] = React.useState<string[]>(
-    initialSubject ? extractSlugs(initialSubject) : [],
+    initialSubject ? extractSlugs(initialSubject, services) : [],
   );
 
   const form = useForm<FormValues>({
@@ -141,13 +157,13 @@ export function QuoteView() {
   }
 
   if (done) {
-    return <SuccessScreen />;
+    return <SuccessScreen company={company} />;
   }
 
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["quote"]}
+        backgroundImage={heroBg}
         eyebrow="Request a Quote"
         title="Tell us what you need — we'll engineer a response"
         subtitle="The more we understand about your site, goals and constraints, the more precise and useful our proposal will be. No obligation, no generic templates."
@@ -208,10 +224,10 @@ export function QuoteView() {
                 subtitle="Select all the services you're interested in. You can choose across categories — we'll design them as an integrated solution."
               >
                 <div className="space-y-4">
-                  {serviceCategories.map((cat) => (
+                  {categories.map((cat) => (
                     <div key={cat.id} className="rounded-xl border border-border/70 bg-muted/30 p-4">
                       <div className="flex items-center gap-2">
-                        <cat.icon className="size-4 text-brand" />
+                        <Icon name={cat.iconName} className="size-4 text-brand" />
                         <h4 className="text-sm font-semibold">{cat.name}</h4>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -471,7 +487,7 @@ export function QuoteView() {
   );
 }
 
-function SuccessScreen() {
+function SuccessScreen({ company }: { company: CompanyInfo }) {
   return (
     <section className="relative overflow-hidden band-ink">
       <div className="absolute inset-0 bg-grid-dark opacity-40" />
@@ -508,7 +524,7 @@ function SuccessScreen() {
 }
 
 /** If the quote was opened with a service name as subject, preselect matching services. */
-function extractSlugs(subject: string): string[] {
+function extractSlugs(subject: string, services: Service[]): string[] {
   const s = subject.toLowerCase();
   return services
     .filter((svc) => s.includes(svc.slug) || s.includes(svc.name.toLowerCase()))

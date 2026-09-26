@@ -3,21 +3,11 @@
 import * as React from "react";
 import {
   LifeBuoy,
-  Activity,
-  Wrench,
-  Clock,
-  BarChart3,
-  TrendingUp,
-  ShieldCheck,
   ArrowRight,
   Check,
   PhoneCall,
   Mail,
   AlertTriangle,
-  Cpu,
-  Bug,
-  EyeOff,
-  TimerReset,
   Network,
   Lock,
   Camera,
@@ -37,16 +27,23 @@ import {
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { company } from "@/lib/data/company";
-import { heroMedia } from "@/lib/data/media";
-import { serviceCategories } from "@/lib/data/services";
+import type { CompanyInfo } from "@/lib/data-access";
+import type { ServiceCategory } from "@/lib/types";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/rack-D_Hb7KFT.jpg";
+
+export interface SupportViewProps {
+  company: CompanyInfo;
+  categories: ServiceCategory[];
+  heroImage: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 
 type Challenge = {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
   challenge: string;
   detail: string;
   response: string;
@@ -54,7 +51,7 @@ type Challenge = {
 
 const challenges: Challenge[] = [
   {
-    icon: EyeOff,
+    icon: "EyeOff",
     challenge: "Silent degradation",
     detail:
       "Cameras drift out of focus, switches run hot, drives quietly fail — and nobody notices until the moment evidence or uptime actually matters.",
@@ -62,7 +59,7 @@ const challenges: Challenge[] = [
       "Continuous monitoring catches the quiet failures before they become incidents, with alerts routed to engineers who already know your site.",
   },
   {
-    icon: Cpu,
+    icon: "Cpu",
     challenge: "Outdated firmware",
     detail:
       "Vendors release security patches regularly, but unpatched firewalls, NVRs and access controllers stay exposed for months — the most common cause of breaches.",
@@ -70,7 +67,7 @@ const challenges: Challenge[] = [
       "Firmware and patch management as a routine discipline, not an afterthought — so your perimeter hardens over time instead of weakening.",
   },
   {
-    icon: Bug,
+    icon: "Bug",
     challenge: "No monitoring",
     detail:
       "When nothing is watching the watchers, a failed recorder or downed switch can sit unnoticed for weeks. By the time you find out, the footage is gone.",
@@ -78,7 +75,7 @@ const challenges: Challenge[] = [
       "Health checks across cameras, recorders, networks and endpoints — with a clear escalation path so issues reach the right engineer fast.",
   },
   {
-    icon: TimerReset,
+    icon: "TimerReset",
     challenge: "Slow vendor response",
     detail:
       "Coordinating three vendors for one outage means finger-pointing and downtime. The CCTV team blames the network, the network team blames the firewall.",
@@ -88,44 +85,44 @@ const challenges: Challenge[] = [
 ];
 
 type Deliverable = {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string;
   title: string;
   description: string;
 };
 
 const deliverables: Deliverable[] = [
   {
-    icon: Activity,
+    icon: "Activity",
     title: "Continuous Monitoring",
     description:
       "Automated health checks across networks, cameras, access control and endpoints — with alerts triaged by engineers who know your system.",
   },
   {
-    icon: Wrench,
+    icon: "Wrench",
     title: "Preventive Maintenance",
     description:
       "Scheduled site visits to clean, calibrate, test and re-secure equipment before wear and dust turn into failures.",
   },
   {
-    icon: Clock,
+    icon: "Clock",
     title: "Priority Support (SLAs)",
     description:
       "Defined response and resolution targets, with a direct line to engineers — not a queue, not a ticket alone in the dark.",
   },
   {
-    icon: BarChart3,
+    icon: "BarChart3",
     title: "Reporting & Visibility",
     description:
       "Plain-language reports on system health, incidents resolved, patches applied and recommendations — so you see the value, not just the invoice.",
   },
   {
-    icon: TrendingUp,
+    icon: "TrendingUp",
     title: "Continuous Improvement",
     description:
       "Quarterly reviews of your environment, risks and roadmap — so the system you bought this year still meets your needs in three.",
   },
   {
-    icon: ShieldCheck,
+    icon: "ShieldCheck",
     title: "Firmware & Patch Management",
     description:
       "Tracked firmware versions, tested patches and a hardening schedule applied across firewalls, recorders, controllers and endpoints.",
@@ -208,11 +205,12 @@ const supportCategories = [
 /*  View                                                               */
 /* ------------------------------------------------------------------ */
 
-export function SupportView() {
+export function SupportView({ company, categories, heroImage }: SupportViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["support"]}
+        backgroundImage={heroBg}
         eyebrow="Maintenance & Support"
         title="Systems that keep working — because someone is looking after them"
         subtitle="The best systems are the ones that stay healthy. Our maintenance and managed-support plans keep your IT and security infrastructure reliable for years."
@@ -226,11 +224,13 @@ export function SupportView() {
       <WhyMaintenanceMatters />
       <WhatsIncluded />
       <SupportPlans />
-      <WhatWeSupport />
-      <EmergencySupport />
+      <WhatWeSupport categories={categories} />
+      <EmergencySupport company={company} />
       <ConversionPathCTA
         title="Let's keep your systems running"
         subtitle="One conversation with our engineering team is usually all it takes to scope a support plan that fits your site, risk profile and budget."
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
       />
     </>
   );
@@ -275,7 +275,7 @@ function WhyMaintenanceMatters() {
 
                 <div className="flex items-start gap-4 rounded-xl bg-emerald-50/50 p-4 dark:bg-emerald-500/[0.07]">
                   <IconBadge
-                    icon={ShieldCheck}
+                    icon="ShieldCheck"
                     variant="brand"
                     size="sm"
                     className="mt-0.5"
@@ -445,7 +445,7 @@ function SupportPlans() {
 /*  What we support                                                   */
 /* ------------------------------------------------------------------ */
 
-function WhatWeSupport() {
+function WhatWeSupport({ categories }: { categories: ServiceCategory[] }) {
   return (
     <Section>
       <SectionHeader
@@ -455,13 +455,13 @@ function WhatWeSupport() {
       />
 
       <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {serviceCategories.map((cat, i) => (
+        {categories.map((cat, i) => (
           <Reveal key={cat.id} delay={i * 0.04}>
             <NavLink
               view="services"
               className="group flex items-center gap-4 rounded-xl border border-border/70 bg-card p-4 text-left transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md hover:shadow-emerald-500/5"
             >
-              <IconBadge icon={cat.icon} variant="brand" size="sm" />
+              <IconBadge icon={cat.iconName} variant="brand" size="sm" />
               <div className="min-w-0 flex-1">
                 <p className="font-display text-sm font-semibold leading-snug">
                   {cat.name}
@@ -495,7 +495,7 @@ function WhatWeSupport() {
 /*  Emergency support                                                 */
 /* ------------------------------------------------------------------ */
 
-function EmergencySupport() {
+function EmergencySupport({ company }: { company: CompanyInfo }) {
   return (
     <Section className="bg-muted/30">
       <Reveal>
@@ -539,7 +539,7 @@ function EmergencySupport() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-border/70 bg-background/60 p-5">
-                <IconBadge icon={Clock} variant="brand" size="sm" />
+                <IconBadge icon="Clock" variant="brand" size="sm" />
                 <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Support hours
                 </p>
@@ -548,7 +548,7 @@ function EmergencySupport() {
                 </p>
               </div>
               <div className="rounded-xl border border-border/70 bg-background/60 p-5">
-                <IconBadge icon={LifeBuoy} variant="gold" size="sm" />
+                <IconBadge icon="LifeBuoy" variant="gold" size="sm" />
                 <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Managed clients
                 </p>
@@ -557,7 +557,7 @@ function EmergencySupport() {
                 </p>
               </div>
               <div className="rounded-xl border border-border/70 bg-background/60 p-5 sm:col-span-2">
-                <IconBadge icon={AlertTriangle} variant="muted" size="sm" />
+                <IconBadge icon="AlertTriangle" variant="muted" size="sm" />
                 <p className="mt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   If you&apos;re a managed-support client with an active incident
                 </p>

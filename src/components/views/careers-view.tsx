@@ -4,10 +4,6 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import {
   Users,
-  Cpu,
-  Target,
-  Layers,
-  TrendingUp,
   MapPin,
   Briefcase,
   Clock,
@@ -28,43 +24,63 @@ import {
   IconBadge,
   NavButton,
   NavLink,
-  PhoneLink,
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { heroMedia } from "@/lib/data/media";
-import { jobs, careersIntro, careersPerks } from "@/lib/data/careers";
-import { company } from "@/lib/data/company";
-import type { Job } from "@/lib/types";
+import type {
+  CareersContent,
+  JobRecord,
+} from "@/lib/data-access";
 
-const perkIconMap: Record<
-  string,
-  React.ComponentType<{ className?: string }>
-> = {
-  Cpu,
-  Target,
-  Layers,
-  TrendingUp,
-};
+const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-tablet-CtRi_CQt.jpg";
 
-export function CareersView() {
+export interface CareersViewProps {
+  careers: CareersContent;
+  heroImage: string;
+  company: {
+    contact: {
+      phoneDisplay: string;
+      phoneIntl: string;
+      email: string;
+    };
+    founder: {
+      name: string;
+      title: string;
+    };
+    location: {
+      city: string;
+      country: string;
+    };
+  };
+}
+
+export function CareersView({ careers, heroImage, company }: CareersViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["careers"]}
+        backgroundImage={heroBg}
         eyebrow="Careers"
         title="Build a career engineering trust"
-        subtitle={careersIntro}
+        subtitle={careers.intro}
         icon={Users}
         breadcrumb={[{ label: "Home", view: "home" }, { label: "Careers" }]}
       />
 
-      <WhyJoin />
-      <OpenPositions />
-      <GeneralApplication />
-      <ConversionPathCTA />
+      <WhyJoin perks={careers.perks} founder={company.founder} />
+      <OpenPositions jobs={careers.jobs} contactEmail={company.contact.email} />
+      <GeneralApplication
+        contactEmail={company.contact.email}
+        location={company.location}
+        phoneDisplay={company.contact.phoneDisplay}
+        phoneIntl={company.contact.phoneIntl}
+      />
+      <ConversionPathCTA
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
+      />
     </>
   );
 }
@@ -72,7 +88,13 @@ export function CareersView() {
 /* ------------------------------------------------------------------ */
 /*  Why join Allison Global                                             */
 /* ------------------------------------------------------------------ */
-function WhyJoin() {
+function WhyJoin({
+  perks,
+  founder,
+}: {
+  perks: CareersContent["perks"];
+  founder: { name: string; title: string };
+}) {
   return (
     <Section>
       <SectionHeader
@@ -82,13 +104,12 @@ function WhyJoin() {
         subtitle="We're small enough that you'll know everyone and large enough to be exposed to genuinely diverse, enterprise-grade work across ICT and security."
       />
       <Stagger className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {careersPerks.map((perk) => {
-          const Icon = perkIconMap[perk.icon] ?? Cpu;
+        {perks.map((perk) => {
           return (
             <motion.div key={perk.title} variants={staggerItem}>
               <Card className="h-full border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
                 <CardContent className="flex h-full flex-col p-6">
-                  <IconBadge icon={Icon} variant="brand" />
+                  <IconBadge icon={perk.iconName} variant="brand" />
                   <h3 className="mt-5 font-display text-lg font-semibold leading-snug">
                     {perk.title}
                   </h3>
@@ -118,7 +139,7 @@ function WhyJoin() {
                 put our name on."
               </p>
               <p className="mt-3 text-sm text-muted-foreground">
-                — {company.founder.name}, {company.founder.title}
+                — {founder.name}, {founder.title}
               </p>
             </div>
             <div className="lg:justify-self-end">
@@ -148,7 +169,13 @@ function WhyJoin() {
 /* ------------------------------------------------------------------ */
 /*  Open positions — expandable cards                                  */
 /* ------------------------------------------------------------------ */
-function OpenPositions() {
+function OpenPositions({
+  jobs,
+  contactEmail,
+}: {
+  jobs: JobRecord[];
+  contactEmail: string;
+}) {
   return (
     <Section className="bg-muted/30">
       <SectionHeader
@@ -157,18 +184,45 @@ function OpenPositions() {
         subtitle="We're actively growing our engineering, installation, support and business development teams. Don't see a fit? Skip to the general application below."
       />
 
-      <div className="mt-10 space-y-5">
-        {jobs.map((job, i) => (
-          <Reveal key={job.id} delay={i * 0.05}>
-            <JobCard job={job} />
-          </Reveal>
-        ))}
-      </div>
+      {jobs.length === 0 ? (
+        <Reveal>
+          <Card className="border-dashed border-border/70 bg-card/60">
+            <CardContent className="flex flex-col items-center gap-3 px-6 py-14 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Briefcase className="size-6" />
+              </div>
+              <h3 className="font-display text-lg font-semibold">
+                No open roles right now
+              </h3>
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+                We don&apos;t have any active openings at the moment, but we&apos;re
+                always interested in capable engineers and consultants. Send us your
+                CV via the general application below and we&apos;ll reach out when a
+                fit comes up.
+              </p>
+            </CardContent>
+          </Card>
+        </Reveal>
+      ) : (
+        <div className="mt-10 space-y-5">
+          {jobs.map((job, i) => (
+            <Reveal key={job.id} delay={i * 0.05}>
+              <JobCard job={job} contactEmail={contactEmail} />
+            </Reveal>
+          ))}
+        </div>
+      )}
     </Section>
   );
 }
 
-function JobCard({ job }: { job: Job }) {
+function JobCard({
+  job,
+  contactEmail,
+}: {
+  job: JobRecord;
+  contactEmail: string;
+}) {
   const [open, setOpen] = React.useState(false);
   return (
     <Card className="overflow-hidden border-border/70 transition-all duration-300 hover:border-brand/40 hover:shadow-md">
@@ -274,7 +328,7 @@ function JobCard({ job }: { job: Job }) {
                 <ArrowRight className="size-3.5" />
               </NavLink>
               <a
-                href={`mailto:${company.contact.email}?subject=${encodeURIComponent(
+                href={`mailto:${contactEmail}?subject=${encodeURIComponent(
                   `Application: ${job.title}`,
                 )}`}
                 className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-4 text-xs font-semibold text-foreground transition-colors hover:bg-accent"
@@ -327,7 +381,17 @@ function DetailBlock({
 /* ------------------------------------------------------------------ */
 /*  General application                                                 */
 /* ------------------------------------------------------------------ */
-function GeneralApplication() {
+function GeneralApplication({
+  contactEmail,
+  location,
+  phoneDisplay,
+  phoneIntl,
+}: {
+  contactEmail: string;
+  location: { city: string; country: string };
+  phoneDisplay: string;
+  phoneIntl: string;
+}) {
   return (
     <Section>
       <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-sm sm:p-10">
@@ -354,11 +418,11 @@ function GeneralApplication() {
                 <ArrowRight className="size-4" />
               </NavButton>
               <a
-                href={`mailto:${company.contact.email}`}
+                href={`mailto:${contactEmail}`}
                 className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-background px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
               >
                 <Mail className="size-4" />
-                {company.contact.email}
+                {contactEmail}
               </a>
             </div>
           </div>
@@ -378,10 +442,10 @@ function GeneralApplication() {
                       Email
                     </div>
                     <a
-                      href={`mailto:${company.contact.email}`}
+                      href={`mailto:${contactEmail}`}
                       className="font-medium transition-colors hover:text-brand"
                     >
-                      {company.contact.email}
+                      {contactEmail}
                     </a>
                   </div>
                 </div>
@@ -393,7 +457,12 @@ function GeneralApplication() {
                     <div className="text-xs uppercase tracking-wide text-muted-foreground">
                       Phone
                     </div>
-                    <PhoneLink className="font-medium" />
+                    <a
+                      href={`tel:${phoneIntl}`}
+                      className="font-medium transition-colors hover:text-brand"
+                    >
+                      {phoneDisplay}
+                    </a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -405,7 +474,7 @@ function GeneralApplication() {
                       Location
                     </div>
                     <span className="font-medium">
-                      {company.location.city}, {company.location.country}
+                      {location.city}, {location.country}
                     </span>
                   </div>
                 </div>

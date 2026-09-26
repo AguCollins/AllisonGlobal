@@ -1,17 +1,12 @@
 import type { MetadataRoute } from "next";
-import { services } from "@/lib/data/services";
-import { industries } from "@/lib/data/industries";
-import { blogPosts } from "@/lib/data/blog";
+import { getServices, getIndustries, getBlogPosts } from "@/lib/data-access";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.allisonglobal.tech";
+export const revalidate = 3600;
 
-/**
- * Dynamic sitemap covering all static routes + dynamic service/industry/blog
- * detail pages. Legal pages are excluded (noindex) so they don't compete with
- * commercial pages.
- */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.allisonglobal.tech";
+
   const now = new Date();
 
   const staticRoutes = [
@@ -37,26 +32,43 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.8,
   }));
 
-  const serviceRoutes = services.map((s) => ({
-    url: `${siteUrl}/services/${s.slug}`,
-    lastModified: now,
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
+  // Fetch dynamic routes from database — NO static fallback.
+  // If DB is unavailable, only static routes are returned.
+  let serviceRoutes: MetadataRoute.Sitemap = [];
+  let industryRoutes: MetadataRoute.Sitemap = [];
+  let blogRoutes: MetadataRoute.Sitemap = [];
 
-  const industryRoutes = industries.map((i) => ({
-    url: `${siteUrl}/industries/${i.id}`,
-    lastModified: now,
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  try {
+    const [services, industries, blogPosts] = await Promise.all([
+      getServices(),
+      getIndustries(),
+      getBlogPosts(),
+    ]);
 
-  const blogRoutes = blogPosts.map((p) => ({
-    url: `${siteUrl}/blog/${p.slug}`,
-    lastModified: new Date(p.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.5,
-  }));
+    serviceRoutes = services.map((s) => ({
+      url: `${siteUrl}/services/${s.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }));
+
+    industryRoutes = industries.map((i) => ({
+      url: `${siteUrl}/industries/${i.id}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+
+    blogRoutes = blogPosts.map((p) => ({
+      url: `${siteUrl}/blog/${p.slug}`,
+      lastModified: new Date(p.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    }));
+  } catch {
+    // DB unavailable — return only static routes (sitemaps can be partial)
+    console.error("[sitemap] Database unavailable — returning static routes only");
+  }
 
   return [...staticRoutes, ...serviceRoutes, ...industryRoutes, ...blogRoutes];
 }

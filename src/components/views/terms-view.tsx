@@ -6,7 +6,6 @@ import {
   Mail,
   ArrowRight,
   ChevronRight,
-  Scale,
 } from "lucide-react";
 import {
   Section,
@@ -16,9 +15,21 @@ import {
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
-import { termsAndConditions } from "@/lib/data/legal";
-import { heroMedia } from "@/lib/data/media";
-import { company } from "@/lib/data/company";
+import type { LegalDocument } from "@/lib/data-access";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/industry-leading-CgUA2mbS.webp";
+
+export interface TermsViewProps {
+  document: LegalDocument;
+  heroImage: string;
+  company: {
+    contact: {
+      phoneDisplay: string;
+      phoneIntl: string;
+      email: string;
+    };
+  };
+}
 
 /** Build a stable, URL-safe id from a heading like "1. Acceptance of Terms". */
 function sectionId(heading: string, prefix: string) {
@@ -29,16 +40,18 @@ function sectionId(heading: string, prefix: string) {
   return `${prefix}-${slug}`;
 }
 
-export function TermsView() {
+export function TermsView({ document, heroImage, company }: TermsViewProps) {
   const ids = React.useMemo(
-    () => termsAndConditions.sections.map((s) => sectionId(s.heading, "terms")),
-    [],
+    () => document.sections.map((s) => sectionId(s.heading, "terms")),
+    [document.sections],
   );
+
+  const heroBg = heroImage || HERO_IMAGE;
 
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["terms"]}
+        backgroundImage={heroBg}
         eyebrow="Legal"
         title="Terms & Conditions"
         subtitle="The terms that govern your use of our website and the engagement of our services — kept straightforward so you know where you stand."
@@ -54,12 +67,12 @@ export function TermsView() {
             <Reveal>
               <div className="max-w-3xl">
                 <p className="text-pretty text-lg leading-relaxed text-muted-foreground">
-                  {termsAndConditions.intro}
+                  {document.intro}
                 </p>
               </div>
             </Reveal>
 
-            {termsAndConditions.sections.map((section, i) => (
+            {document.sections.map((section, i) => (
               <Reveal key={section.heading} delay={0.04 * (i + 1)}>
                 <section
                   id={ids[i]}
@@ -91,7 +104,7 @@ export function TermsView() {
               <Card className="mt-12 max-w-3xl overflow-hidden border-brand/20 bg-emerald-50/40 dark:bg-emerald-500/[0.06]">
                 <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-4">
-                    <IconBadge icon={Scale} variant="brand" />
+                    <IconBadge icon="Scale" variant="brand" />
                     <div>
                       <h3 className="font-display text-lg font-semibold">
                         Unclear on any clause?
@@ -118,13 +131,13 @@ export function TermsView() {
                 <Card className="overflow-hidden border-border/70">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3">
-                      <IconBadge icon={FileText} variant="brand" size="sm" />
+                      <IconBadge icon="FileText" variant="brand" size="sm" />
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Last updated
                         </p>
                         <p className="font-display text-sm font-semibold">
-                          {termsAndConditions.updated}
+                          {document.updated}
                         </p>
                       </div>
                     </div>
@@ -135,7 +148,7 @@ export function TermsView() {
                       On this page
                     </p>
                     <nav className="mt-3 space-y-1">
-                      {termsAndConditions.sections.map((s, i) => (
+                      {document.sections.map((s, i) => (
                         <a
                           key={s.heading}
                           href={`#${ids[i]}`}
@@ -190,6 +203,8 @@ export function TermsView() {
       <ConversionPathCTA
         title="Ready to start a project?"
         subtitle="Get a clear, no-obligation proposal — with scope, deliverables, timeline and pricing laid out in writing."
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
       />
     </>
   );

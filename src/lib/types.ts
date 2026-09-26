@@ -1,3 +1,4 @@
+import type { ContentBlock } from "@/components/blog/blog-block-renderer";
 import type { LucideIcon } from "lucide-react";
 
 /** All navigable views in the single-page application. */
@@ -38,7 +39,7 @@ export interface ServiceCategory {
   name: string;
   tagline: string;
   description: string;
-  icon: LucideIcon;
+  iconName: string;
   accent: string; // tailwind gradient classes
   services: string[]; // service slugs in this category
 }
@@ -52,7 +53,7 @@ export interface Service {
   slug: string;
   name: string;
   categoryId: string;
-  icon: LucideIcon;
+  iconName: string;
   tagline: string;
   shortDescription: string;
   overview: string;
@@ -81,7 +82,7 @@ export interface ProcessStep {
 export interface Industry {
   id: string;
   name: string;
-  icon: LucideIcon;
+  iconName: string;
   tagline: string;
   summary: string;
   challenges: string[];
@@ -108,7 +109,7 @@ export interface Project {
 export interface Solution {
   id: string;
   name: string;
-  icon: LucideIcon;
+  iconName: string;
   summary: string;
   description: string;
   components: string[]; // service slugs
@@ -119,6 +120,7 @@ export interface Solution {
 export interface Testimonial {
   id: string;
   quote: string;
+  authorName?: string;
   authorRole: string;
   sector: string; // industry id
   rating: number;
@@ -142,7 +144,10 @@ export interface BlogPost {
   author: string;
   authorRole: string;
   imageQuery: string;
-  content: { heading?: string; body: string }[];
+  /** Array of content blocks — typed blocks ({type, ...}) or legacy
+   *  {heading?, body} blocks. Both shapes are rendered by the shared
+   *  BlogBlockRenderer component. */
+  content: ContentBlock[];
   tags: string[];
   featured?: boolean;
 }

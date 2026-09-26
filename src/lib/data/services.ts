@@ -1,31 +1,3 @@
-import {
-  Network,
-  Wifi,
-  Cable,
-  Router,
-  ShieldCheck,
-  Lock,
-  ScanEye,
-  ShieldAlert,
-  Camera,
-  Video,
-  MonitorPlay,
-  HardDrive,
-  Fingerprint,
-  DoorOpen,
-  PhoneCall,
-  KeyRound,
-  Flame,
-  Bell,
-  Siren,
-  ServerCog,
-  MonitorCog,
-  Cog,
-  Building2,
-  LifeBuoy,
-} from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
-import type { LucideIcon } from "lucide-react";
 import type { ServiceCategory, Service } from "@/lib/types";
 
 export const serviceCategories: ServiceCategory[] = [
@@ -36,7 +8,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "The backbone everything else runs on",
     description:
       "Structured cabling, switching, routing and wireless engineered for performance, reliability and future growth — the foundation beneath every CCTV, access and IT system we deploy.",
-    icon: Network,
+    iconName: "Network",
     accent: "from-emerald-500/20 to-teal-500/10",
     services: [
       "structured-cabling",
@@ -53,7 +25,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "Protect your data, network and endpoints",
     description:
       "Defend your business against intrusion, malware, ransomware and data loss with layered security — firewalls, endpoint protection, monitoring and proactive assessment.",
-    icon: ShieldCheck,
+    iconName: "ShieldCheck",
     accent: "from-teal-500/20 to-emerald-500/10",
     services: [
       "network-security",
@@ -69,7 +41,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "See everything that matters",
     description:
       "CCTV and IP video systems designed for coverage, clarity and reliable playback — from single-site cameras to multi-location deployments with remote monitoring.",
-    icon: Camera,
+    iconName: "Camera",
     accent: "from-amber-500/20 to-emerald-500/10",
     services: [
       "cctv-installation",
@@ -85,7 +57,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "Control who enters, when and where",
     description:
       "Card, biometric and intercom systems that secure doors, gates and sensitive areas — with audit trails and integration into your wider security setup.",
-    icon: Fingerprint,
+    iconName: "Fingerprint",
     accent: "from-emerald-500/20 to-amber-500/10",
     services: [
       "access-control-systems",
@@ -101,7 +73,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "Early warning that saves lives and assets",
     description:
       "Intrusion alarms, fire detection and life-safety systems engineered to standards — so threats are detected early and escalated to the right people fast.",
-    icon: Flame,
+    iconName: "Flame",
     accent: "from-orange-500/20 to-amber-500/10",
     services: [
       "burglar-alarm-systems",
@@ -117,7 +89,7 @@ export const serviceCategories: ServiceCategory[] = [
     tagline: "Resilient systems, always-on support",
     description:
       "Servers, data-centre fit-out, computer support and managed services that keep your operations running — designed, deployed and maintained by one team.",
-    icon: ServerCog,
+    iconName: "ServerCog",
     accent: "from-teal-500/20 to-slate-500/10",
     services: [
       "server-data-centre",
@@ -135,7 +107,7 @@ export const services: Service[] = [
     slug: "structured-cabling",
     name: "Structured Cabling",
     categoryId: "network",
-    icon: Cable,
+    iconName: "Cable",
     tagline: "A cabling foundation engineered to carry your business for decades",
     shortDescription:
       "Standards-compliant copper, fibre and rack cabling with proper labelling, testing and certification.",
@@ -171,7 +143,7 @@ export const services: Service[] = [
     slug: "lan-wan",
     name: "LAN / WAN Solutions",
     categoryId: "network",
-    icon: Router,
+    iconName: "Router",
     tagline: "Switching, routing and segmentation done right",
     shortDescription:
       "Layer 2/3 switching, VLANs, routing and inter-site connectivity designed for performance and segmentation.",
@@ -206,7 +178,7 @@ export const services: Service[] = [
     slug: "wifi-installation",
     name: "Wi-Fi Installation & Optimization",
     categoryId: "network",
-    icon: Wifi,
+    iconName: "Wifi",
     tagline: "Coverage you can actually rely on, in every corner",
     shortDescription:
       "Heat-mapped wireless deployments and optimisation for offices, hotels, campuses and large homes.",
@@ -242,7 +214,7 @@ export const services: Service[] = [
     slug: "network-installation",
     name: "Network Installation & Infrastructure",
     categoryId: "network",
-    icon: Network,
+    iconName: "Network",
     tagline: "End-to-end network build, from rack to endpoint",
     shortDescription:
       "Turnkey network installation — design, supply, configuration, commissioning and handover.",
@@ -277,7 +249,7 @@ export const services: Service[] = [
     slug: "network-maintenance",
     name: "Network Maintenance & Support",
     categoryId: "network",
-    icon: LifeBuoy,
+    iconName: "LifeBuoy",
     tagline: "Keep the backbone healthy, not just installed",
     shortDescription:
       "Preventive maintenance, monitoring and rapid-response support for your network infrastructure.",
@@ -314,7 +286,7 @@ export const services: Service[] = [
     slug: "network-security",
     name: "Network Security",
     categoryId: "cybersecurity",
-    icon: ShieldCheck,
+    iconName: "ShieldCheck",
     tagline: "Defend the perimeter and everything inside it",
     shortDescription:
       "Layered network security — firewalls, segmentation, secure access and policy — engineered to your risk profile.",
@@ -350,7 +322,7 @@ export const services: Service[] = [
     slug: "firewall-endpoint-protection",
     name: "Firewall & Endpoint Protection",
     categoryId: "cybersecurity",
-    icon: Lock,
+    iconName: "Lock",
     tagline: "Guard the gate and every device behind it",
     shortDescription:
       "Next-gen firewalls and endpoint protection (EDR/AV) to block malware, ransomware and breaches.",
@@ -385,7 +357,7 @@ export const services: Service[] = [
     slug: "intrusion-detection",
     name: "Intrusion Detection & Prevention",
     categoryId: "cybersecurity",
-    icon: ScanEye,
+    iconName: "ScanEye",
     tagline: "Spot the threats that get past the front door",
     shortDescription:
       "IDS/IPS and monitoring that detects and blocks intrusion attempts on your network.",
@@ -420,7 +392,7 @@ export const services: Service[] = [
     slug: "security-assessment",
     name: "Security Assessment & Consultation",
     categoryId: "cybersecurity",
-    icon: ShieldAlert,
+    iconName: "ShieldAlert",
     tagline: "Know your risks before attackers do",
     shortDescription:
       "Practical security assessments, audits and roadmap planning — translated into clear, prioritised action.",
@@ -457,7 +429,7 @@ export const services: Service[] = [
     slug: "cctv-installation",
     name: "CCTV Installation",
     categoryId: "surveillance",
-    icon: Camera,
+    iconName: "Camera",
     tagline: "Coverage engineered so nothing is missed",
     shortDescription:
       "Professional CCTV design and installation with the right cameras in the right places — and reliable playback.",
@@ -493,7 +465,7 @@ export const services: Service[] = [
     slug: "ip-camera-systems",
     name: "IP Camera Systems",
     categoryId: "surveillance",
-    icon: Video,
+    iconName: "Video",
     tagline: "Modern IP video with the clarity and intelligence you need",
     shortDescription:
       "Network-based IP camera systems with high resolution, smart analytics and scalable storage.",
@@ -528,7 +500,7 @@ export const services: Service[] = [
     slug: "video-monitoring",
     name: "Video Monitoring & Remote Viewing",
     categoryId: "surveillance",
-    icon: MonitorPlay,
+    iconName: "MonitorPlay",
     tagline: "Eyes on your premises, even when you're away",
     shortDescription:
       "Remote monitoring, live viewing and event-based alerting across single or multiple sites.",
@@ -563,7 +535,7 @@ export const services: Service[] = [
     slug: "nvr-dvr-solutions",
     name: "NVR / DVR & Storage Solutions",
     categoryId: "surveillance",
-    icon: HardDrive,
+    iconName: "HardDrive",
     tagline: "Reliable recording that keeps your footage when it counts",
     shortDescription:
       "Network and digital video recorders with RAID storage, retention planning and redundancy.",
@@ -600,7 +572,7 @@ export const services: Service[] = [
     slug: "access-control-systems",
     name: "Access Control Systems",
     categoryId: "access",
-    icon: KeyRound,
+    iconName: "KeyRound",
     tagline: "Decide who goes where, and when",
     shortDescription:
       "Card, fob and app-based access control with audit trails, schedules and integration.",
@@ -636,7 +608,7 @@ export const services: Service[] = [
     slug: "biometric-systems",
     name: "Biometric Systems",
     categoryId: "access",
-    icon: Fingerprint,
+    iconName: "Fingerprint",
     tagline: "Identity you can't lose or share",
     shortDescription:
       "Fingerprint and facial recognition for access control and time attendance.",
@@ -671,7 +643,7 @@ export const services: Service[] = [
     slug: "door-access-systems",
     name: "Door Access Systems",
     categoryId: "access",
-    icon: DoorOpen,
+    iconName: "DoorOpen",
     tagline: "Secure, reliable door hardware that just works",
     shortDescription:
       "Electric locks, strikes, magnetic locks and turnstiles — installed and integrated for reliable operation.",
@@ -706,7 +678,7 @@ export const services: Service[] = [
     slug: "intercom-systems",
     name: "Intercom Systems",
     categoryId: "access",
-    icon: PhoneCall,
+    iconName: "PhoneCall",
     tagline: "See, speak and grant access from anywhere",
     shortDescription:
       "Audio/video intercoms for gates, receptions and multi-tenant buildings with remote unlock.",
@@ -743,7 +715,7 @@ export const services: Service[] = [
     slug: "burglar-alarm-systems",
     name: "Burglar Alarm Systems",
     categoryId: "alarm-fire",
-    icon: Siren,
+    iconName: "Siren",
     tagline: "Detect intruders early, before loss occurs",
     shortDescription:
       "Intrusion alarm systems with sensors, sirens and remote alerts for homes and businesses.",
@@ -778,7 +750,7 @@ export const services: Service[] = [
     slug: "fire-alarm-systems",
     name: "Fire Alarm Systems",
     categoryId: "alarm-fire",
-    icon: Bell,
+    iconName: "Bell",
     tagline: "Life-safety detection engineered to standards",
     shortDescription:
       "Conventional and addressable fire alarm systems with detectors, call points and sounders.",
@@ -814,7 +786,7 @@ export const services: Service[] = [
     slug: "fire-detection-safety",
     name: "Fire Detection & Safety Systems",
     categoryId: "alarm-fire",
-    icon: Flame,
+    iconName: "Flame",
     tagline: "Beyond alarms — full fire-safety engineering",
     shortDescription:
       "Comprehensive fire detection, suppression support and safety systems for compliance and protection.",
@@ -849,7 +821,7 @@ export const services: Service[] = [
     slug: "perimeter-intrusion",
     name: "Perimeter Intrusion Detection",
     categoryId: "alarm-fire",
-    icon: ShieldAlert,
+    iconName: "ShieldAlert",
     tagline: "Catch intruders at the fence, not the door",
     shortDescription:
       "Perimeter sensors, beam detectors and fence systems for early intrusion warning.",
@@ -886,7 +858,7 @@ export const services: Service[] = [
     slug: "server-data-centre",
     name: "Server & Data-Centre Solutions",
     categoryId: "infrastructure",
-    icon: ServerCog,
+    iconName: "ServerCog",
     tagline: "Resilient compute, storage and racks",
     shortDescription:
       "Server deployment, rack fit-out, storage and backup for reliable business compute.",
@@ -922,7 +894,7 @@ export const services: Service[] = [
     slug: "computer-it-support",
     name: "Computer & IT Support",
     categoryId: "infrastructure",
-    icon: MonitorCog,
+    iconName: "MonitorCog",
     tagline: "Responsive IT support that keeps people productive",
     shortDescription:
       "Helpdesk, on-site and remote IT support for workstations, users and day-to-day operations.",
@@ -957,7 +929,7 @@ export const services: Service[] = [
     slug: "systems-installation-maintenance",
     name: "Systems Installation & Maintenance",
     categoryId: "infrastructure",
-    icon: Cog,
+    iconName: "Cog",
     tagline: "Deployed right, maintained properly",
     shortDescription:
       "Professional installation and ongoing maintenance for IT and security systems.",
@@ -992,7 +964,7 @@ export const services: Service[] = [
     slug: "smart-building-solutions",
     name: "Smart Building Solutions",
     categoryId: "infrastructure",
-    icon: Building2,
+    iconName: "Building2",
     tagline: "Connected, intelligent buildings",
     shortDescription:
       "Integrated building systems — security, automation, lighting and energy — working as one.",
@@ -1027,7 +999,7 @@ export const services: Service[] = [
     slug: "managed-services",
     name: "Managed Services & Technical Support",
     categoryId: "infrastructure",
-    icon: LifeBuoy,
+    iconName: "LifeBuoy",
     tagline: "Your IT and security, fully managed",
     shortDescription:
       "Ongoing managed services — monitoring, maintenance, support and improvement — under one agreement.",

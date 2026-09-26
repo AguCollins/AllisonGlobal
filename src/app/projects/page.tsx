@@ -1,36 +1,51 @@
 import type { Metadata } from "next";
-import { getProjects, DatabaseUnavailableError } from "@/lib/data-access";
+import {
+  getProjects,
+  getIndustries,
+  getServices,
+  DatabaseUnavailableError,
+} from "@/lib/data-access";
+import type { Project, Industry, Service } from "@/lib/types";
 import { ProjectsView } from "@/components/views/projects-view";
+import { DataError } from "@/components/site/data-error";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Projects & Portfolio",
   description: "Representative engagements across industries — CCTV rollouts, network builds, fire safety, access control and managed IT, each engineered and documented.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let projects: Project[] = [];
+  let industries: Industry[] = [];
+  let services: Service[] = [];
+
   try {
-    await getProjects();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [projects, industries, services] = await Promise.all([
+      getProjects(),
+      getIndustries(),
+      getServices(),
+    ]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  return <ProjectsView />;
+  return (
+    <ProjectsView
+      projects={projects}
+      industries={industries}
+      services={services}
+      heroImage=""
+    />
+  );
 }

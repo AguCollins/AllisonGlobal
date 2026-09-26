@@ -3,19 +3,9 @@
 import * as React from "react";
 import {
   ShieldCheck,
-  Layers,
-  Cpu,
-  Map as MapIcon,
-  Network,
-  Zap,
-  LifeBuoy,
-  Scale,
-  FileCheck,
-  Clock,
   X,
   Check,
   ArrowRight,
-  type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -28,42 +18,35 @@ import {
   NavButton,
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA, IndustryCard } from "@/components/site/sections";
-import {
-  differentiators,
-  guarantees,
-} from "@/lib/data/company";
-import { heroMedia } from "@/lib/data/media";
-import { industries } from "@/lib/data/industries";
+import type { Industry } from "@/lib/types";
 
-/* ------------------------------------------------------------------ */
-/*  Icon maps                                                          */
-/* ------------------------------------------------------------------ */
-const differentiatorIconMap: Record<string, LucideIcon> = {
-  Layers,
-  Cpu,
-  Map: MapIcon,
-  Network,
-  Zap,
-  LifeBuoy,
-  Scale,
-  FileCheck,
-};
+const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-mobile-BFL4cCaR.jpg";
 
-const guaranteeIconMap: Record<string, LucideIcon> = {
-  FileCheck,
-  ShieldCheck,
-  Clock,
-  Scale,
-};
+export interface WhyChooseUsViewProps {
+  differentiators: { title: string; description: string; icon: string }[];
+  guarantees: { title: string; description: string; icon: string }[];
+  industries: Industry[];
+  heroImage: string;
+  phoneIntl?: string;
+  phoneDisplay?: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  WhyChooseUsView                                                     */
 /* ------------------------------------------------------------------ */
-export function WhyChooseUsView() {
+export function WhyChooseUsView({
+  differentiators,
+  guarantees,
+  industries,
+  heroImage,
+  phoneIntl,
+  phoneDisplay,
+}: WhyChooseUsViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["why-choose-us"]}
+        backgroundImage={heroBg}
         eyebrow="Why Allison Global"
         title="More than a vendor — your technology & security partner"
         subtitle="Organisations choose us because we engineer outcomes, not transactions. Here is what that actually looks like — in practice, not in a brochure."
@@ -73,11 +56,13 @@ export function WhyChooseUsView() {
           { label: "Why Choose Us" },
         ]}
       />
-      <Differentiators />
+      {differentiators.length > 0 && (
+        <Differentiators differentiators={differentiators} />
+      )}
       <TheDifference />
-      <Commitments />
-      <IndustriesCTA />
-      <ConversionPathCTA />
+      {guarantees.length > 0 && <Commitments guarantees={guarantees} />}
+      {industries.length > 0 && <IndustriesCTA industries={industries} />}
+      <ConversionPathCTA phoneIntl={phoneIntl} phoneDisplay={phoneDisplay} />
     </>
   );
 }
@@ -85,7 +70,9 @@ export function WhyChooseUsView() {
 /* ------------------------------------------------------------------ */
 /*  Differentiators grid (8)                                          */
 /* ------------------------------------------------------------------ */
-function Differentiators() {
+function Differentiators({ differentiators }: {
+  differentiators: { title: string; description: string; icon: string }[];
+}) {
   return (
     <Section>
       <div className="grid items-end gap-6 lg:grid-cols-12">
@@ -108,11 +95,10 @@ function Differentiators() {
 
       <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {differentiators.map((d) => {
-          const Icon = differentiatorIconMap[d.icon] ?? ShieldCheck;
           return (
             <motion.div key={d.title} variants={staggerItem}>
               <div className="h-full rounded-2xl border border-border/70 bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-lg hover:shadow-emerald-500/5">
-                <IconBadge icon={Icon} variant="brand" />
+                <IconBadge icon={d.icon} variant="brand" />
                 <h3 className="mt-4 font-display text-base font-semibold leading-snug">
                   {d.title}
                 </h3>
@@ -256,7 +242,9 @@ function TheDifference() {
 /* ------------------------------------------------------------------ */
 /*  Commitments — guarantees                                          */
 /* ------------------------------------------------------------------ */
-function Commitments() {
+function Commitments({ guarantees }: {
+  guarantees: { title: string; description: string; icon: string }[];
+}) {
   return (
     <Section className="bg-muted/30">
       <SectionHeader
@@ -267,11 +255,10 @@ function Commitments() {
       />
       <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {guarantees.map((g) => {
-          const Icon = guaranteeIconMap[g.icon] ?? ShieldCheck;
           return (
             <motion.div key={g.title} variants={staggerItem}>
               <div className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-6">
-                <IconBadge icon={Icon} variant="brand" />
+                <IconBadge icon={g.icon} variant="brand" />
                 <h3 className="mt-4 font-display text-base font-semibold">
                   {g.title}
                 </h3>
@@ -290,7 +277,7 @@ function Commitments() {
 /* ------------------------------------------------------------------ */
 /*  Industries we serve — compact CTA grid                            */
 /* ------------------------------------------------------------------ */
-function IndustriesCTA() {
+function IndustriesCTA({ industries }: { industries: Industry[] }) {
   const featured = industries.slice(0, 6);
   return (
     <Section>

@@ -17,13 +17,59 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LogoMark } from "@/components/site/primitives";
-import { company, mainNav, utilityNav, legalNav } from "@/lib/data/company";
-import { serviceCategories } from "@/lib/data/services";
-import { industries } from "@/lib/data/industries";
-import { href } from "@/lib/nav";
-import type { ViewId } from "@/lib/types";
 
-export function Footer() {
+interface FooterNavLinkItem {
+  label: string;
+  href: string;
+}
+
+interface FooterServiceCategory {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+interface FooterIndustry {
+  id: string;
+  name: string;
+}
+
+interface CompanyInfo {
+  name: string;
+  legalName: string;
+  shortPitch: string;
+  contact: {
+    phoneDisplay: string;
+    phoneIntl: string;
+    email: string;
+    whatsapp: string;
+    hours: string;
+  };
+  location: { addressLine: string };
+  social: {
+    linkedin: string;
+    facebook: string;
+    instagram: string;
+  };
+}
+
+interface FooterProps {
+  company: CompanyInfo;
+  serviceCategories: FooterServiceCategory[];
+  industries: FooterIndustry[];
+  mainNav: FooterNavLinkItem[];
+  utilityNav: FooterNavLinkItem[];
+  legalNav: FooterNavLinkItem[];
+}
+
+export function Footer({
+  company: companyInfo,
+  serviceCategories: cats,
+  industries: inds,
+  mainNav,
+  utilityNav,
+  legalNav,
+}: FooterProps) {
   return (
     <footer className="mt-auto band-ink relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-dark opacity-30" />
@@ -44,7 +90,7 @@ export function Footer() {
               <Link href="/quote">Request a Quote</Link>
             </Button>
             <a
-              href={`tel:${company.contact.phoneIntl}`}
+              href={`tel:${companyInfo.contact.phoneIntl}`}
               className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-white/15 bg-white/5 px-6 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
               <PhoneCall className="size-4" />
@@ -59,37 +105,37 @@ export function Footer() {
           <div className="lg:col-span-4">
             <LogoMark light />
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
-              {company.shortPitch}
+              {companyInfo.shortPitch}
             </p>
             <div className="mt-5 space-y-2.5 text-sm">
               <a
-                href={`tel:${company.contact.phoneIntl}`}
+                href={`tel:${companyInfo.contact.phoneIntl}`}
                 className="flex items-center gap-2.5 text-white/70 transition-colors hover:text-white"
               >
                 <PhoneCall className="size-4 text-emerald-400" />
-                {company.contact.phoneDisplay}
+                {companyInfo.contact.phoneDisplay}
               </a>
               <a
-                href={`mailto:${company.contact.email}`}
+                href={`mailto:${companyInfo.contact.email}`}
                 className="flex items-center gap-2.5 text-white/70 transition-colors hover:text-white"
               >
                 <Mail className="size-4 text-emerald-400" />
-                {company.contact.email}
+                {companyInfo.contact.email}
               </a>
               <div className="flex items-center gap-2.5 text-white/70">
                 <MapPin className="size-4 text-emerald-400" />
-                {company.location.addressLine}
+                {companyInfo.location.addressLine}
               </div>
               <div className="flex items-start gap-2.5 text-white/70">
                 <Clock className="mt-0.5 size-4 shrink-0 text-emerald-400" />
-                <span>{company.contact.hours}</span>
+                <span>{companyInfo.contact.hours}</span>
               </div>
             </div>
             <div className="mt-5 flex items-center gap-2">
               {[
-                { icon: Linkedin, href: company.social.linkedin, label: "LinkedIn" },
-                { icon: Facebook, href: company.social.facebook, label: "Facebook" },
-                { icon: Instagram, href: company.social.instagram, label: "Instagram" },
+                { icon: Linkedin, href: companyInfo.social.linkedin, label: "LinkedIn" },
+                { icon: Facebook, href: companyInfo.social.facebook, label: "Facebook" },
+                { icon: Instagram, href: companyInfo.social.instagram, label: "Instagram" },
               ].map((s) => (
                 <a
                   key={s.label}
@@ -101,7 +147,7 @@ export function Footer() {
                 </a>
               ))}
               <a
-                href={`https://wa.me/${company.contact.whatsapp}`}
+                href={`https://wa.me/${companyInfo.contact.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
@@ -118,10 +164,10 @@ export function Footer() {
               Services
             </h4>
             <ul className="mt-4 space-y-2.5">
-              {serviceCategories.map((cat) => (
+              {cats.map((cat) => (
                 <li key={cat.id}>
                   <Link
-                    href={href("services", { anchor: `cat-${cat.id}` })}
+                    href={`/services#cat-${cat.id}`}
                     className="flex items-center gap-1.5 text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     <ChevronRight className="size-3.5 text-emerald-400/60" />
@@ -150,7 +196,7 @@ export function Footer() {
               {[...mainNav, ...utilityNav].map((item) => (
                 <li key={item.label}>
                   <Link
-                    href={href(item.view as ViewId)}
+                    href={item.href}
                     className="text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     {item.label}
@@ -166,10 +212,10 @@ export function Footer() {
               Industries
             </h4>
             <ul className="mt-4 grid grid-cols-1 gap-2.5">
-              {industries.slice(0, 7).map((ind) => (
+              {inds.slice(0, 7).map((ind) => (
                 <li key={ind.id}>
                   <Link
-                    href={href("industry-detail", { slug: ind.id })}
+                    href={`/industries/${ind.id}`}
                     className="text-sm text-white/60 transition-colors hover:text-emerald-300"
                   >
                     {ind.name}
@@ -191,13 +237,13 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row">
           <p className="text-xs text-white/50">
-            © {new Date().getFullYear()} {company.legalName}. All rights reserved.
+            © {new Date().getFullYear()} {companyInfo.legalName}. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             {legalNav.map((item) => (
               <Link
-                key={item.view}
-                href={href(item.view as ViewId)}
+                key={item.href}
+                href={item.href}
                 className="text-xs text-white/50 transition-colors hover:text-white"
               >
                 {item.label}

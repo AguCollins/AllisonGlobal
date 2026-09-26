@@ -1,27 +1,10 @@
-import {
-  Home,
-  Building2,
-  GraduationCap,
-  Stethoscope,
-  Hotel,
-  ShoppingBag,
-  Warehouse,
-  Factory,
-  HardHat,
-  Landmark,
-  Church,
-  PiggyBank,
-  Store,
-} from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
-import type { LucideIcon } from "lucide-react";
 import type { Industry } from "@/lib/types";
 
 export const industries: Industry[] = [
   {
     id: "residential",
     name: "Residential & Estates",
-    icon: Home,
+    iconName: "Home",
     tagline: "Secure homes and residential estates",
     summary:
       "Smart, reliable security for homes and estates — CCTV, access control, alarms and networking that protect families without becoming complicated.",
@@ -43,7 +26,7 @@ export const industries: Industry[] = [
   {
     id: "corporate",
     name: "Corporate Offices",
-    icon: Building2,
+    iconName: "Building2",
     tagline: "Secure, connected, productive workplaces",
     summary:
       "Enterprise networking, cybersecurity, access control and surveillance engineered for productive, secure corporate environments.",
@@ -65,7 +48,7 @@ export const industries: Industry[] = [
   {
     id: "education",
     name: "Schools & Universities",
-    icon: GraduationCap,
+    iconName: "GraduationCap",
     tagline: "Safe, connected campuses for learning",
     summary:
       "Campus-wide networking, surveillance, access control and cybersecurity that keep students, staff and data protected.",
@@ -87,7 +70,7 @@ export const industries: Industry[] = [
   {
     id: "healthcare",
     name: "Hospitals & Healthcare",
-    icon: Stethoscope,
+    iconName: "Stethoscope",
     tagline: "Life-safety and data protection for healthcare",
     summary:
       "Fire safety, access control, surveillance and resilient IT for facilities where lives and sensitive data depend on reliability.",
@@ -109,7 +92,7 @@ export const industries: Industry[] = [
   {
     id: "hospitality",
     name: "Hotels & Hospitality",
-    icon: Hotel,
+    iconName: "Hotel",
     tagline: "Guest experience built on security",
     summary:
       "Surveillance, access control, fire safety and seamless Wi-Fi that protect guests and staff while elevating the guest experience.",
@@ -131,7 +114,7 @@ export const industries: Industry[] = [
   {
     id: "retail",
     name: "Retail Stores",
-    icon: ShoppingBag,
+    iconName: "ShoppingBag",
     tagline: "Loss prevention and connected retail",
     summary:
       "CCTV, alarms, access control and networking that reduce shrinkage, protect staff and keep retail operations running.",
@@ -153,7 +136,7 @@ export const industries: Industry[] = [
   {
     id: "warehouse",
     name: "Warehouses & Logistics",
-    icon: Warehouse,
+    iconName: "Warehouse",
     tagline: "Protect inventory and operations",
     summary:
       "Perimeter and surveillance systems, access control and resilient networking for warehouses and logistics facilities.",
@@ -175,7 +158,7 @@ export const industries: Industry[] = [
   {
     id: "industrial",
     name: "Manufacturing & Industrial",
-    icon: Factory,
+    iconName: "Factory",
     tagline: "Secure and resilient industrial operations",
     summary:
       "Rugged networking, perimeter security, surveillance and fire safety engineered for demanding industrial environments.",
@@ -197,7 +180,7 @@ export const industries: Industry[] = [
   {
     id: "construction",
     name: "Construction Sites",
-    icon: HardHat,
+    iconName: "HardHat",
     tagline: "Temporary security that works",
     summary:
       "Mobile surveillance, perimeter detection and alarms that secure construction sites and equipment during the build.",
@@ -219,7 +202,7 @@ export const industries: Industry[] = [
   {
     id: "government",
     name: "Government & Public Sector",
-    icon: Landmark,
+    iconName: "Landmark",
     tagline: "Secure and compliant public infrastructure",
     summary:
       "Security and IT infrastructure engineered for government and public institutions, with compliance and reliability at the core.",
@@ -241,7 +224,7 @@ export const industries: Industry[] = [
   {
     id: "religious",
     name: "Religious Organizations",
-    icon: Church,
+    iconName: "Church",
     tagline: "Safe, welcoming places of worship",
     summary:
       "Surveillance, access control, fire safety and AV networking that protect congregations and places of worship.",
@@ -263,7 +246,7 @@ export const industries: Industry[] = [
   {
     id: "finance",
     name: "Financial Institutions",
-    icon: PiggyBank,
+    iconName: "PiggyBank",
     tagline: "Security and compliance for finance",
     summary:
       "Cybersecurity, surveillance, access control and resilient IT for banks and financial institutions where trust and compliance are everything.",
@@ -285,7 +268,7 @@ export const industries: Industry[] = [
   {
     id: "smb",
     name: "Small & Medium Businesses",
-    icon: Store,
+    iconName: "Store",
     tagline: "Enterprise-grade security, right-sized",
     summary:
       "Right-sized networking, security and IT support that give SMBs enterprise-grade protection without enterprise-grade complexity.",

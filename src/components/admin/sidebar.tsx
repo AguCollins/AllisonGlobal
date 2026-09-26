@@ -28,6 +28,7 @@ import {
   Workflow,
   FileText,
   Compass,
+  Images,
 } from "lucide-react";
 
 const navItems = [
@@ -38,6 +39,7 @@ const navItems = [
   { href: "/admin/industries", label: "Industries", icon: Building2 },
   { href: "/admin/projects", label: "Projects", icon: Briefcase },
   { href: "/admin/blog", label: "Blog", icon: Newspaper },
+  { href: "/admin/media", label: "Media Library", icon: Images },
   { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
   { href: "/admin/process", label: "Process", icon: Workflow },

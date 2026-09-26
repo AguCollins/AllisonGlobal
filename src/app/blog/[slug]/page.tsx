@@ -1,34 +1,64 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { blogPosts } from "@/lib/data/blog";
-import { getBlogPostBySlug, DatabaseUnavailableError } from "@/lib/data-access";
+import { notFound, redirect } from "next/navigation";
+import {
+  getBlogPostBySlug,
+  getBlogPosts,
+  getRedirectForPath,
+  DatabaseUnavailableError,
+} from "@/lib/data-access";
+import { DataError } from "@/components/site/data-error";
 import { BlogPostView } from "@/components/views/blog-post-view";
-
-export function generateStaticParams() {
-  return blogPosts.map((p) => ({ slug: p.slug }));
-}
+import type { BlogPost } from "@/lib/types";
 
 export const revalidate = 3600;
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export function generateStaticParams() {
+  return [];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
   try {
     const post = await getBlogPostBySlug(slug);
     if (!post) return { title: "Article not found" };
-    return { title: post.title, description: post.excerpt };
+    // The BlogPost type doesn't expose SEO fields, but the DB row may carry
+    // them. Defensive cast for forward compatibility.
+    const meta = post as BlogPost & {
+      metaTitle?: string;
+      metaDescription?: string;
+    };
+    return {
+      title: meta.metaTitle || post.title,
+      description: meta.metaDescription || post.excerpt,
+    };
   } catch {
     return { title: "Article" };
   }
 }
 
-export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   let dbOk = true;
   let postExists = true;
+  let post: BlogPost | undefined;
+  let relatedPosts: BlogPost[] = [];
 
   try {
-    const post = await getBlogPostBySlug(slug);
-    if (!post) postExists = false;
+    post = await getBlogPostBySlug(slug);
+    if (!post) {
+      postExists = false;
+    } else {
+      const allPosts = await getBlogPosts();
+      relatedPosts = allPosts.filter((p) => p.slug !== post!.slug).slice(0, 3);
+    }
   } catch (e) {
     if (e instanceof DatabaseUnavailableError) {
       dbOk = false;
@@ -38,16 +68,23 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  if (!postExists) notFound();
-  return <BlogPostView />;
+  if (!postExists || !post) {
+    // Check for a redirect (e.g., slug was renamed) before 404ing
+    try {
+      const redirectEntry = await getRedirectForPath(`/blog/${slug}`);
+      if (redirectEntry) {
+        redirect(redirectEntry.to);
+      }
+    } catch {
+      // DB error on redirect check — fall through to 404
+    }
+    notFound();
+  }
+
+  return (
+    <BlogPostView post={post} relatedPosts={relatedPosts} heroImage="" />
+  );
 }

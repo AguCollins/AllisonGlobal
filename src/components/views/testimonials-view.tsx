@@ -20,14 +20,38 @@ import {
   ConversionPathCTA,
   StatStrip,
 } from "@/components/site/sections";
-import { testimonials, testimonialStats } from "@/lib/data/testimonials";
-import { heroMedia } from "@/lib/data/media";
-import { industries, industryMap } from "@/lib/data/industries";
+import type { Testimonial, Industry, Stat } from "@/lib/types";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-mobile-BFL4cCaR.jpg";
+
+export interface TestimonialsViewProps {
+  testimonials: Testimonial[];
+  industries: Industry[];
+  heroImage: string;
+}
+
+/**
+ * Visual presentation of the operating commitments behind every engagement.
+ * Hardcoded here intentionally — these are marketing/presentation values,
+ * not CMS-managed content. They don't belong in the database.
+ */
+const testimonialStats: Stat[] = [
+  { value: "98%", label: "would recommend us to another business", sub: "based on representative client feedback" },
+  { value: "< 4h", label: "target priority support response", sub: "for managed-support clients" },
+  { value: "100%", label: "documented handovers", sub: "as-built docs on every project" },
+  { value: "1", label: "accountable partner", sub: "across ICT, network & security" },
+];
 
 /* ------------------------------------------------------------------ */
 /*  View                                                               */
 /* ------------------------------------------------------------------ */
-export function TestimonialsView() {
+export function TestimonialsView({ testimonials, industries, heroImage }: TestimonialsViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
+  const industryMap = React.useMemo(
+    () => Object.fromEntries(industries.map((i) => [i.id, i])) as Record<string, Industry>,
+    [industries],
+  );
+
   // Sectors that actually appear in the testimonials, prioritised
   const sectorIds = Array.from(new Set(testimonials.map((t) => t.sector)));
   const sectorsServed = sectorIds
@@ -40,10 +64,34 @@ export function TestimonialsView() {
       ? sectorsServed
       : industries.slice(0, 8);
 
+  if (testimonials.length === 0) {
+    return (
+      <>
+        <PageHero
+          backgroundImage={heroBg}
+          eyebrow="Client Feedback"
+          icon={Quote}
+          title="What working with us feels like"
+          subtitle="Representative feedback from the clients and sectors we serve — presented by role and industry rather than as manufactured named endorsements. Real signal, not invented social proof."
+          breadcrumb={[
+            { label: "Home", view: "home" },
+            { label: "Testimonials" },
+          ]}
+        />
+        <Section>
+          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-10 text-center text-sm text-muted-foreground">
+            No testimonials published yet. Check back soon for client feedback.
+          </div>
+        </Section>
+        <ConversionPathCTA />
+      </>
+    );
+  }
+
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["testimonials"]}
+        backgroundImage={heroBg}
         eyebrow="Client Feedback"
         icon={Quote}
         title="What working with us feels like"
@@ -168,7 +216,7 @@ export function TestimonialsView() {
                 slug={ind.id}
                 className="group flex h-full items-start gap-3 rounded-2xl border border-border/70 bg-card p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-lg hover:shadow-emerald-500/5"
               >
-                <IconBadge icon={ind.icon} variant="outline" size="sm" />
+                <IconBadge icon={ind.iconName} variant="outline" size="sm" />
                 <div className="flex-1">
                   <div className="font-display text-sm font-semibold leading-snug">
                     {ind.name}

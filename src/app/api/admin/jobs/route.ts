@@ -9,7 +9,7 @@
  * Reads open to any admin; writes require superadmin.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/revalidate";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { recordAudit } from "@/lib/audit";
 import { getClientIp } from "@/lib/ratelimit";
@@ -82,10 +82,10 @@ async function saveItems(items: Job[]) {
     where: { key: SETTING_KEY },
     create: {
       key: SETTING_KEY,
-      value: items as unknown as import("@prisma/client").Prisma.InputJsonValue,
+      value: items as unknown as string,
     },
     update: {
-      value: items as unknown as import("@prisma/client").Prisma.InputJsonValue,
+      value: items as unknown as string,
     },
   });
 }
@@ -132,7 +132,7 @@ export async function POST(req: Request) {
       ip: getClientIp(req),
     });
 
-    revalidatePath("/", "layout");
+    revalidateContent("careers");
     return NextResponse.json({ item }, { status: 201 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
@@ -174,7 +174,7 @@ export async function PATCH(req: Request) {
       ip: getClientIp(req),
     });
 
-    revalidatePath("/", "layout");
+    revalidateContent("careers");
     return NextResponse.json({ item: patched });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";
@@ -214,7 +214,7 @@ export async function DELETE(req: Request) {
       ip: getClientIp(req),
     });
 
-    revalidatePath("/", "layout");
+    revalidateContent("careers");
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";

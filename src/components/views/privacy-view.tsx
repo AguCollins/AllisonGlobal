@@ -6,7 +6,6 @@ import {
   Mail,
   ArrowRight,
   ChevronRight,
-  Lock,
 } from "lucide-react";
 import {
   Section,
@@ -16,9 +15,21 @@ import {
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
-import { privacyPolicy } from "@/lib/data/legal";
-import { heroMedia } from "@/lib/data/media";
-import { company } from "@/lib/data/company";
+import type { LegalDocument } from "@/lib/data-access";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/industry-leading-CgUA2mbS.webp";
+
+export interface PrivacyViewProps {
+  document: LegalDocument;
+  heroImage: string;
+  company: {
+    contact: {
+      phoneDisplay: string;
+      phoneIntl: string;
+      email: string;
+    };
+  };
+}
 
 /** Build a stable, URL-safe id from a heading like "1. Information We Collect". */
 function sectionId(heading: string, prefix: string) {
@@ -29,16 +40,18 @@ function sectionId(heading: string, prefix: string) {
   return `${prefix}-${slug}`;
 }
 
-export function PrivacyView() {
+export function PrivacyView({ document, heroImage, company }: PrivacyViewProps) {
   const ids = React.useMemo(
-    () => privacyPolicy.sections.map((s) => sectionId(s.heading, "privacy")),
-    [],
+    () => document.sections.map((s) => sectionId(s.heading, "privacy")),
+    [document.sections],
   );
+
+  const heroBg = heroImage || HERO_IMAGE;
 
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["privacy"]}
+        backgroundImage={heroBg}
         eyebrow="Legal"
         title="Privacy Policy"
         subtitle="How we collect, use and protect your personal data when you interact with Allison Global — written plainly, not buried in legalese."
@@ -54,12 +67,12 @@ export function PrivacyView() {
             <Reveal>
               <div className="max-w-3xl">
                 <p className="text-pretty text-lg leading-relaxed text-muted-foreground">
-                  {privacyPolicy.intro}
+                  {document.intro}
                 </p>
               </div>
             </Reveal>
 
-            {privacyPolicy.sections.map((section, i) => (
+            {document.sections.map((section, i) => (
               <Reveal key={section.heading} delay={0.04 * (i + 1)}>
                 <section
                   id={ids[i]}
@@ -91,7 +104,7 @@ export function PrivacyView() {
               <Card className="mt-12 max-w-3xl overflow-hidden border-brand/20 bg-emerald-50/40 dark:bg-emerald-500/[0.06]">
                 <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-4">
-                    <IconBadge icon={Lock} variant="brand" />
+                    <IconBadge icon="Lock" variant="brand" />
                     <div>
                       <h3 className="font-display text-lg font-semibold">
                         Need to exercise your data rights?
@@ -118,13 +131,13 @@ export function PrivacyView() {
                 <Card className="overflow-hidden border-border/70">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3">
-                      <IconBadge icon={ShieldCheck} variant="brand" size="sm" />
+                      <IconBadge icon="ShieldCheck" variant="brand" size="sm" />
                       <div>
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                           Last updated
                         </p>
                         <p className="font-display text-sm font-semibold">
-                          {privacyPolicy.updated}
+                          {document.updated}
                         </p>
                       </div>
                     </div>
@@ -135,7 +148,7 @@ export function PrivacyView() {
                       On this page
                     </p>
                     <nav className="mt-3 space-y-1">
-                      {privacyPolicy.sections.map((s, i) => (
+                      {document.sections.map((s, i) => (
                         <a
                           key={s.heading}
                           href={`#${ids[i]}`}
@@ -190,6 +203,8 @@ export function PrivacyView() {
       <ConversionPathCTA
         title="Still have questions?"
         subtitle="Our team will walk you through how your data is handled — clearly, with no fine print."
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
       />
     </>
   );

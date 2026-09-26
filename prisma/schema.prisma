@@ -1,9 +1,10 @@
 // Prisma schema for Allison Global — PostgreSQL (Neon) production datasource.
-// SQLite is no longer the production datasource.
+// PostgreSQL is the ONLY datasource. There is no SQLite or static-file fallback.
+// The public website reads ALL editable content from this database.
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -85,6 +86,7 @@ model Category {
   description String
   iconName    String
   accent      String
+  imageUrl    String?
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -116,7 +118,14 @@ model Service {
   featured          Boolean  @default(false)
   published         Boolean  @default(true)
   iconName          String
+  imageUrl          String?
   sortOrder         Int      @default(0)
+  // SEO fields
+  metaTitle         String?
+  metaDescription   String?
+  ogImage           String?
+  canonicalUrl      String?
+  noindex           Boolean  @default(false)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -133,6 +142,7 @@ model Service {
 
 model Project {
   id          String   @id @default(cuid())
+  slug        String   @unique
   title       String
   category    String
   industry    String
@@ -141,14 +151,25 @@ model Project {
   scope       String
   description String
   highlights  Json   // array of strings
+  gallery     Json   // array of image URLs (new)
+  technologies Json  // array of strings (new)
+  client      String?
+  completionDate String?
   imageQuery  String
   year        String
   featured    Boolean  @default(false)
   published   Boolean  @default(true)
   sortOrder   Int      @default(0)
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([slug])
   @@index([category])
   @@index([industry])
   @@index([published])
@@ -168,25 +189,39 @@ model BlogPost {
   date      String
   author    String
   authorRole String
+  authorId  String?
   imageQuery String
-  content   Json   // array of { heading?: string, body: string }
+  featuredImage String?  // new — overrides imageQuery
+  content   Json   // array of content blocks (see BlogBlock type)
   tags      Json   // array of strings
   featured  Boolean  @default(false)
-  published Boolean  @default(true)
+  status    String   @default("published") // "draft" | "published" | "scheduled" | "archived"
+  scheduledAt DateTime?  // new — when status=scheduled, publish at this time
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
+  nofollow        Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([category])
-  @@index([published])
+  @@index([status])
   @@index([featured])
   @@index([date])
+  @@index([scheduledAt])
 }
 
 // ──────────────────────────── Content: Industries ───────────────────────
 
 model Industry {
   id        String   @id @default(cuid())
+  slug      String   @unique  // new — URL-safe slug for /industries/[slug]
   name      String
   tagline   String
   summary   String
@@ -194,12 +229,22 @@ model Industry {
   solutions  Json   // array of service slugs
   outcomes   Json   // array of strings
   imageQuery String
+  imageUrl   String?  // new
   iconName   String
+  published  Boolean  @default(true)  // new
   sortOrder  Int     @default(0)
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@index([slug])
   @@index([name])
+  @@index([published])
   @@index([sortOrder])
 }
 
@@ -208,14 +253,19 @@ model Industry {
 model Testimonial {
   id          String   @id @default(cuid())
   quote       String
+  authorName  String   @default("")  // new — was missing
   authorRole  String
   sector      String
   rating      Int      @default(5)
   projectType String
+  published   Boolean  @default(true)  // new
+  sortOrder   Int      @default(0)  // new
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([sector])
+  @@index([published])
+  @@index([sortOrder])
   @@index([createdAt])
 }
 
@@ -226,11 +276,13 @@ model Faq {
   category String
   question String
   answer   String
+  published Boolean @default(true)  // new
   sortOrder Int     @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([category])
+  @@index([published])
   @@index([sortOrder])
 }
 
@@ -238,6 +290,7 @@ model Faq {
 
 model Solution {
   id          String   @id @default(cuid())
+  slug        String   @unique  // new
   name        String
   summary     String
   description String
@@ -245,15 +298,27 @@ model Solution {
   outcomes    Json   // array of strings
   bestFor     Json   // array of industry ids
   iconName    String
+  imageUrl    String?  // new
+  published   Boolean  @default(true)  // new
   sortOrder   Int     @default(0)
+  // SEO fields
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([slug])
   @@index([name])
+  @@index([published])
   @@index([sortOrder])
 }
 
 // ──────────────────────────── Company Settings ─────────────────────────
+// Key/value JSON store for structured settings (company info, navigation,
+// CTAs, process steps, jobs, legal docs, stats, etc.)
 
 model CompanySettings {
   id        String   @id @default(cuid())
@@ -262,4 +327,61 @@ model CompanySettings {
   updatedAt DateTime @updatedAt
 
   @@index([key])
+}
+
+// ──────────────────────────── Page Content ─────────────────────────────
+// Page-level editable content (hero text, intro paragraphs, section copy)
+// that doesn't fit into the typed content models above. Each "page" key
+// stores a JSON object of named sections.
+
+model PageContent {
+  id        String   @id @default(cuid())
+  page      String   @unique  // "home" | "about" | "services" | etc.
+  title     String?  // page <title> override
+  metaDescription String?
+  hero      Json?    // { eyebrow, title, subtitle, primaryCta, secondaryCta, image }
+  sections  Json?    // array of { id, type, title, subtitle, content, image, cta, order, visible, theme }
+  updatedAt DateTime @updatedAt
+
+  @@index([page])
+}
+
+// ──────────────────────────── Redirects ─────────────────────────────────
+// URL redirects for SEO — created when slugs change (e.g. blog post slug
+// renamed). Supports 301 (permanent) and 302 (temporary).
+
+model Redirect {
+  id        String   @id @default(cuid())
+  from      String   @unique  // path starting with /, e.g. /blog/old-slug
+  to        String   // path starting with /, e.g. /blog/new-slug
+  type      Int      @default(301)  // 301 = permanent, 302 = temporary
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([from])
+}
+
+// ──────────────────────────── Media Library ─────────────────────────────
+// Uploaded media assets (images, documents). Stored as URLs — either
+// Vercel Blob URLs, S3 URLs, or any publicly-accessible URL.
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String   @unique
+  filename  String
+  mimeType  String
+  size      Int      // bytes
+  width     Int?
+  height    Int?
+  altText   String   @default("")
+  caption   String?
+  category  String   @default("general")  // general | hero | service | project | blog | team
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([url])
+  @@index([category])
+  @@index([mimeType])
+  @@index([createdAt])
 }

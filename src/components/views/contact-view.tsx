@@ -7,11 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
-  PhoneCall,
-  Mail,
   MapPin,
   Clock,
-  MessageCircle,
   Send,
   ArrowRight,
   MessageSquare,
@@ -34,10 +31,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { company } from "@/lib/data/company";
-import { heroMedia } from "@/lib/data/media";
-import { industries } from "@/lib/data/industries";
+import type { CompanyInfo } from "@/lib/data-access";
+import type { Industry } from "@/lib/types";
 import { Field as FormField } from "@/components/site/form";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-tablet-CtRi_CQt.jpg";
+
+export interface ContactViewProps {
+  company: CompanyInfo;
+  industries: Industry[];
+  heroImage: string;
+}
 
 const schema = z.object({
   name: z.string().min(2, "Please enter your name"),
@@ -52,7 +56,8 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function ContactView() {
+export function ContactView({ company, industries, heroImage }: ContactViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   const [submitting, setSubmitting] = React.useState(false);
   const searchParams = useSearchParams();
   const initialSubject = searchParams.get("subject") ?? "";
@@ -109,28 +114,28 @@ export function ContactView() {
 
   const contactChannels = [
     {
-      icon: PhoneCall,
+      icon: "PhoneCall",
       label: "Call us",
       value: company.contact.phoneDisplay,
       href: `tel:${company.contact.phoneIntl}`,
       note: company.contact.hours,
     },
     {
-      icon: Mail,
+      icon: "Mail",
       label: "Email us",
       value: company.contact.email,
       href: `mailto:${company.contact.email}`,
       note: "We reply within one business day",
     },
     {
-      icon: MessageCircle,
+      icon: "MessageCircle",
       label: "WhatsApp",
       value: "Chat with us",
       href: `https://wa.me/${company.contact.whatsapp}`,
       note: "Quick questions welcome",
     },
     {
-      icon: MapPin,
+      icon: "MapPin",
       label: "Visit us",
       value: `${company.location.city}, ${company.location.country}`,
       href: undefined,
@@ -141,7 +146,7 @@ export function ContactView() {
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["contact"]}
+        backgroundImage={heroBg}
         eyebrow="Contact Us"
         title="Let's talk about your project"
         subtitle="Whether you need a quote, a consultation, or just have a question — reach out. One conversation with our engineering team is usually all it takes to get clarity."
@@ -349,7 +354,10 @@ export function ContactView() {
         </div>
       </Section>
 
-      <ConversionPathCTA />
+      <ConversionPathCTA
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
+      />
     </>
   );
 }

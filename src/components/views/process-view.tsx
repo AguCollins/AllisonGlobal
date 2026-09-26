@@ -5,17 +5,7 @@ import {
   ClipboardList,
   Check,
   ArrowRight,
-  FileText,
-  GitBranch,
-  KeyRound,
-  CalendarClock,
-  GraduationCap,
-  Headset,
-  ShieldCheck,
-  Layers,
   Handshake,
-  RefreshCw,
-  type LucideIcon,
 } from "lucide-react";
 import {
   Section,
@@ -25,17 +15,24 @@ import {
   NavButton,
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
-import { processSteps } from "@/lib/data/process";
-import { heroMedia } from "@/lib/data/media";
+import type { ProcessStepRecord } from "@/lib/data-access";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/rack-D_Hb7KFT.jpg";
+
+export interface ProcessViewProps {
+  steps: ProcessStepRecord[];
+  heroImage: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  ProcessView                                                        */
 /* ------------------------------------------------------------------ */
-export function ProcessView() {
+export function ProcessView({ steps, heroImage }: ProcessViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["process"]}
+        backgroundImage={heroBg}
         eyebrow="Our Process"
         title="A process built for outcomes, not transactions"
         subtitle="Every engagement follows the same engineering-led path — from understanding your site to supporting it for years after."
@@ -45,7 +42,7 @@ export function ProcessView() {
           { label: "Process" },
         ]}
       />
-      <ProcessTimeline />
+      <ProcessTimeline steps={steps} />
       <WhyThisMatters />
       <HandoverDeliverables />
       <ConversionPathCTA />
@@ -56,7 +53,7 @@ export function ProcessView() {
 /* ------------------------------------------------------------------ */
 /*  Process timeline — vertical connected timeline                    */
 /* ------------------------------------------------------------------ */
-function ProcessTimeline() {
+function ProcessTimeline({ steps }: { steps: ProcessStepRecord[] }) {
   return (
     <Section>
       <SectionHeader
@@ -66,9 +63,9 @@ function ProcessTimeline() {
       />
 
       <ol className="mt-14 space-y-6 lg:space-y-8">
-        {processSteps.map((step, i) => (
+        {steps.map((step, i) => (
           <Reveal as="li" key={step.id} delay={i * 0.04}>
-            <TimelineStep step={step} isLast={i === processSteps.length - 1} />
+            <TimelineStep step={step} isLast={i === steps.length - 1} />
           </Reveal>
         ))}
       </ol>
@@ -80,10 +77,9 @@ function TimelineStep({
   step,
   isLast,
 }: {
-  step: (typeof processSteps)[number];
+  step: ProcessStepRecord;
   isLast: boolean;
 }) {
-  const Icon = step.icon;
   return (
     <div className="relative grid gap-6 lg:grid-cols-12 lg:gap-8">
       {/* Left rail — number + connector */}
@@ -96,13 +92,13 @@ function TimelineStep({
           </div>
           <div className="lg:order-first">
             <IconBadge
-              icon={Icon}
+              icon={step.iconName}
               variant="outline"
               size="md"
               className="lg:hidden"
             />
             <div className="hidden lg:block">
-              <IconBadge icon={Icon} variant="outline" size="md" />
+              <IconBadge icon={step.iconName} variant="outline" size="md" />
             </div>
           </div>
           {/* Vertical connector */}
@@ -124,7 +120,7 @@ function TimelineStep({
               <div className="p-6 sm:p-7">
                 <div className="flex items-center gap-3">
                   <span className="lg:hidden">
-                    <IconBadge icon={Icon} variant="brand" size="md" />
+                    <IconBadge icon={step.iconName} variant="brand" size="md" />
                   </span>
                   <h3 className="font-display text-xl font-bold leading-tight sm:text-2xl">
                     {step.title}
@@ -185,24 +181,24 @@ function TimelineStep({
 /* ------------------------------------------------------------------ */
 function WhyThisMatters() {
   const points: {
-    icon: LucideIcon;
+    icon: string;
     title: string;
     description: string;
   }[] = [
     {
-      icon: ShieldCheck,
+      icon: "ShieldCheck",
       title: "No surprises",
       description:
         "Because we assess, design and document before we install, you know the scope, the cost and the outcome up front — not after the bill arrives.",
     },
     {
-      icon: Layers,
+      icon: "Layers",
       title: "Transferable systems",
       description:
         "As-built drawings, credentials and runbooks mean your systems can be managed by us, your team, or any engineer who follows — without reverse-engineering them.",
     },
     {
-      icon: RefreshCw,
+      icon: "RefreshCw",
       title: "Long-term value",
       description:
         "Preventive maintenance, monitoring and continuous improvement protect your investment for years — instead of replacing systems that quietly degraded.",
@@ -241,42 +237,42 @@ function WhyThisMatters() {
 /* ------------------------------------------------------------------ */
 function HandoverDeliverables() {
   const deliverables: {
-    icon: LucideIcon;
+    icon: string;
     title: string;
     description: string;
   }[] = [
     {
-      icon: FileText,
+      icon: "FileText",
       title: "As-built documentation",
       description:
         "Recorded drawings and configurations showing exactly what was installed — not what was planned, what was actually deployed.",
     },
     {
-      icon: GitBranch,
+      icon: "GitBranch",
       title: "System diagrams",
       description:
         "Network topology, camera coverage maps, access-control zones and alarm logic — clear diagrams your team and ours can both work from.",
     },
     {
-      icon: KeyRound,
+      icon: "KeyRound",
       title: "Credentials & access",
       description:
         "All admin credentials, IP plans and serial registers handed over securely — never held hostage by the installer.",
     },
     {
-      icon: CalendarClock,
+      icon: "CalendarClock",
       title: "Maintenance schedule",
       description:
         "A clear preventive maintenance plan — what gets checked, when, and by whom — so your system stays reliable, not just installed.",
     },
     {
-      icon: GraduationCap,
+      icon: "GraduationCap",
       title: "Team training",
       description:
         "Hands-on walkthroughs and a runbook so your team can operate the system day-to-day, handle common tasks, and know when to call us.",
     },
     {
-      icon: Headset,
+      icon: "Headset",
       title: "Support agreement",
       description:
         "A defined support arrangement with response-time targets, escalation paths and a direct line to engineers who know your site.",

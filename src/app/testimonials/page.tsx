@@ -1,36 +1,39 @@
 import type { Metadata } from "next";
-import { getTestimonials, DatabaseUnavailableError } from "@/lib/data-access";
+import { getTestimonials, getIndustries, DatabaseUnavailableError } from "@/lib/data-access";
+import type { Testimonial, Industry } from "@/lib/types";
 import { TestimonialsView } from "@/components/views/testimonials-view";
+import { DataError } from "@/components/site/data-error";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Testimonials & Client Feedback",
   description: "Representative client feedback by role and sector — what working with an engineering-led, integrated security partner actually feels like.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let testimonials: Testimonial[] = [];
+  let industries: Industry[] = [];
+
   try {
-    await getTestimonials();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [testimonials, industries] = await Promise.all([
+      getTestimonials(),
+      getIndustries(),
+    ]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  return <TestimonialsView />;
+  return (
+    <TestimonialsView testimonials={testimonials} industries={industries} heroImage="" />
+  );
 }

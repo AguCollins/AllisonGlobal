@@ -4,21 +4,9 @@ import * as React from "react";
 import {
   Building2,
   Ruler,
-  Handshake,
-  ShieldCheck,
-  HeartHandshake,
-  BadgeCheck,
-  Globe,
-  FileCheck,
-  Clock,
-  Scale,
-  ClipboardList,
-  PencilRuler,
-  Network,
   PhoneCall,
   ArrowRight,
   MapPin,
-  type LucideIcon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -29,7 +17,6 @@ import {
   staggerItem,
   IconBadge,
   NavButton,
-  PhoneLink,
 } from "@/components/site/primitives";
 import {
   PageHero,
@@ -39,42 +26,34 @@ import {
 } from "@/components/site/sections";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  company,
-  values,
-  capabilityStats,
-  guarantees,
-  technologyPlatforms,
-} from "@/lib/data/company";
-import { heroMedia } from "@/lib/data/media";
+import type { CompanyInfo } from "@/lib/data-access";
+import type { Stat } from "@/lib/types";
 
-/* ------------------------------------------------------------------ */
-/*  Icon maps (string → lucide component)                             */
-/* ------------------------------------------------------------------ */
-const valueIconMap: Record<string, LucideIcon> = {
-  Ruler,
-  Handshake,
-  ShieldCheck,
-  HeartHandshake,
-  BadgeCheck,
-  Globe,
-};
+const HERO_IMAGE = "https://www.ui.com/microsite/static/industry-leading-CgUA2mbS.webp";
 
-const guaranteeIconMap: Record<string, LucideIcon> = {
-  FileCheck,
-  ShieldCheck,
-  Clock,
-  Scale,
-};
+export interface AboutViewProps {
+  company: CompanyInfo;
+  heroImage: string;
+}
+
+type ValueItem = { title: string; description: string; icon: string };
+type GuaranteeItem = { title: string; description: string; icon: string };
+type TechnologyPlatform = { name: string; domain: string };
 
 /* ------------------------------------------------------------------ */
 /*  AboutView                                                          */
 /* ------------------------------------------------------------------ */
-export function AboutView() {
+export function AboutView({ company, heroImage }: AboutViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
+  const values = company.values ?? [];
+  const capabilityStats = company.capabilityStats ?? [];
+  const guarantees = company.guarantees ?? [];
+  const technologyPlatforms = company.technologyPlatforms ?? [];
+
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["about"]}
+        backgroundImage={heroBg}
         eyebrow="About Allison Global"
         title="Technology without limits, engineered into every system we deploy"
         subtitle={company.longPitch}
@@ -85,13 +64,21 @@ export function AboutView() {
         ]}
       />
       <TrustBand />
-      <OurStory />
-      <WhatWeStandFor />
+      <OurStory company={company} />
+      {values.length > 0 && <WhatWeStandFor values={values} />}
       <OurApproach />
-      <CapabilityAtAGlance />
-      <OurCommitments />
-      <Leadership />
-      <ConversionPathCTA />
+      {(capabilityStats.length > 0 || technologyPlatforms.length > 0) && (
+        <CapabilityAtAGlance
+          capabilityStats={capabilityStats}
+          technologyPlatforms={technologyPlatforms}
+        />
+      )}
+      {guarantees.length > 0 && <OurCommitments guarantees={guarantees} />}
+      <Leadership company={company} />
+      <ConversionPathCTA
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
+      />
     </>
   );
 }
@@ -112,7 +99,7 @@ function TrustBand() {
 /* ------------------------------------------------------------------ */
 /*  Our Story — 2-col narrative + founder mini-card                   */
 /* ------------------------------------------------------------------ */
-function OurStory() {
+function OurStory({ company }: { company: CompanyInfo }) {
   return (
     <Section>
       <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-12">
@@ -239,7 +226,7 @@ function OurStory() {
 /* ------------------------------------------------------------------ */
 /*  What we stand for — values grid                                    */
 /* ------------------------------------------------------------------ */
-function WhatWeStandFor() {
+function WhatWeStandFor({ values }: { values: ValueItem[] }) {
   return (
     <Section className="bg-muted/30">
       <SectionHeader
@@ -250,11 +237,10 @@ function WhatWeStandFor() {
       />
       <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {values.map((v) => {
-          const Icon = valueIconMap[v.icon] ?? BadgeCheck;
           return (
             <motion.div key={v.title} variants={staggerItem}>
               <div className="h-full rounded-2xl border border-border/70 bg-card p-6">
-                <IconBadge icon={Icon} variant="brand" />
+                <IconBadge icon={v.icon} variant="brand" />
                 <h3 className="mt-4 font-display text-lg font-semibold leading-snug">
                   {v.title}
                 </h3>
@@ -275,30 +261,30 @@ function WhatWeStandFor() {
 /* ------------------------------------------------------------------ */
 function OurApproach() {
   const pillars: {
-    icon: LucideIcon;
+    icon: string;
     title: string;
     description: string;
   }[] = [
     {
-      icon: ClipboardList,
+      icon: "ClipboardList",
       title: "Assessment-led",
       description:
         "We walk the site, understand the risk and document the requirement before we recommend a single product.",
     },
     {
-      icon: PencilRuler,
+      icon: "PencilRuler",
       title: "Engineering-led",
       description:
         "Cable specs, load calculations, coverage and signal integrity designed properly — not assembled from whatever is in the van.",
     },
     {
-      icon: Network,
+      icon: "Network",
       title: "Integration-first",
       description:
         "CCTV talks to access control, alarms escalate to your phone, networks carry surveillance cleanly — systems that work as one.",
     },
     {
-      icon: HeartHandshake,
+      icon: "HeartHandshake",
       title: "Long-term partnership",
       description:
         "We stay after handover with preventive maintenance, monitoring and support — because systems are lived with, not just installed.",
@@ -343,7 +329,13 @@ function OurApproach() {
 /* ------------------------------------------------------------------ */
 /*  Capability at a glance — StatStrip + tech platforms                */
 /* ------------------------------------------------------------------ */
-function CapabilityAtAGlance() {
+function CapabilityAtAGlance({
+  capabilityStats,
+  technologyPlatforms,
+}: {
+  capabilityStats: Stat[];
+  technologyPlatforms: TechnologyPlatform[];
+}) {
   return (
     <Section>
       <SectionHeader
@@ -351,40 +343,44 @@ function CapabilityAtAGlance() {
         title="Breadth across ICT and security, depth where it matters"
         subtitle="We bring six core domains under one team — so your network, surveillance, access control, fire safety, cybersecurity and IT infrastructure are designed to work together, not in silos."
       />
-      <div className="mt-10">
-        <StatStrip stats={capabilityStats} />
-      </div>
-
-      <div className="mt-14">
-        <div className="flex items-end justify-between gap-4">
-          <h3 className="font-display text-xl font-bold">
-            Technologies &amp; platforms we deploy
-          </h3>
-          <span className="hidden text-xs text-muted-foreground sm:block">
-            Competency — not claimed certified partnerships
-          </span>
+      {capabilityStats.length > 0 && (
+        <div className="mt-10">
+          <StatStrip stats={capabilityStats} />
         </div>
-        <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {technologyPlatforms.map((t) => (
-            <motion.div key={t.name} variants={staggerItem}>
-              <div className="flex h-full items-center justify-between rounded-xl border border-border/70 bg-card px-4 py-3">
-                <span className="text-sm font-semibold text-foreground">
-                  {t.name}
-                </span>
-                <Badge
-                  variant="outline"
-                  className="text-[0.6rem] font-medium uppercase tracking-wide text-muted-foreground"
-                >
-                  {t.domain}
-                </Badge>
-              </div>
-            </motion.div>
-          ))}
-        </Stagger>
-        <p className="mt-4 text-xs text-muted-foreground sm:hidden">
-          Competency with these platforms — not claimed certified partnerships.
-        </p>
-      </div>
+      )}
+
+      {technologyPlatforms.length > 0 && (
+        <div className="mt-14">
+          <div className="flex items-end justify-between gap-4">
+            <h3 className="font-display text-xl font-bold">
+              Technologies &amp; platforms we deploy
+            </h3>
+            <span className="hidden text-xs text-muted-foreground sm:block">
+              Competency — not claimed certified partnerships
+            </span>
+          </div>
+          <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {technologyPlatforms.map((t) => (
+              <motion.div key={t.name} variants={staggerItem}>
+                <div className="flex h-full items-center justify-between rounded-xl border border-border/70 bg-card px-4 py-3">
+                  <span className="text-sm font-semibold text-foreground">
+                    {t.name}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="text-[0.6rem] font-medium uppercase tracking-wide text-muted-foreground"
+                  >
+                    {t.domain}
+                  </Badge>
+                </div>
+              </motion.div>
+            ))}
+          </Stagger>
+          <p className="mt-4 text-xs text-muted-foreground sm:hidden">
+            Competency with these platforms — not claimed certified partnerships.
+          </p>
+        </div>
+      )}
 
       <div className="mt-10 flex flex-wrap gap-3">
         <NavButton view="services">
@@ -402,7 +398,7 @@ function CapabilityAtAGlance() {
 /* ------------------------------------------------------------------ */
 /*  Our commitments — guarantees grid                                  */
 /* ------------------------------------------------------------------ */
-function OurCommitments() {
+function OurCommitments({ guarantees }: { guarantees: GuaranteeItem[] }) {
   return (
     <Section className="bg-muted/30">
       <SectionHeader
@@ -413,11 +409,10 @@ function OurCommitments() {
       />
       <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {guarantees.map((g) => {
-          const Icon = guaranteeIconMap[g.icon] ?? ShieldCheck;
           return (
             <motion.div key={g.title} variants={staggerItem}>
               <div className="flex h-full flex-col rounded-2xl border border-border/70 bg-card p-6">
-                <IconBadge icon={Icon} variant="brand" />
+                <IconBadge icon={g.icon} variant="brand" />
                 <h3 className="mt-4 font-display text-base font-semibold">
                   {g.title}
                 </h3>
@@ -436,7 +431,7 @@ function OurCommitments() {
 /* ------------------------------------------------------------------ */
 /*  Leadership — founder card with bio                                 */
 /* ------------------------------------------------------------------ */
-function Leadership() {
+function Leadership({ company }: { company: CompanyInfo }) {
   return (
     <Section>
       <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
@@ -467,10 +462,15 @@ function Leadership() {
                       {company.founder.discipline}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 rounded-xl bg-white/10 p-3 text-white/90 ring-1 ring-white/15 backdrop-blur">
+                  <a
+                    href={`tel:${company.contact.phoneIntl}`}
+                    className="flex items-center gap-2 rounded-xl bg-white/10 p-3 text-white/90 ring-1 ring-white/15 backdrop-blur transition-colors hover:bg-white/15"
+                  >
                     <PhoneCall className="size-4 text-amber-300" />
-                    <PhoneLink className="text-sm font-semibold text-white" />
-                  </div>
+                    <span className="text-sm font-semibold text-white">
+                      {company.contact.phoneDisplay}
+                    </span>
+                  </a>
                 </div>
               </div>
             </div>

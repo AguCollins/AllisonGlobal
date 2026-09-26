@@ -1,36 +1,48 @@
 import type { Metadata } from "next";
-import { getFaqs, DatabaseUnavailableError } from "@/lib/data-access";
 import { FaqsView } from "@/components/views/faqs-view";
+import { DataError } from "@/components/site/data-error";
+import {
+  getFaqs,
+  getCompany,
+  DatabaseUnavailableError,
+  type CompanyInfo,
+} from "@/lib/data-access";
+import type { Faq } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Frequently Asked Questions",
   description: "Answers to the questions we hear most — about services, process, support, security, coverage and more.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let faqs: Faq[] = [];
+  let company: CompanyInfo | null = null;
+
   try {
-    await getFaqs();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [faqs, company] = await Promise.all([
+      getFaqs(),
+      getCompany(),
+    ]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
+    return <DataError />;
+  }
+
+  if (!company) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
-        </div>
-      </div>
+      <DataError message="FAQ content is not available. Please check back shortly." />
     );
   }
 
-  return <FaqsView />;
+  return <FaqsView faqs={faqs} company={company} heroImage="" />;
 }

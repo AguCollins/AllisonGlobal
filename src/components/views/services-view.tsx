@@ -6,6 +6,7 @@ import {
   Search,
   Filter,
 } from "lucide-react";
+import { Icon } from "@/components/site/icon";
 import {
   Section,
   SectionHeader,
@@ -25,13 +26,43 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { serviceCategories, services, categoryMap } from "@/lib/data/services";
-import { heroMedia } from "@/lib/data/media";
-import { capabilityStats } from "@/lib/data/company";
+import type { ServiceCategory, Service, Stat } from "@/lib/types";
 
-export function ServicesView() {
+const HERO_IMAGE = "https://www.ui.com/microsite/static/cloud-gateway-max-PgX67pU8.png";
+
+export interface ServicesViewProps {
+  categories: ServiceCategory[];
+  services: Service[];
+  capabilityStats: Stat[];
+  heroImage: string;
+}
+
+export function ServicesView({ categories, services, capabilityStats, heroImage }: ServicesViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   const [activeCat, setActiveCat] = React.useState<string>("all");
   const [query, setQuery] = React.useState("");
+
+  const categoryMap = React.useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c])) as Record<string, ServiceCategory>,
+    [categories],
+  );
+
+  // Group services by category. DB-loaded categories may have an empty
+  // `services: string[]` array, so we also match by `service.categoryId`.
+  const servicesByCategoryId = React.useMemo(() => {
+    const map = new Map<string, Service[]>();
+    for (const cat of categories) {
+      const direct = (cat.services ?? [])
+        .map((slug) => services.find((s) => s.slug === slug))
+        .filter(Boolean) as Service[];
+      const byCatId = services.filter((s) => s.categoryId === cat.id);
+      // Merge + dedupe by slug
+      const merged = new Map<string, Service>();
+      for (const s of [...direct, ...byCatId]) merged.set(s.slug, s);
+      map.set(cat.id, Array.from(merged.values()));
+    }
+    return map;
+  }, [categories, services]);
 
   const filtered = React.useMemo(() => {
     return services.filter((s) => {
@@ -44,7 +75,7 @@ export function ServicesView() {
         s.tagline.toLowerCase().includes(q);
       return catOk && qOk;
     });
-  }, [activeCat, query]);
+  }, [services, activeCat, query]);
 
   // Smooth scroll to category anchor if coming from nav
   React.useEffect(() => {
@@ -59,7 +90,7 @@ export function ServicesView() {
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["services"]}
+        backgroundImage={heroBg}
         eyebrow="Our Services"
         title="One team. The full ICT & security stack."
         subtitle="From structured cabling to cybersecurity, CCTV to fire safety, access control to managed IT — six domains, twenty-six specialist services, engineered together under one accountable partner."
@@ -67,12 +98,14 @@ export function ServicesView() {
       />
 
       {/* Capability band */}
-      <Section className="band-ink relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-dark opacity-40" />
-        <div className="relative">
-          <StatStrip stats={capabilityStats} light />
-        </div>
-      </Section>
+      {capabilityStats.length > 0 && (
+        <Section className="band-ink relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-dark opacity-40" />
+          <div className="relative">
+            <StatStrip stats={capabilityStats} light />
+          </div>
+        </Section>
+      )}
 
       {/* Filter + search */}
       <Section>
@@ -109,7 +142,7 @@ export function ServicesView() {
             >
               All services ({services.length})
             </button>
-            {serviceCategories.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => {
@@ -124,8 +157,8 @@ export function ServicesView() {
                     : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground")
                 }
               >
-                <cat.icon className="size-3.5" />
-                {cat.name} ({services.filter((s) => s.categoryId === cat.id).length})
+                <Icon name={cat.iconName} className="size-3.5" />
+                {cat.name} ({(servicesByCategoryId.get(cat.id) ?? []).length})
               </button>
             ))}
           </div>
@@ -135,8 +168,12 @@ export function ServicesView() {
       {/* Services by category */}
       {activeCat === "all" ? (
         <>
-          {serviceCategories.map((cat) => (
-            <CategoryBlock key={cat.id} categoryId={cat.id} />
+          {categories.map((cat) => (
+            <CategoryBlock
+              key={cat.id}
+              category={cat}
+              services={servicesByCategoryId.get(cat.id) ?? []}
+            />
           ))}
         </>
       ) : (
@@ -146,7 +183,7 @@ export function ServicesView() {
               const cat = categoryMap[activeCat];
               return cat ? (
                 <>
-                  <IconBadge icon={cat.icon} variant="brand" size="lg" />
+                  <IconBadge icon={cat.iconName} variant="brand" size="lg" />
                   <div>
                     <h2 className="font-display text-2xl font-bold">{cat.name}</h2>
                     <p className="text-sm text-brand">{cat.tagline}</p>
@@ -226,23 +263,19 @@ export function ServicesView() {
   );
 }
 
-function CategoryBlock({ categoryId }: {
-  categoryId: string;
-  
-  
+function CategoryBlock({ category, services: catServices }: {
+  category: ServiceCategory;
+  services: Service[];
 }) {
-  const cat = serviceCategories.find((c) => c.id === categoryId || c.slug === categoryId);
-  if (!cat) return null;
-  const catServices = cat.services
-    .map((slug) => services.find((s) => s.slug === slug))
-    .filter(Boolean) as typeof services;
+  if (catServices.length === 0) return null;
+  const cat = category;
 
   return (
-    <Section id={`cat-${categoryId}`} className="scroll-mt-28 pt-0">
+    <Section id={`cat-${cat.id}`} className="scroll-mt-28 pt-0">
       <div className="rounded-3xl border border-border/70 bg-gradient-to-br from-muted/40 to-background p-6 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
-            <IconBadge icon={cat.icon} variant="brand" size="lg" />
+            <IconBadge icon={cat.iconName} variant="brand" size="lg" />
             <div>
               <h2 className="font-display text-2xl font-bold sm:text-3xl">{cat.name}</h2>
               <p className="mt-1 text-sm font-medium text-brand">{cat.tagline}</p>

@@ -5,8 +5,6 @@ import Image from "next/image";
 import {
   ArrowRight,
   PhoneCall,
-  CalendarClock,
-  MessageSquare,
   MapPin,
   ShieldCheck,
   type LucideIcon,
@@ -21,7 +19,6 @@ import {
 } from "@/components/site/primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { company } from "@/lib/data/company";
 import type { Service, Industry, Project, BlogPost, Stat, ViewId } from "@/lib/types";
 
 /* ------------------------------------------------------------------ */
@@ -110,21 +107,21 @@ export function PageHero({
 /* ------------------------------------------------------------------ */
 const conversionPaths = [
   {
-    icon: ClipboardCheck_icon,
+    icon: "ClipboardList",
     title: "Request a Quote",
     description: "Tell us what you need and get a clear, no-obligation proposal.",
     view: "quote" as const,
     cta: "Get a quote",
   },
   {
-    icon: CalendarClock,
+    icon: "CalendarClock",
     title: "Book a Consultation",
     description: "Speak with an engineer about your site, risks and goals.",
     view: "contact" as const,
     cta: "Book consultation",
   },
   {
-    icon: MapPin,
+    icon: "MapPin",
     title: "Get a Site Assessment",
     description: "Have us assess your premises and recommend priorities.",
     view: "quote" as const,
@@ -132,7 +129,7 @@ const conversionPaths = [
     subject: "Site Assessment Request",
   },
   {
-    icon: MessageSquare,
+    icon: "MessageSquare",
     title: "Talk to an Expert",
     description: "Quick question? Call our team directly — we're happy to help.",
     view: "contact" as const,
@@ -140,15 +137,19 @@ const conversionPaths = [
   },
 ];
 
-import { ClipboardList as ClipboardCheck_icon } from "lucide-react";
-
 export function ConversionPathCTA({
   title = "Let's secure what matters",
   subtitle = "Choose the path that fits — or just reach out. One conversation with our engineering team is usually all it takes to get clarity on your next step.",
+  phoneIntl,
+  phoneDisplay,
 }: {
   title?: string;
   subtitle?: string;
+  phoneIntl?: string;
+  phoneDisplay?: string;
 }) {
+  const intl = phoneIntl || "+2349152158801";
+  const display = phoneDisplay || "+234 915 215 8801";
   return (
     <Section className="band-ink relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-dark opacity-40" />
@@ -191,11 +192,11 @@ export function ConversionPathCTA({
         <div className="mt-10 flex flex-col items-center justify-center gap-3 text-white/85 sm:flex-row">
           <span className="text-sm">Prefer to talk now?</span>
           <a
-            href={`tel:${company.contact.phoneIntl}`}
+            href={`tel:${intl}`}
             className="inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition-colors hover:bg-white/15"
           >
             <PhoneCall className="size-4" />
-            {company.contact.phoneDisplay}
+            {display}
           </a>
         </div>
       </div>
@@ -277,7 +278,7 @@ export function ServiceCard({
       <Card className="h-full overflow-hidden border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
         <CardContent className="flex h-full flex-col p-6">
           <div className="flex items-start justify-between">
-            <IconBadge icon={service.icon} variant="brand" />
+            <IconBadge icon={service.iconName} variant="brand" />
             {service.featured && (
               <Badge variant="secondary" className="text-[0.65rem] uppercase tracking-wide">
                 Popular
@@ -314,7 +315,7 @@ export function IndustryCard({ industry }: { industry: Industry }) {
     >
       <Card className="h-full overflow-hidden border-border/70 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
         <CardContent className="flex h-full flex-col p-6">
-          <IconBadge icon={industry.icon} variant="outline" />
+          <IconBadge icon={industry.iconName} variant="outline" />
           <h3 className="mt-5 font-display text-lg font-semibold leading-snug">
             {industry.name}
           </h3>

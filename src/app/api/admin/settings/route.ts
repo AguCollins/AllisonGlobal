@@ -8,7 +8,7 @@
  * Revalidates the public site root on every write so changes propagate.
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/revalidate";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { recordAudit } from "@/lib/audit";
 import { getClientIp } from "@/lib/ratelimit";
@@ -92,10 +92,10 @@ export async function PUT(req: Request) {
       where: { key },
       create: {
         key,
-        value: sanitized as import("@prisma/client").Prisma.InputJsonValue,
+        value: sanitized as unknown as string,
       },
       update: {
-        value: sanitized as import("@prisma/client").Prisma.InputJsonValue,
+        value: sanitized as unknown as string,
       },
     });
 
@@ -107,7 +107,23 @@ export async function PUT(req: Request) {
       ip: getClientIp(req),
     });
 
-    revalidatePath("/", "layout");
+    // Map the settings key to the correct content type for revalidation
+    const keyToContentType: Record<string, string> = {
+      company: "company",
+      contact: "company",
+      social: "company",
+      founder: "company",
+      footer: "company",
+      stats: "stats",
+      navigation: "navigation",
+      ctas: "ctas",
+      process: "process",
+      jobs: "careers",
+      legal_privacy: "legal-privacy",
+      legal_terms: "legal-terms",
+    };
+    const contentType = keyToContentType[key] || "company";
+    revalidateContent(contentType as "company");
 
     return NextResponse.json({ ok: true });
   } catch (err) {

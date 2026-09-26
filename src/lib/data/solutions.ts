@@ -1,12 +1,3 @@
-import {
-  ShieldCheck,
-  Building2,
-  Network,
-  Flame,
-  ServerCog,
-} from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- type-only import kept for clarity; LucideIcon is the canonical icon type used across the codebase
-import type { LucideIcon } from "lucide-react";
 import type { Solution } from "@/lib/types";
 
 /**
@@ -17,7 +8,7 @@ export const solutions: Solution[] = [
   {
     id: "unified-security",
     name: "Unified Security & Surveillance",
-    icon: ShieldCheck,
+    iconName: "ShieldCheck",
     summary:
       "CCTV, access control, alarms and monitoring integrated into one security platform.",
     description:
@@ -34,7 +25,7 @@ export const solutions: Solution[] = [
   {
     id: "resilient-network",
     name: "Resilient Network Infrastructure",
-    icon: Network,
+    iconName: "Network",
     summary:
       "Cabling, switching, routing and Wi-Fi engineered for performance, security and growth.",
     description:
@@ -51,7 +42,7 @@ export const solutions: Solution[] = [
   {
     id: "cyber-defence",
     name: "Cyber Defence Programme",
-    icon: ShieldCheck,
+    iconName: "ShieldCheck",
     summary:
       "Layered cybersecurity — assessment, firewalls, endpoint protection and monitoring.",
     description:
@@ -68,7 +59,7 @@ export const solutions: Solution[] = [
   {
     id: "life-safety",
     name: "Life Safety & Fire Protection",
-    icon: Flame,
+    iconName: "Flame",
     summary:
       "Fire detection, alarm and safety systems engineered for compliance and rapid evacuation.",
     description:
@@ -85,7 +76,7 @@ export const solutions: Solution[] = [
   {
     id: "smart-building",
     name: "Smart Building Integration",
-    icon: Building2,
+    iconName: "Building2",
     summary:
       "Security, automation, lighting and energy unified into one manageable platform.",
     description:
@@ -102,7 +93,7 @@ export const solutions: Solution[] = [
   {
     id: "managed-it",
     name: "Managed IT & Security",
-    icon: ServerCog,
+    iconName: "ServerCog",
     summary:
       "Your IT and security under continuous care — monitoring, maintenance and support.",
     description:

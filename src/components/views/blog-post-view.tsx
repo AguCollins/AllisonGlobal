@@ -1,19 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BookOpen,
   ArrowRight,
-  ArrowLeft,
   Clock,
   Calendar,
   Tag,
   User,
   PhoneCall,
   MessageSquare,
-  FileSearch,
 } from "lucide-react";
 import {
   Section,
@@ -22,7 +19,6 @@ import {
   Stagger,
   staggerItem,
   NavButton,
-  PhoneLink,
 } from "@/components/site/primitives";
 import {
   PageHero,
@@ -32,21 +28,20 @@ import {
 } from "@/components/site/sections";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getPostBySlug, blogPosts } from "@/lib/data/blog";
-import { blogMedia } from "@/lib/data/media";
+import { BlogBlockRenderer } from "@/components/blog/blog-block-renderer";
 import type { BlogPost } from "@/lib/types";
 
-export function BlogPostView() {
-  const params = useParams<{ slug?: string }>();
-  const slug = params.slug;
-  const post = slug ? getPostBySlug(slug) : undefined;
+export interface BlogPostViewProps {
+  post: BlogPost;
+  relatedPosts: BlogPost[];
+  heroImage: string;
+}
 
-  if (!post) {
-    return <ArticleNotFound />;
-  }
-
-  const related = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
-
+export function BlogPostView({
+  post,
+  relatedPosts,
+  heroImage: _heroImage,
+}: BlogPostViewProps) {
   return (
     <>
       <PageHero
@@ -54,7 +49,7 @@ export function BlogPostView() {
         title={post.title}
         subtitle={post.excerpt}
         icon={BookOpen}
-        backgroundImage={blogMedia[post.slug]}
+        backgroundImage={post.imageQuery}
         breadcrumb={[
           { label: "Home", view: "home" },
           { label: "Insights", view: "blog" },
@@ -69,7 +64,7 @@ export function BlogPostView() {
             {/* Hero image */}
             <Reveal>
               <div className="relative aspect-[16/9] overflow-hidden rounded-xl">
-                <ProjectImage query={post.imageQuery} alt={post.title} url={blogMedia[post.slug]} />
+                <ProjectImage query={post.imageQuery} alt={post.title} url={post.imageQuery} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute left-4 top-4">
                   <Badge className="bg-background/90 text-foreground backdrop-blur">
@@ -104,35 +99,26 @@ export function BlogPostView() {
             {/* Body content */}
             <Reveal className="mt-8">
               <div className="mx-auto max-w-3xl">
-                {post.content.map((block, i) => (
-                  <div key={i}>
-                    {block.heading ? (
-                      <h2 className="mt-8 mb-3 font-display text-2xl font-bold leading-tight">
-                        {block.heading}
-                      </h2>
-                    ) : null}
-                    <p className="mb-4 text-pretty leading-relaxed text-muted-foreground">
-                      {block.body}
-                    </p>
-                  </div>
-                ))}
+                <BlogBlockRenderer blocks={post.content} />
               </div>
             </Reveal>
 
             {/* Tags */}
-            <Reveal className="mt-10">
-              <div className="flex flex-wrap items-center gap-2 border-t border-border pt-6">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <Tag className="size-3.5" />
-                  Tags
-                </span>
-                {post.tags.map((t) => (
-                  <Badge key={t} variant="outline" className="font-normal text-muted-foreground">
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-            </Reveal>
+            {post.tags.length > 0 && (
+              <Reveal className="mt-10">
+                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-6">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <Tag className="size-3.5" />
+                    Tags
+                  </span>
+                  {post.tags.map((t) => (
+                    <Badge key={t} variant="outline" className="font-normal text-muted-foreground">
+                      {t}
+                    </Badge>
+                  ))}
+                </div>
+              </Reveal>
+            )}
 
             {/* Inline share / CTA */}
             <Reveal className="mt-10">
@@ -265,57 +251,24 @@ export function BlogPostView() {
       </Section>
 
       {/* Related insights */}
-      <Section className="bg-muted/30">
-        <SectionHeader
-          eyebrow="Keep reading"
-          title="Related insights"
-          subtitle="More practical guidance from our engineering team across networking, cybersecurity, surveillance and IT."
-        />
-        <Stagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((p: BlogPost) => (
-            <motion.div key={p.slug} variants={staggerItem}>
-              <BlogCard post={p} imageUrl={blogMedia[p.slug]} />
-            </motion.div>
-          ))}
-        </Stagger>
-      </Section>
+      {relatedPosts.length > 0 && (
+        <Section className="bg-muted/30">
+          <SectionHeader
+            eyebrow="Keep reading"
+            title="Related insights"
+            subtitle="More practical guidance from our engineering team across networking, cybersecurity, surveillance and IT."
+          />
+          <Stagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {relatedPosts.map((p) => (
+              <motion.div key={p.slug} variants={staggerItem}>
+                <BlogCard post={p} imageUrl={p.imageQuery} />
+              </motion.div>
+            ))}
+          </Stagger>
+        </Section>
+      )}
 
       <ConversionPathCTA />
     </>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Not found state                                                     */
-/* ------------------------------------------------------------------ */
-function ArticleNotFound() {
-  return (
-    <Section className="flex min-h-[60vh] items-center">
-      <div className="mx-auto max-w-md text-center">
-        <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-          <FileSearch className="size-7" />
-        </div>
-        <h1 className="font-display text-2xl font-bold sm:text-3xl">
-          We couldn't find that article
-        </h1>
-        <p className="mt-3 text-muted-foreground">
-          The article you're looking for may have moved or been removed. Browse all
-          our latest insights instead — there's plenty more to read.
-        </p>
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <NavButton view="blog" className="gap-1.5">
-            <ArrowLeft className="size-4" />
-            Back to Insights
-          </NavButton>
-          <NavButton view="contact" variant="outline">
-            Talk to an expert
-          </NavButton>
-        </div>
-        <p className="mt-6 text-xs text-muted-foreground">
-          Or call us directly:{" "}
-          <PhoneLink className="font-medium text-brand" />
-        </p>
-      </div>
-    </Section>
   );
 }

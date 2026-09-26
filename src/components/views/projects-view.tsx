@@ -16,14 +16,26 @@ import {
   StatStrip,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
-import { projects, projectCategories } from "@/lib/data/projects";
-import { projectMedia, heroMedia } from "@/lib/data/media";
-import { industries } from "@/lib/data/industries";
-import { services } from "@/lib/data/services";
+import type { Project, Industry, Service } from "@/lib/types";
 
-export function ProjectsView() {
+const HERO_IMAGE = "https://www.ui.com/microsite/static/fedex-forum-poster-CWYupQKP.jpg";
+
+export interface ProjectsViewProps {
+  projects: Project[];
+  industries: Industry[];
+  services: Service[];
+  heroImage: string;
+}
+
+export function ProjectsView({ projects, industries, services, heroImage }: ProjectsViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
   const [filter, setFilter] = React.useState<string>("all");
   const [industryFilter, setIndustryFilter] = React.useState<string>("all");
+
+  const projectCategories = React.useMemo(
+    () => [...new Set(projects.map((p) => p.category))],
+    [projects],
+  );
 
   const filtered = React.useMemo(() => {
     return projects.filter((p) => {
@@ -31,14 +43,39 @@ export function ProjectsView() {
       const indOk = industryFilter === "all" || p.industry === industryFilter;
       return catOk && indOk;
     });
-  }, [filter, industryFilter]);
+  }, [projects, filter, industryFilter]);
 
   const featured = projects.filter((p) => p.featured);
+
+  if (projects.length === 0) {
+    return (
+      <>
+        <PageHero
+          backgroundImage={heroBg}
+          eyebrow="Projects & Portfolio"
+          title="Representative engagements"
+          subtitle="A selection of the work we deliver across industries — each engineered, documented and supported as a complete system. Presented as representative case studies by sector and scope."
+          breadcrumb={[{ label: "Home", view: "home" }, { label: "Projects" }]}
+          icon={Building2}
+        />
+
+        <Section>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-16 text-center">
+            <Building2 className="size-8 text-muted-foreground/50" />
+            <p className="mt-4 font-medium">No project case studies published yet.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Check back soon for representative engagements.</p>
+          </div>
+        </Section>
+
+        <ConversionPathCTA />
+      </>
+    );
+  }
 
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["projects"]}
+        backgroundImage={heroBg}
         eyebrow="Projects & Portfolio"
         title="Representative engagements"
         subtitle="A selection of the work we deliver across industries — each engineered, documented and supported as a complete system. Presented as representative case studies by sector and scope."
@@ -82,7 +119,7 @@ export function ProjectsView() {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featured.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
+                <ProjectCard project={p} imageUrl={p.imageQuery} />
               </motion.div>
             ))}
           </Stagger>
@@ -140,7 +177,7 @@ export function ProjectsView() {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
+                <ProjectCard project={p} imageUrl={p.imageQuery} />
               </motion.div>
             ))}
           </Stagger>

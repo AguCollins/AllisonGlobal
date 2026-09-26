@@ -18,6 +18,7 @@ export type AuditAction =
   | "DELETE"
   | "PUBLISH"
   | "UNPUBLISH"
+  | "ARCHIVE"
   | "ROLE_CHANGE"
   | "STATUS_CHANGE";
 
@@ -36,7 +37,7 @@ export async function recordAudit(params: {
         action: params.action,
         resource: params.resource,
         resourceId: params.resourceId ?? null,
-        metadata: params.metadata ? (JSON.parse(JSON.stringify(params.metadata)) as import("@prisma/client").Prisma.InputJsonValue) : undefined,
+        metadata: params.metadata ? (JSON.parse(JSON.stringify(params.metadata)) as unknown as string) : undefined,
         ip: params.ip ?? null,
       },
     });

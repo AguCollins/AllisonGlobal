@@ -1,0 +1,371 @@
+// Prisma schema for Allison Global — SQLite (DEV/TEST ONLY).
+// Production uses PostgreSQL (Neon) — see prisma/schema.prisma.
+// This schema mirrors the production schema but uses SQLite provider
+// for local development and testing without a PostgreSQL server.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────── Authentication ────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         String    @default("admin")
+  active       Boolean   @default(true)
+  lastLogin    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+// ──────────────────────────── Audit Log ─────────────────────────────────
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  userId     String?
+  user       AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  resource   String
+  resourceId String?
+  metadata   String?
+  ip         String?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Leads ─────────────────────────────────────
+
+model Lead {
+  id        String   @id @default(cuid())
+  type      String
+  name      String
+  email     String
+  phone     String?
+  company   String?
+  industry  String?
+  subject   String?
+  services  String?
+  budget    String?
+  timeline  String?
+  message   String
+  status    String   @default("new")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Content: Categories ───────────────────────
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  tagline     String
+  description String
+  iconName    String
+  accent      String
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+
+  @@index([slug])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Services ────────────────────────
+
+model Service {
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  categoryId        String
+  tagline           String
+  shortDescription  String
+  overview          String
+  problem           String
+  solution          String
+  deliverables      String
+  benefits          String
+  tech              String
+  relatedServices   String
+  relatedIndustries String
+  faqs              String?
+  featured          Boolean  @default(false)
+  published         Boolean  @default(true)
+  iconName          String
+  imageUrl          String?
+  sortOrder         Int      @default(0)
+  metaTitle         String?
+  metaDescription   String?
+  ogImage           String?
+  canonicalUrl      String?
+  noindex           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([published])
+  @@index([featured])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Projects ─────────────────────────
+
+model Project {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  category    String
+  industry    String
+  services    String
+  location    String
+  scope       String
+  description String
+  highlights  String
+  gallery     String
+  technologies String
+  client      String?
+  completionDate String?
+  imageQuery  String
+  year        String
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([industry])
+  @@index([published])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Content: Blog ─────────────────────────────
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  excerpt   String
+  category  String
+  readTime  String
+  date      String
+  author    String
+  authorRole String
+  authorId  String?
+  imageQuery String
+  featuredImage String?
+  content   String
+  tags      String
+  featured  Boolean  @default(false)
+  status    String   @default("published")
+  scheduledAt DateTime?
+  metaTitle       String?
+  metaDescription String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
+  nofollow        Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+  @@index([featured])
+  @@index([date])
+}
+
+// ──────────────────────────── Content: Industries ───────────────────────
+
+model Industry {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  tagline   String
+  summary   String
+  challenges String
+  solutions  String
+  outcomes   String
+  imageQuery String
+  imageUrl   String?
+  iconName   String
+  published  Boolean  @default(true)
+  sortOrder  Int     @default(0)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([slug])
+  @@index([name])
+  @@index([published])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Testimonials ─────────────────────
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  quote       String
+  authorName  String   @default("")
+  authorRole  String
+  sector      String
+  rating      Int      @default(5)
+  projectType String
+  published   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sector])
+  @@index([published])
+  @@index([sortOrder])
+  @@index([createdAt])
+}
+
+// ──────────────────────────── Content: FAQs ─────────────────────────────
+
+model Faq {
+  id       String   @id @default(cuid())
+  category String
+  question String
+  answer   String
+  published Boolean @default(true)
+  sortOrder Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([published])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Content: Solutions ────────────────────────
+
+model Solution {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  summary     String
+  description String
+  components  String
+  outcomes    String
+  bestFor     String
+  iconName    String
+  imageUrl    String?
+  published   Boolean  @default(true)
+  sortOrder   Int     @default(0)
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  canonicalUrl    String?
+  noindex         Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([name])
+  @@index([published])
+  @@index([sortOrder])
+}
+
+// ──────────────────────────── Company Settings ─────────────────────────
+
+model CompanySettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ──────────────────────────── Page Content ─────────────────────────────
+
+model PageContent {
+  id        String   @id @default(cuid())
+  page      String   @unique
+  title     String?
+  metaDescription String?
+  hero      String?
+  sections  String?
+  updatedAt DateTime @updatedAt
+
+  @@index([page])
+}
+
+// ──────────────────────────── Redirects ─────────────────────────────────
+
+model Redirect {
+  id        String   @id @default(cuid())
+  from      String   @unique
+  to        String
+  type      Int      @default(301)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([from])
+}
+
+// ──────────────────────────── Media Library ─────────────────────────────
+
+model Media {
+  id        String   @id @default(cuid())
+  url       String   @unique
+  filename  String
+  mimeType  String
+  size      Int
+  width     Int?
+  height    Int?
+  altText   String   @default("")
+  caption   String?
+  category  String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([url])
+  @@index([category])
+  @@index([mimeType])
+  @@index([createdAt])
+}

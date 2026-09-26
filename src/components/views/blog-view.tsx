@@ -20,29 +20,60 @@ import {
 } from "@/components/site/sections";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { heroMedia, blogMedia } from "@/lib/data/media";
-import { blogPosts, blogCategories } from "@/lib/data/blog";
+import type { BlogPost } from "@/lib/types";
 
+const HERO_IMAGE = "https://www.ui.com/microsite/static/fedex-forum-poster-CWYupQKP.jpg";
 const ALL = "All";
 
-export function BlogView() {
+export interface BlogViewProps {
+  posts: BlogPost[];
+  heroImage: string;
+}
+
+export function BlogView({ posts, heroImage }: BlogViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
+  const blogCategories = React.useMemo(
+    () => [...new Set(posts.map((p) => p.category))],
+    [posts],
+  );
   const [active, setActive] = React.useState<string>(ALL);
   const featured = React.useMemo(
-    () => blogPosts.find((p) => p.featured) ?? blogPosts[0],
-    [],
+    () => posts.find((p) => p.featured) ?? posts[0],
+    [posts],
   );
   const filtered = React.useMemo(() => {
     const list = active === ALL
-      ? blogPosts
-      : blogPosts.filter((p) => p.category === active);
+      ? posts
+      : posts.filter((p) => p.category === active);
     // Always exclude the featured post from the grid (it appears above).
     return list.filter((p) => p.slug !== featured?.slug);
-  }, [active, featured]);
+  }, [active, featured, posts]);
+
+  if (posts.length === 0) {
+    return (
+      <>
+        <PageHero
+          backgroundImage={heroBg}
+          eyebrow="Insights & Resources"
+          title="Practical guidance from our engineers"
+          subtitle="Learn how to choose, secure and maintain the systems that protect your business — in plain language."
+          icon={BookOpen}
+          breadcrumb={[{ label: "Home", view: "home" }, { label: "Insights" }]}
+        />
+        <Section>
+          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-10 text-center text-sm text-muted-foreground">
+            No articles published yet. Check back soon for insights.
+          </div>
+        </Section>
+        <ConversionPathCTA />
+      </>
+    );
+  }
 
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["blog"]}
+        backgroundImage={heroBg}
         eyebrow="Insights & Resources"
         title="Practical guidance from our engineers"
         subtitle="Learn how to choose, secure and maintain the systems that protect your business — in plain language."
@@ -96,7 +127,7 @@ export function BlogView() {
           <Stagger className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((post) => (
               <motion.div key={post.slug} variants={staggerItem}>
-                <BlogCard post={post} imageUrl={blogMedia[post.slug]} />
+                <BlogCard post={post} imageUrl={post.imageQuery} />
               </motion.div>
             ))}
           </Stagger>
@@ -148,7 +179,7 @@ export function BlogView() {
 /* ------------------------------------------------------------------ */
 /*  Featured post — larger hero card                                    */
 /* ------------------------------------------------------------------ */
-function FeaturedPost({ post }: { post: typeof blogPosts[number] }) {
+function FeaturedPost({ post }: { post: BlogPost }) {
   const date = new Date(post.date).toLocaleDateString("en-NG", {
     day: "numeric",
     month: "short",
@@ -164,7 +195,7 @@ function FeaturedPost({ post }: { post: typeof blogPosts[number] }) {
               slug={post.slug}
               className="group relative block aspect-[16/10] w-full overflow-hidden lg:aspect-auto"
             >
-              <ProjectImage query={post.imageQuery} alt={post.title} url={blogMedia[post.slug]} />
+              <ProjectImage query={post.imageQuery} alt={post.title} url={post.imageQuery} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
               <div className="absolute left-4 top-4 flex items-center gap-2">
                 <Badge className="bg-gold text-gold-foreground shadow">

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
 import { href } from "@/lib/nav";
+import { resolveIcon } from "@/components/site/icon";
 import type { ViewId, NavParam } from "@/lib/types";
 
 /* ------------------------------------------------------------------ */
@@ -165,16 +166,17 @@ export function SectionHeader({
 /*  IconBadge — rounded icon container                                 */
 /* ------------------------------------------------------------------ */
 export function IconBadge({
-  icon: Icon,
+  icon: iconName,
   className,
   size = "md",
   variant = "brand",
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: string; // lucide icon name (resolved client-side via resolveIcon)
   className?: string;
   size?: "sm" | "md" | "lg";
   variant?: "brand" | "solid" | "gold" | "outline" | "muted";
 }) {
+  const Icon = resolveIcon(iconName);
   const sizes = {
     sm: "size-9 rounded-lg",
     md: "size-12 rounded-xl",
@@ -199,6 +201,9 @@ export function IconBadge({
         className,
       )}
     >
+      {/* Icon is a stable lucide-react component reference resolved by name,
+          not a component created during render. */}
+      {/* eslint-disable-next-line react-hooks/static-components */}
       <Icon className={iconSize[size]} />
     </div>
   );

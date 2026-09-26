@@ -13,7 +13,7 @@
  * `LegalDoc = { title, intro, updated, sections: [{ heading, body: string[] }] }`
  */
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateContent } from "@/lib/revalidate";
 import { requireAdmin, requireSuperAdmin } from "@/lib/auth";
 import { recordAudit } from "@/lib/audit";
 import { getClientIp } from "@/lib/ratelimit";
@@ -118,10 +118,10 @@ export async function PUT(req: Request, ctx: RouteContext) {
       where: { key },
       create: {
         key,
-        value: document as unknown as import("@prisma/client").Prisma.InputJsonValue,
+        value: document as unknown as string,
       },
       update: {
-        value: document as unknown as import("@prisma/client").Prisma.InputJsonValue,
+        value: document as unknown as string,
       },
     });
 
@@ -134,7 +134,7 @@ export async function PUT(req: Request, ctx: RouteContext) {
       ip: getClientIp(req),
     });
 
-    revalidatePath("/", "layout");
+    revalidateContent(type === "privacy" ? "legal-privacy" : "legal-terms");
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";

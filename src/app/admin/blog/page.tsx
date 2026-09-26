@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -32,11 +31,12 @@ import {
   Pencil,
   Trash2,
   ExternalLink,
-  Eye,
-  EyeOff,
   Loader2,
   ChevronLeft,
   ChevronRight,
+  EyeOff,
+  Archive,
+  Rocket,
 } from "lucide-react";
 import { blogPosts as staticPosts } from "@/lib/data/blog";
 import {
@@ -46,6 +46,10 @@ import {
   API,
   formatDate,
 } from "@/components/admin/shared";
+import {
+  StatusBadge,
+  type BlogStatus,
+} from "@/components/admin/blog-publishing-tab";
 
 interface BlogRow {
   id: string;
@@ -53,8 +57,9 @@ interface BlogRow {
   title: string;
   category: string;
   author: string;
-  published: boolean;
+  status: string;
   date: string;
+  scheduledAt?: string | null;
 }
 
 interface ListResponse {
@@ -71,10 +76,12 @@ function staticFallback(): BlogRow[] {
     title: p.title,
     category: p.category,
     author: p.author,
-    published: true,
+    status: "published",
     date: p.date,
   }));
 }
+
+type QuickAction = "publish" | "unpublish" | "archive";
 
 export default function AdminBlogPage() {
   const router = useRouter();
@@ -87,7 +94,7 @@ export default function AdminBlogPage() {
   const [search, setSearch] = React.useState("");
   const [debounced, setDebounced] = React.useState("");
 
-  const [pendingPublishId, setPendingPublishId] = React.useState<string | null>(null);
+  const [pendingId, setPendingId] = React.useState<string | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<BlogRow | null>(null);
 
@@ -115,8 +122,9 @@ export default function AdminBlogPage() {
       setTotal(json.total ?? 0);
       setPages(json.pages ?? 1);
     } catch (e) {
-      setItems(staticFallback());
-      setTotal(staticFallback().length);
+      const fallback = staticFallback();
+      setItems(fallback);
+      setTotal(fallback.length);
       setPages(1);
       setError(
         e instanceof Error
@@ -136,23 +144,45 @@ export default function AdminBlogPage() {
     setPage(1);
   }, [debounced]);
 
-  async function togglePublish(row: BlogRow) {
-    setPendingPublishId(row.id);
+  async function quickAction(row: BlogRow, action: QuickAction) {
+    setPendingId(row.id);
     try {
+      const patch: Record<string, unknown> = { id: row.id };
+      if (action === "publish") {
+        patch.status = "published";
+        patch.scheduledAt = null;
+      } else if (action === "unpublish") {
+        patch.status = "draft";
+      } else if (action === "archive") {
+        patch.status = "archived";
+      }
       const res = await fetch(API.blog, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: row.id, published: !row.published }),
+        body: JSON.stringify(patch),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setItems((prev) =>
-        prev.map((p) => (p.id === row.id ? { ...p, published: !p.published } : p)),
+        prev.map((p) =>
+          p.id === row.id
+            ? {
+                ...p,
+                status: patch.status as string,
+                scheduledAt: patch.scheduledAt === null ? null : p.scheduledAt,
+              }
+            : p,
+        ),
       );
-      toast.success(row.published ? "Post unpublished" : "Post published");
+      const labels: Record<QuickAction, string> = {
+        publish: "Post published",
+        unpublish: "Post moved to drafts",
+        archive: "Post archived",
+      };
+      toast.success(labels[action]);
     } catch {
       toast.error("Failed to update post");
     } finally {
-      setPendingPublishId(null);
+      setPendingId(null);
     }
   }
 
@@ -160,9 +190,10 @@ export default function AdminBlogPage() {
     if (!deleteTarget) return;
     setDeletingId(deleteTarget.id);
     try {
-      const res = await fetch(`${API.blog}?id=${encodeURIComponent(deleteTarget.id)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${API.blog}?id=${encodeURIComponent(deleteTarget.id)}`,
+        { method: "DELETE" },
+      );
       if (!res.ok) {
         const j = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(j?.error || `HTTP ${res.status}`);
@@ -228,7 +259,7 @@ export default function AdminBlogPage() {
           actionHref={debounced ? undefined : "/admin/blog/new"}
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border">
+        <div className="overflow-x-auto rounded-xl border border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -236,87 +267,122 @@ export default function AdminBlogPage() {
                 <TableHead className="px-4">Slug</TableHead>
                 <TableHead className="px-4">Category</TableHead>
                 <TableHead className="px-4">Author</TableHead>
-                <TableHead className="px-4">Published</TableHead>
+                <TableHead className="px-4">Status</TableHead>
                 <TableHead className="px-4">Date</TableHead>
                 <TableHead className="px-4 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="max-w-[280px] truncate px-4 py-3 font-medium">
-                    {p.title}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                    {p.slug}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <Badge variant="secondary">{p.category}</Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-sm">{p.author}</TableCell>
-                  <TableCell className="px-4 py-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="min-h-9 gap-1.5"
-                      disabled={pendingPublishId === p.id}
-                      onClick={() => togglePublish(p)}
-                    >
-                      {pendingPublishId === p.id ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : p.published ? (
-                        <Eye className="size-3.5 text-emerald-600" />
-                      ) : (
-                        <EyeOff className="size-3.5 text-muted-foreground" />
-                      )}
-                      {p.published ? "Published" : "Draft"}
-                    </Button>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
-                    {formatDate(p.date)}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-10"
-                        asChild
-                        title="View on site"
-                      >
-                        <Link href={`/blog/${p.slug}`} target="_blank">
-                          <ExternalLink className="size-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-10"
-                        asChild
-                        title="Edit"
-                      >
-                        <Link href={`/admin/blog/${p.id}`}>
-                          <Pencil className="size-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-10 hover:text-destructive"
-                        title="Delete"
-                        disabled={deletingId === p.id}
-                        onClick={() => setDeleteTarget(p)}
-                      >
-                        {deletingId === p.id ? (
-                          <Loader2 className="size-4 animate-spin" />
+              {items.map((p) => {
+                const status = (p.status || "draft") as BlogStatus;
+                const busy = pendingId === p.id;
+                return (
+                  <TableRow key={p.id}>
+                    <TableCell className="max-w-[280px] truncate px-4 py-3 font-medium">
+                      {p.title}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                      {p.slug}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs">
+                        {p.category}
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-sm">
+                      {p.author}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <StatusBadge status={status} />
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                      {formatDate(p.date)}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Quick actions menu */}
+                        {status === "published" ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-10"
+                            title="Unpublish (move to drafts)"
+                            disabled={busy}
+                            onClick={() => quickAction(p, "unpublish")}
+                          >
+                            {busy ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <EyeOff className="size-4" />
+                            )}
+                          </Button>
                         ) : (
-                          <Trash2 className="size-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-10"
+                            title="Publish now"
+                            disabled={busy}
+                            onClick={() => quickAction(p, "publish")}
+                          >
+                            {busy ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Rocket className="size-4 text-emerald-600" />
+                            )}
+                          </Button>
                         )}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10"
+                          title="Archive"
+                          disabled={busy}
+                          onClick={() => quickAction(p, "archive")}
+                        >
+                          <Archive className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10"
+                          asChild
+                          title="View on site"
+                        >
+                          <Link href={`/blog/${p.slug}`} target="_blank">
+                            <ExternalLink className="size-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10"
+                          asChild
+                          title="Edit"
+                        >
+                          <Link href={`/admin/blog/${p.id}`}>
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-10 hover:text-destructive"
+                          title="Delete"
+                          disabled={deletingId === p.id}
+                          onClick={() => setDeleteTarget(p)}
+                        >
+                          {deletingId === p.id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="size-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

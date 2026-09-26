@@ -1,16 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
 import {
   ArrowRight,
-  ArrowLeft,
   AlertCircle,
   CheckCircle2,
   PhoneCall,
   Building2,
-  HelpCircle,
 } from "lucide-react";
+import { resolveIcon } from "@/components/site/icon";
 import {
   Section,
   SectionHeader,
@@ -26,38 +24,37 @@ import {
   RemoteImage,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
-import { industryMap } from "@/lib/data/industries";
-import { serviceMap } from "@/lib/data/services";
-import { projectsByIndustry } from "@/lib/data/projects";
-import { projectMedia, industryMedia, media } from "@/lib/data/media";
+import type { Industry, Service, Project } from "@/lib/types";
 
-export function IndustryDetailView() {
-  const params = useParams<{ slug?: string }>();
-  const id = params.slug;
-  const industry = id ? industryMap[id] : undefined;
+export interface IndustryDetailViewProps {
+  industry: Industry;
+  services: Service[];
+  projects: Project[];
+  heroImage: string;
+}
 
-  if (!industry) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
-          <HelpCircle className="size-7 text-muted-foreground" />
-        </div>
-        <h1 className="mt-5 font-display text-2xl font-bold">Industry not found</h1>
-        <p className="mt-2 text-muted-foreground">
-          The sector you’re looking for isn’t available. Browse all the industries we serve.
-        </p>
-        <NavButton view="industries" className="mt-6">
-          <ArrowLeft className="size-4" />
-          Back to industries
-        </NavButton>
-      </div>
-    );
-  }
+export function IndustryDetailView({
+  industry,
+  services,
+  projects,
+  heroImage: _heroImage,
+}: IndustryDetailViewProps) {
+  const sectorServices = React.useMemo(() => {
+    const serviceMap = Object.fromEntries(services.map((s) => [s.slug, s])) as Record<
+      string,
+      Service
+    >;
+    return industry.solutions
+      .map((slug) => serviceMap[slug])
+      .filter(Boolean) as Service[];
+  }, [industry.solutions, services]);
 
-  const sectorServices = industry.solutions
-    .map((slug) => serviceMap[slug])
-    .filter(Boolean);
-  const sectorProjects = projectsByIndustry(industry.id);
+  const sectorProjects = React.useMemo(
+    () => projects.filter((p) => p.industry === industry.id),
+    [projects, industry.id],
+  );
+
+  const HeroIcon = resolveIcon(industry.iconName);
 
   return (
     <>
@@ -65,7 +62,7 @@ export function IndustryDetailView() {
         eyebrow="Industry"
         title={industry.name}
         subtitle={industry.summary}
-        icon={industry.icon}
+        icon={HeroIcon}
         breadcrumb={[
           { label: "Home", view: "home" },
           { label: "Industries", view: "industries" },
@@ -106,7 +103,7 @@ export function IndustryDetailView() {
             <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
               <div className="relative aspect-[4/3] bg-muted">
                 <RemoteImage
-                  src={industryMedia[industry.id] || media.industryLeading}
+                  src={industry.imageQuery}
                   alt={`${industry.name} — representative solution Allison Global deploys`}
                   className="size-full"
                   imgClassName="object-contain p-6"
@@ -166,51 +163,55 @@ export function IndustryDetailView() {
       )}
 
       {/* Tailored solutions (services) */}
-      <Section>
-        <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
-          <SectionHeader
-            eyebrow="Tailored services"
-            title={`Solutions we deploy for ${industry.name.toLowerCase()}`}
-            subtitle="These are the services most relevant to your sector — each can be combined into an integrated solution."
-          />
-          <NavButton view="services" variant="outline" size="lg">
-            All services
-            <ArrowRight className="size-4" />
-          </NavButton>
-        </div>
-        <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {sectorServices.map((s) => (
-            <motion.div key={s.slug} variants={staggerItem}>
-              <ServiceCard service={s} />
-            </motion.div>
-          ))}
-        </Stagger>
-      </Section>
-
-      {/* Outcomes */}
-      <Section className="band-ink relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-dark opacity-40" />
-        <div className="absolute right-1/4 top-0 size-72 rounded-full bg-emerald-500/15 blur-3xl" />
-        <div className="relative">
-          <SectionHeader
-            align="center"
-            light
-            eyebrow="Outcomes"
-            title={`What ${industry.name.toLowerCase()} gain`}
-            subtitle="The practical results of engineering the right systems for your sector."
-          />
-          <Stagger className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2">
-            {industry.outcomes.map((o, i) => (
-              <motion.div key={i} variants={staggerItem}>
-                <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur">
-                  <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
-                  <p className="text-sm leading-relaxed text-white/90">{o}</p>
-                </div>
+      {sectorServices.length > 0 && (
+        <Section>
+          <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+            <SectionHeader
+              eyebrow="Tailored services"
+              title={`Solutions we deploy for ${industry.name.toLowerCase()}`}
+              subtitle="These are the services most relevant to your sector — each can be combined into an integrated solution."
+            />
+            <NavButton view="services" variant="outline" size="lg">
+              All services
+              <ArrowRight className="size-4" />
+            </NavButton>
+          </div>
+          <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {sectorServices.map((s) => (
+              <motion.div key={s.slug} variants={staggerItem}>
+                <ServiceCard service={s} />
               </motion.div>
             ))}
           </Stagger>
-        </div>
-      </Section>
+        </Section>
+      )}
+
+      {/* Outcomes */}
+      {industry.outcomes.length > 0 && (
+        <Section className="band-ink relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-dark opacity-40" />
+          <div className="absolute right-1/4 top-0 size-72 rounded-full bg-emerald-500/15 blur-3xl" />
+          <div className="relative">
+            <SectionHeader
+              align="center"
+              light
+              eyebrow="Outcomes"
+              title={`What ${industry.name.toLowerCase()} gain`}
+              subtitle="The practical results of engineering the right systems for your sector."
+            />
+            <Stagger className="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2">
+              {industry.outcomes.map((o, i) => (
+                <motion.div key={i} variants={staggerItem}>
+                  <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur">
+                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-400" />
+                    <p className="text-sm leading-relaxed text-white/90">{o}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </Stagger>
+          </div>
+        </Section>
+      )}
 
       {/* Sector projects */}
       {sectorProjects.length > 0 && (
@@ -229,7 +230,7 @@ export function IndustryDetailView() {
           <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sectorProjects.map((p) => (
               <motion.div key={p.id} variants={staggerItem}>
-                <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
+                <ProjectCard project={p} imageUrl={p.imageQuery} />
               </motion.div>
             ))}
           </Stagger>

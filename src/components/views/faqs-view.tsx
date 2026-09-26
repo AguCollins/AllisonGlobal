@@ -20,25 +20,64 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
-import { faqs, faqCategories } from "@/lib/data/faqs";
-import { heroMedia } from "@/lib/data/media";
-import { company } from "@/lib/data/company";
+import type { CompanyInfo } from "@/lib/data-access";
+import type { Faq } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-tablet-CtRi_CQt.jpg";
+
+export interface FaqsViewProps {
+  faqs: Faq[];
+  company: CompanyInfo;
+  heroImage: string;
+}
 
 /* ------------------------------------------------------------------ */
 /*  View                                                               */
 /* ------------------------------------------------------------------ */
-export function FaqsView() {
+export function FaqsView({ faqs, company, heroImage }: FaqsViewProps) {
+  const heroBg = heroImage || HERO_IMAGE;
+  const faqCategories = React.useMemo(
+    () => [...new Set(faqs.map((f) => f.category))],
+    [faqs],
+  );
   const [active, setActive] = React.useState<string>("All");
 
   const categories = ["All", ...faqCategories];
   const filtered =
     active === "All" ? faqs : faqs.filter((f) => f.category === active);
 
+  if (faqs.length === 0) {
+    return (
+      <>
+        <PageHero
+          backgroundImage={heroBg}
+          eyebrow="FAQs"
+          icon={HelpCircle}
+          title="Answers to the questions we hear most"
+          subtitle="Engineering, engagement, support, security and coverage — answered plainly. If you don't find your question here, our team is one call away."
+          breadcrumb={[
+            { label: "Home", view: "home" },
+            { label: "FAQs" },
+          ]}
+        />
+        <Section>
+          <div className="rounded-2xl border border-dashed border-border bg-muted/30 p-10 text-center text-sm text-muted-foreground">
+            No FAQs available yet. Contact us with your questions.
+          </div>
+        </Section>
+        <ConversionPathCTA
+          phoneIntl={company.contact.phoneIntl}
+          phoneDisplay={company.contact.phoneDisplay}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <PageHero
-        backgroundImage={heroMedia["faqs"]}
+        backgroundImage={heroBg}
         eyebrow="FAQs"
         icon={HelpCircle}
         title="Answers to the questions we hear most"
@@ -202,7 +241,10 @@ export function FaqsView() {
         </div>
       </Section>
 
-      <ConversionPathCTA />
+      <ConversionPathCTA
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
+      />
     </>
   );
 }

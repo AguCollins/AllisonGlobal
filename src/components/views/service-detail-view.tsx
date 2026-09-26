@@ -1,10 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
 import {
   ArrowRight,
-  ArrowLeft,
   CheckCircle2,
   AlertTriangle,
   Lightbulb,
@@ -13,8 +11,8 @@ import {
   PhoneCall,
   Layers,
   Building2,
-  HelpCircle,
 } from "lucide-react";
+import { Icon } from "@/components/site/icon";
 import {
   Section,
   SectionHeader,
@@ -38,40 +36,49 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { getServiceBySlug, relatedServices, categoryMap } from "@/lib/data/services";
-import { serviceMedia, media } from "@/lib/data/media";
-import { industryMap } from "@/lib/data/industries";
-import { processSteps } from "@/lib/data/process";
-import { company } from "@/lib/data/company";
+import type { Service, ServiceCategory, Industry } from "@/lib/types";
+import type { ProcessStepRecord, CompanyInfo } from "@/lib/data-access";
 
-export function ServiceDetailView() {
-  const params = useParams<{ slug?: string }>();
-  const slug = params.slug;
-  const service = slug ? getServiceBySlug(slug) : undefined;
+const SERVICE_IMAGE = "https://www.ui.com/microsite/static/industry-leading-CgUA2mbS.webp";
 
-  if (!service) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-6 text-center">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-muted">
-          <HelpCircle className="size-7 text-muted-foreground" />
-        </div>
-        <h1 className="mt-5 font-display text-2xl font-bold">Service not found</h1>
-        <p className="mt-2 text-muted-foreground">
-          The service you're looking for isn't available. Browse all our services to find what you need.
-        </p>
-        <NavButton view="services" className="mt-6">
-          <ArrowLeft className="size-4" />
-          Back to all services
-        </NavButton>
-      </div>
-    );
-  }
+export interface ServiceDetailViewProps {
+  service: Service;
+  relatedServices: Service[];
+  categories: ServiceCategory[];
+  industries: Industry[];
+  processSteps: ProcessStepRecord[];
+  company: CompanyInfo;
+  heroImage: string;
+}
+
+export function ServiceDetailView({
+  service,
+  relatedServices,
+  categories,
+  industries,
+  processSteps,
+  company,
+  heroImage: _heroImage,
+}: ServiceDetailViewProps) {
+  const categoryMap = React.useMemo(
+    () => Object.fromEntries(categories.map((c) => [c.id, c])) as Record<string, ServiceCategory>,
+    [categories],
+  );
+  const industryMap = React.useMemo(
+    () => Object.fromEntries(industries.map((i) => [i.id, i])) as Record<string, Industry>,
+    [industries],
+  );
 
   const category = categoryMap[service.categoryId];
-  const rel = relatedServices(service.slug);
+  const rel = relatedServices;
   const relIndustries = service.relatedIndustries
     .map((id) => industryMap[id])
-    .filter(Boolean);
+    .filter(Boolean) as Industry[];
+  // Defensive cast: the DB-backed Service may eventually expose imageQuery /
+  // imageUrl via the data-access mapService. Until then, this falls back to
+  // a representative equipment image (matches the prior static behaviour).
+  const serviceImage =
+    (service as Service & { imageQuery?: string }).imageQuery || SERVICE_IMAGE;
 
   return (
     <>
@@ -96,7 +103,7 @@ export function ServiceDetailView() {
           <div className="grid items-end gap-10 lg:grid-cols-12">
             <div className="lg:col-span-8">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300 backdrop-blur">
-                <service.icon className="size-3.5" />
+                <Icon name={service.iconName} className="size-3.5" />
                 {category?.name}
               </div>
               <h1 className="text-balance text-4xl font-bold leading-[1.05] text-white sm:text-5xl lg:text-6xl">
@@ -127,7 +134,7 @@ export function ServiceDetailView() {
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur">
                 <div className="relative aspect-[4/3] bg-white/5">
                   <RemoteImage
-                    src={serviceMedia[service.slug] || media.industryLeading}
+                    src={serviceImage}
                     alt={`${service.name} — representative equipment Allison Global deploys`}
                     className="size-full"
                     imgClassName="object-contain p-6"
@@ -314,22 +321,24 @@ export function ServiceDetailView() {
           subtitle="The same engineering-led process applies — adapted to the scope of this service."
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {processSteps.map((step, i) => (
-            <Reveal key={step.id} delay={i * 0.04}>
-              <div className="flex h-full gap-4 rounded-xl border border-border/70 bg-card p-5">
-                <IconBadge icon={step.icon} variant="outline" size="sm" />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-brand">
-                      Step {step.step}
-                    </span>
+          {processSteps.map((step, i) => {
+            return (
+              <Reveal key={step.id} delay={i * 0.04}>
+                <div className="flex h-full gap-4 rounded-xl border border-border/70 bg-card p-5">
+                  <IconBadge icon={step.iconName} variant="outline" size="sm" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand">
+                        Step {step.step}
+                      </span>
+                    </div>
+                    <h3 className="mt-0.5 font-display text-sm font-semibold">{step.title}</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.summary}</p>
                   </div>
-                  <h3 className="mt-0.5 font-display text-sm font-semibold">{step.title}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{step.summary}</p>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            );
+          })}
         </div>
         <div className="mt-6 text-center">
           <NavButton view="process" variant="outline">

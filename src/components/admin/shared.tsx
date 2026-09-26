@@ -267,6 +267,7 @@ export const API = {
   faqs: "/api/admin/faqs",
   testimonials: "/api/admin/testimonials",
   solutions: "/api/admin/solutions",
+  media: "/api/admin/media",
   // Global site-config endpoints (CompanySettings key/value store)
   settings: "/api/admin/settings",
   navigation: "/api/admin/navigation",

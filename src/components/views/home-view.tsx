@@ -16,15 +16,8 @@ import {
   Star,
   ChevronRight,
   Cpu,
-  Layers,
-  Map as MapIcon,
-  Zap,
-  LifeBuoy,
-  Scale,
-  FileCheck,
 } from "lucide-react";
 import { href } from "@/lib/nav";
-import { media } from "@/lib/data/media";
 import {
   Section,
   SectionHeader,
@@ -45,41 +38,71 @@ import {
 } from "@/components/site/sections";
 import { RemoteImage } from "@/components/site/sections";
 import { motion } from "framer-motion";
-import {
-  company,
-  capabilityStats,
-  differentiators,
-  technologyPlatforms,
-} from "@/lib/data/company";
-import { serviceCategories, services } from "@/lib/data/services";
-import { industries } from "@/lib/data/industries";
-import { projects } from "@/lib/data/projects";
-import { projectMedia, categoryMedia, blogMedia } from "@/lib/data/media";
-import { processSteps } from "@/lib/data/process";
-import { testimonials } from "@/lib/data/testimonials";
-import { blogPosts } from "@/lib/data/blog";
-import { industryMap } from "@/lib/data/industries";
+import type { CompanyInfo, ProcessStepRecord } from "@/lib/data-access";
+import type {
+  ServiceCategory,
+  Service,
+  Industry,
+  Project,
+  Testimonial,
+  BlogPost,
+} from "@/lib/types";
 
-const valueIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Layers, Cpu, MapIcon, Network, Zap, LifeBuoy, Scale, FileCheck,
+/* ------------------------------------------------------------------ */
+/*  Fixed brand assets (Ubiquiti CDN imagery). These are NOT CMS      */
+/*  content — they are the brand's visual identity for the hero video  */
+/*  and the category-card fallback image.                              */
+/* ------------------------------------------------------------------ */
+const U = "https://www.ui.com/microsite/static/";
+const MEDIA = {
+  videoRack: U + "rack-GwodzbZG.mp4", // hero background video clip
+  industryLeading: U + "industry-leading-CgUA2mbS.webp", // hero <video> poster + category-card fallback
 };
 
-export function HomeView() {
+export interface HomeViewProps {
+  company: CompanyInfo;
+  categories: ServiceCategory[];
+  services: Service[];
+  industries: Industry[];
+  projects: Project[];
+  processSteps: ProcessStepRecord[];
+  testimonials: Testimonial[];
+  blogPosts: BlogPost[];
+  heroImage: string;
+}
+
+export function HomeView({
+  company,
+  categories,
+  services,
+  industries,
+  projects,
+  processSteps,
+  testimonials,
+  blogPosts,
+  heroImage: _heroImage,
+}: HomeViewProps) {
   return (
     <>
       <Hero />
       <TrustStrip />
-      <WhatWeDo />
-      <WhyChooseUs />
-      <ProcessPreview />
-      <IndustriesPreview />
-      <CapabilityStats />
-      <ProjectsPreview />
+      <WhatWeDo categories={categories} services={services} />
+      <WhyChooseUs differentiators={company.differentiators ?? []} />
+      <ProcessPreview processSteps={processSteps} />
+      <IndustriesPreview industries={industries} />
+      <CapabilityStats
+        capabilityStats={company.capabilityStats ?? []}
+        technologyPlatforms={company.technologyPlatforms ?? []}
+      />
+      <ProjectsPreview projects={projects} />
       <SolutionsPreview />
-      <TestimonialsPreview />
-      <InsightsPreview />
-      <FounderNote />
-      <ConversionPathCTA />
+      <TestimonialsPreview testimonials={testimonials} industries={industries} />
+      <InsightsPreview blogPosts={blogPosts} />
+      <FounderNote company={company} />
+      <ConversionPathCTA
+        phoneIntl={company.contact.phoneIntl}
+        phoneDisplay={company.contact.phoneDisplay}
+      />
     </>
   );
 }
@@ -98,11 +121,11 @@ function Hero() {
           muted
           loop
           playsInline
-          poster={media.industryLeading}
+          poster={MEDIA.industryLeading}
           className="size-full object-cover"
           aria-hidden="true"
         >
-          <source src={media.videoRack} type="video/mp4" />
+          <source src={MEDIA.videoRack} type="video/mp4" />
         </video>
         {/* Deliberate L→R gradient: dark on the left for text, transparent right */}
         <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.16_0.03_235)] via-[oklch(0.16_0.03_235/0.85)] to-[oklch(0.16_0.03_235/0.45)]" />
@@ -297,7 +320,13 @@ function TrustStrip() {
 /* ------------------------------------------------------------------ */
 /*  What we do — service categories                                    */
 /* ------------------------------------------------------------------ */
-function WhatWeDo() {
+function WhatWeDo({
+  categories,
+  services,
+}: {
+  categories: ServiceCategory[];
+  services: Service[];
+}) {
   return (
     <Section>
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -313,65 +342,73 @@ function WhatWeDo() {
       </div>
 
       <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {serviceCategories.map((cat) => (
-          <motion.div key={cat.id} variants={staggerItem}>
-            <NavLink
-              view="services"
-              params={{ anchor: `cat-${cat.id}` }}
-              className="group block h-full"
-            >
-              <div className="relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
-                <div className="relative aspect-[16/8] overflow-hidden border-b border-border/60 bg-muted">
-                  <RemoteImage
-                    src={categoryMedia[cat.id] || media.industryLeading}
-                    alt={`${cat.name} — equipment Allison Global deploys`}
-                    className="size-full"
-                    imgClassName="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
-                    query={cat.id}
-                  />
-                </div>
-                <div
-                  className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${cat.accent}`}
-                />
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    <IconBadge icon={cat.icon} variant="brand" />
-                    <span className="text-xs font-medium text-muted-foreground">
-                      {cat.services.length} services
-                    </span>
+        {categories.map((cat) => {
+          // DB categories always return services: [], so derive live service
+          // count by matching on categoryId. Keep behaviour identical to the
+          // original code when cat.services is populated.
+          const catServices =
+            cat.services && cat.services.length > 0
+              ? cat.services
+                  .map((slug) => services.find((s) => s.slug === slug))
+                  .filter(Boolean) as Service[]
+              : services.filter((s) => s.categoryId === cat.id);
+          return (
+            <motion.div key={cat.id} variants={staggerItem}>
+              <NavLink
+                view="services"
+                params={{ anchor: `cat-${cat.id}` }}
+                className="group block h-full"
+              >
+                <div className="relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-xl hover:shadow-emerald-500/5">
+                  <div className="relative aspect-[16/8] overflow-hidden border-b border-border/60 bg-muted">
+                    <RemoteImage
+                      src={MEDIA.industryLeading}
+                      alt={`${cat.name} — equipment Allison Global deploys`}
+                      className="size-full"
+                      imgClassName="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                      query={cat.id}
+                    />
                   </div>
-                  <h3 className="mt-5 font-display text-xl font-bold">{cat.name}</h3>
-                  <p className="mt-1.5 text-sm font-medium text-brand">{cat.tagline}</p>
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {cat.description}
-                  </p>
-                  <div className="mt-5 flex flex-wrap gap-1.5">
-                    {cat.services.slice(0, 3).map((slug) => {
-                      const svc = services.find((s) => s.slug === slug);
-                      return svc ? (
+                  <div
+                    className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${cat.accent}`}
+                  />
+                  <div className="p-6">
+                    <div className="flex items-center justify-between">
+                      <IconBadge icon={cat.iconName} variant="brand" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {catServices.length} services
+                      </span>
+                    </div>
+                    <h3 className="mt-5 font-display text-xl font-bold">{cat.name}</h3>
+                    <p className="mt-1.5 text-sm font-medium text-brand">{cat.tagline}</p>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                      {cat.description}
+                    </p>
+                    <div className="mt-5 flex flex-wrap gap-1.5">
+                      {catServices.slice(0, 3).map((svc) => (
                         <span
-                          key={slug}
+                          key={svc.slug}
                           className="rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground"
                         >
                           {svc.name}
                         </span>
-                      ) : null;
-                    })}
-                    {cat.services.length > 3 && (
-                      <span className="rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
-                        +{cat.services.length - 3}
-                      </span>
-                    )}
+                      ))}
+                      {catServices.length > 3 && (
+                        <span className="rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-medium text-muted-foreground">
+                          +{catServices.length - 3}
+                        </span>
+                      )}
+                    </div>
+                    <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-transform group-hover:translate-x-1">
+                      Explore category
+                      <ArrowRight className="size-4" />
+                    </span>
                   </div>
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-transform group-hover:translate-x-1">
-                    Explore category
-                    <ArrowRight className="size-4" />
-                  </span>
                 </div>
-              </div>
-            </NavLink>
-          </motion.div>
-        ))}
+              </NavLink>
+            </motion.div>
+          );
+        })}
       </Stagger>
     </Section>
   );
@@ -380,7 +417,12 @@ function WhatWeDo() {
 /* ------------------------------------------------------------------ */
 /*  Why choose us                                                      */
 /* ------------------------------------------------------------------ */
-function WhyChooseUs() {
+function WhyChooseUs({
+  differentiators,
+}: {
+  differentiators: { title: string; description: string; icon: string }[];
+}) {
+  if (differentiators.length === 0) return null;
   return (
     <Section className="bg-muted/30">
       <SectionHeader
@@ -391,11 +433,10 @@ function WhyChooseUs() {
       />
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {differentiators.map((d, i) => {
-          const Icon = valueIconMap[d.icon] ?? ShieldCheck;
           return (
             <Reveal key={d.title} delay={i * 0.05}>
               <div className="h-full rounded-2xl border border-border/70 bg-card p-6">
-                <IconBadge icon={Icon} variant="brand" />
+                <IconBadge icon={d.icon} variant="brand" />
                 <h3 className="mt-4 font-display text-base font-semibold">{d.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   {d.description}
@@ -412,7 +453,12 @@ function WhyChooseUs() {
 /* ------------------------------------------------------------------ */
 /*  Process preview                                                    */
 /* ------------------------------------------------------------------ */
-function ProcessPreview() {
+function ProcessPreview({
+  processSteps,
+}: {
+  processSteps: ProcessStepRecord[];
+}) {
+  if (processSteps.length === 0) return null;
   return (
     <Section>
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -427,20 +473,22 @@ function ProcessPreview() {
         </NavButton>
       </div>
       <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {processSteps.map((step, i) => (
-          <Reveal key={step.id} delay={i * 0.05}>
-            <div className="group relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card p-6">
-              <div className="absolute right-4 top-4 font-display text-5xl font-bold text-muted/60 transition-colors group-hover:text-brand/15">
-                {String(step.step).padStart(2, "0")}
+        {processSteps.map((step, i) => {
+          return (
+            <Reveal key={step.id} delay={i * 0.05}>
+              <div className="group relative h-full overflow-hidden rounded-2xl border border-border/70 bg-card p-6">
+                <div className="absolute right-4 top-4 font-display text-5xl font-bold text-muted/60 transition-colors group-hover:text-brand/15">
+                  {String(step.step).padStart(2, "0")}
+                </div>
+                <IconBadge icon={step.iconName} variant="brand" />
+                <h3 className="mt-4 font-display text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {step.summary}
+                </p>
               </div>
-              <IconBadge icon={step.icon} variant="brand" />
-              <h3 className="mt-4 font-display text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {step.summary}
-              </p>
-            </div>
-          </Reveal>
-        ))}
+            </Reveal>
+          );
+        })}
       </div>
     </Section>
   );
@@ -449,7 +497,8 @@ function ProcessPreview() {
 /* ------------------------------------------------------------------ */
 /*  Industries preview                                                 */
 /* ------------------------------------------------------------------ */
-function IndustriesPreview() {
+function IndustriesPreview({ industries }: { industries: Industry[] }) {
+  if (industries.length === 0) return null;
   return (
     <Section className="bg-muted/30">
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -477,7 +526,14 @@ function IndustriesPreview() {
 /* ------------------------------------------------------------------ */
 /*  Capability stats                                                   */
 /* ------------------------------------------------------------------ */
-function CapabilityStats() {
+function CapabilityStats({
+  capabilityStats,
+  technologyPlatforms,
+}: {
+  capabilityStats: { value: string; label: string; sub?: string }[];
+  technologyPlatforms: { name: string; domain: string }[];
+}) {
+  if (capabilityStats.length === 0 && technologyPlatforms.length === 0) return null;
   return (
     <Section className="band-ink relative overflow-hidden">
       <div className="absolute inset-0 bg-grid-dark opacity-40" />
@@ -490,27 +546,31 @@ function CapabilityStats() {
           title="Built to protect what matters, at scale"
           subtitle="The breadth to handle your full infrastructure — and the engineering discipline to do it right."
         />
-        <div className="mt-12">
-          <StatStrip stats={capabilityStats} light />
-        </div>
-        <div className="mx-auto mt-14 max-w-5xl">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
-            Technologies & platforms we deploy
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            {technologyPlatforms.map((t) => (
-              <span
-                key={t.name}
-                className="rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-white/70"
-              >
-                {t.name}
-              </span>
-            ))}
+        {capabilityStats.length > 0 && (
+          <div className="mt-12">
+            <StatStrip stats={capabilityStats} light />
           </div>
-          <p className="mt-4 text-center text-xs text-white/30">
-            Competency with these platforms — not claimed certified partnerships.
-          </p>
-        </div>
+        )}
+        {technologyPlatforms.length > 0 && (
+          <div className="mx-auto mt-14 max-w-5xl">
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-white/40">
+              Technologies & platforms we deploy
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              {technologyPlatforms.map((t) => (
+                <span
+                  key={t.name}
+                  className="rounded-lg border border-white/10 bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-white/70"
+                >
+                  {t.name}
+                </span>
+              ))}
+            </div>
+            <p className="mt-4 text-center text-xs text-white/30">
+              Competency with these platforms — not claimed certified partnerships.
+            </p>
+          </div>
+        )}
       </div>
     </Section>
   );
@@ -519,8 +579,12 @@ function CapabilityStats() {
 /* ------------------------------------------------------------------ */
 /*  Projects preview                                                   */
 /* ------------------------------------------------------------------ */
-function ProjectsPreview() {
+function ProjectsPreview({ projects }: { projects: Project[] }) {
   const featured = projects.filter((p) => p.featured).slice(0, 3);
+  // If no featured projects, fall back to the most recent 3 so the section
+  // still showcases representative work.
+  const picks = featured.length > 0 ? featured : projects.slice(0, 3);
+  if (picks.length === 0) return null;
   return (
     <Section>
       <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
@@ -535,9 +599,9 @@ function ProjectsPreview() {
         </NavButton>
       </div>
       <Stagger className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {featured.map((p) => (
+        {picks.map((p) => (
           <motion.div key={p.id} variants={staggerItem}>
-            <ProjectCard project={p} imageUrl={projectMedia[p.id]} />
+            <ProjectCard project={p} imageUrl={p.imageQuery} />
           </motion.div>
         ))}
       </Stagger>
@@ -551,25 +615,25 @@ function ProjectsPreview() {
 function SolutionsPreview() {
   const items = [
     {
-      icon: ShieldCheck,
+      icon: "ShieldCheck",
       title: "Unified Security & Surveillance",
       desc: "CCTV, access control, alarms and monitoring on one platform.",
       slug: "unified-security",
     },
     {
-      icon: Network,
+      icon: "Network",
       title: "Resilient Network Infrastructure",
       desc: "Cabling, switching, routing and Wi-Fi engineered to last.",
       slug: "resilient-network",
     },
     {
-      icon: Lock,
+      icon: "Lock",
       title: "Cyber Defence Programme",
       desc: "Assessment, firewalls, endpoint protection and monitoring.",
       slug: "cyber-defence",
     },
     {
-      icon: Flame,
+      icon: "Flame",
       title: "Life Safety & Fire Protection",
       desc: "Detection, alarms and evacuation engineered to standards.",
       slug: "life-safety",
@@ -608,7 +672,18 @@ function SolutionsPreview() {
 /* ------------------------------------------------------------------ */
 /*  Testimonials preview                                               */
 /* ------------------------------------------------------------------ */
-function TestimonialsPreview() {
+function TestimonialsPreview({
+  testimonials,
+  industries,
+}: {
+  testimonials: Testimonial[];
+  industries: Industry[];
+}) {
+  const industryMap = React.useMemo(
+    () => Object.fromEntries(industries.map((i) => [i.id, i])) as Record<string, Industry>,
+    [industries],
+  );
+  if (testimonials.length === 0) return null;
   const picks = testimonials.slice(0, 3);
   return (
     <Section>
@@ -653,7 +728,8 @@ function TestimonialsPreview() {
 /* ------------------------------------------------------------------ */
 /*  Insights preview                                                   */
 /* ------------------------------------------------------------------ */
-function InsightsPreview() {
+function InsightsPreview({ blogPosts }: { blogPosts: BlogPost[] }) {
+  if (blogPosts.length === 0) return null;
   const posts = blogPosts.slice(0, 3);
   return (
     <Section className="bg-muted/30">
@@ -671,7 +747,7 @@ function InsightsPreview() {
       <Stagger className="mt-12 grid gap-6 md:grid-cols-3">
         {posts.map((p) => (
           <motion.div key={p.slug} variants={staggerItem}>
-            <BlogCard post={p} imageUrl={blogMedia[p.slug]} />
+            <BlogCard post={p} imageUrl={p.imageQuery} />
           </motion.div>
         ))}
       </Stagger>
@@ -682,7 +758,7 @@ function InsightsPreview() {
 /* ------------------------------------------------------------------ */
 /*  Founder note                                                       */
 /* ------------------------------------------------------------------ */
-function FounderNote() {
+function FounderNote({ company }: { company: CompanyInfo }) {
   return (
     <Section>
       <div className="grid items-center gap-10 lg:grid-cols-12">

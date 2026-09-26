@@ -3,18 +3,22 @@ import { PrismaClient } from "@prisma/client";
 /**
  * Prisma client initialization — Vercel/serverless compatible.
  *
- * Only creates a real PrismaClient when DATABASE_URL is a valid
- * PostgreSQL URL. Otherwise returns a safe proxy that throws
- * controlled errors (caught by data-access layer).
+ * Supports both PostgreSQL (production/Neon) and SQLite (local dev).
+ * In production with a valid PostgreSQL DATABASE_URL, a real PrismaClient
+ * is created. In dev with a SQLite `file:` URL, a real PrismaClient is
+ * also created (SQLite works in Node.js without a separate server).
  *
- * IMPORTANT: The global singleton is only used in development.
- * In production, a new client is created per serverless invocation
- * (Vercel handles this efficiently with connection pooling).
+ * Only when DATABASE_URL is missing entirely or is an unsupported format
+ * does this return a safe proxy that throws controlled errors.
  */
 
-function isValidPostgresUrl(url: string | undefined): boolean {
+function isValidDbUrl(url: string | undefined): boolean {
   if (!url) return false;
-  return url.startsWith("postgresql://") || url.startsWith("postgres://");
+  return (
+    url.startsWith("postgresql://") ||
+    url.startsWith("postgres://") ||
+    url.startsWith("file:")
+  );
 }
 
 function createSafeProxy(): PrismaClient {
@@ -49,18 +53,17 @@ function createSafeProxy(): PrismaClient {
 function createClient(): PrismaClient {
   const url = process.env.DATABASE_URL;
 
-  if (!isValidPostgresUrl(url)) {
+  if (!isValidDbUrl(url)) {
     return createSafeProxy();
   }
 
   const log: ("query" | "error" | "warn")[] =
-    process.env.NODE_ENV === "production" ? ["error", "warn"] : ["query", "error", "warn"];
+    process.env.NODE_ENV === "production" ? ["error", "warn"] : ["error", "warn"];
 
   return new PrismaClient({ log });
 }
 
 // Singleton pattern — prevent multiple instances in dev (hot reload)
-// In production (Vercel), each invocation gets a fresh client
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
-import { getServices, DatabaseUnavailableError } from "@/lib/data-access";
+import {
+  getCategories,
+  getServices,
+  getCompany,
+  DatabaseUnavailableError,
+  type CompanyInfo,
+} from "@/lib/data-access";
+import type { ServiceCategory, Service, Stat } from "@/lib/types";
 import { ServicesView } from "@/components/views/services-view";
+import { DataError } from "@/components/site/data-error";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Services — ICT, Networking, Cybersecurity & Security Solutions",
@@ -8,32 +18,38 @@ export const metadata: Metadata = {
     "Browse our full range of ICT and security services — structured cabling, networks, cybersecurity, CCTV, access control, fire safety and IT infrastructure, engineered under one team.",
 };
 
-export const revalidate = 3600;
-
 export default async function Page() {
   let dbOk = true;
+  let categories: ServiceCategory[] = [];
+  let services: Service[] = [];
+  let company: CompanyInfo | null = null;
+
   try {
-    await getServices();
-  } catch (e) {
-    if (e instanceof DatabaseUnavailableError) {
+    [categories, services, company] = await Promise.all([
+      getCategories(),
+      getServices(),
+      getCompany(),
+    ]);
+  } catch (err) {
+    if (err instanceof DatabaseUnavailableError) {
       dbOk = false;
     } else {
-      throw e;
+      throw err;
     }
   }
 
   if (!dbOk) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center px-4 text-center">
-        <div>
-          <h1 className="font-display text-2xl font-bold">Content temporarily unavailable</h1>
-          <p className="mt-2 text-muted-foreground">
-            We're experiencing a technical issue. Please try again in a moment.
-          </p>
-        </div>
-      </div>
-    );
+    return <DataError />;
   }
 
-  return <ServicesView />;
+  const capabilityStats: Stat[] = company?.capabilityStats ?? [];
+
+  return (
+    <ServicesView
+      categories={categories}
+      services={services}
+      capabilityStats={capabilityStats}
+      heroImage=""
+    />
+  );
 }

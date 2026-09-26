@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 const { GET, POST, PATCH, DELETE } = createCrudHandlers({
   model: "faq",
   resourceLabel: "faq",
-  publicPaths: ["/faqs", "/"],
+  contentType: "faq",
 });
 
 export { GET, POST, PATCH, DELETE };
