@@ -90,7 +90,7 @@ async function seed() {
         tech: j(svc.tech),
         relatedServices: j(svc.relatedServices),
         relatedIndustries: j(svc.relatedIndustries),
-        faqs: svc.faqs ? j(svc.faqs) : null,
+        faqs: svc.faqs ? j(svc.faqs) : undefined,
         featured: svc.featured || false,
         published: true,
         iconName: svc.iconName,
@@ -372,4 +372,3 @@ seed()
   })
   .finally(async () => {
     await db.$disconnect();
-  });
