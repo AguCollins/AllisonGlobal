@@ -30,6 +30,16 @@ function j(v: unknown): string {
   return JSON.stringify(v);
 }
 
+/** Convert plain text to a TipTap JSON doc (as a string for SQLite). */
+function toDoc(text: string): string {
+  return JSON.stringify({
+    type: "doc",
+    content: text
+      ? [{ type: "paragraph", content: [{ type: "text", text }] }]
+      : [],
+  });
+}
+
 // Extract the icon name from a LucideIcon component
 function iconName(icon: { name?: string; displayName?: string; render?: { name?: string } }): string {
   return icon.displayName || icon.name || (icon.render?.name) || "ShieldCheck";
@@ -62,7 +72,7 @@ async function seed() {
         slug: cat.slug,
         name: cat.name,
         tagline: cat.tagline,
-        description: cat.description,
+        description: toDoc(cat.description),
         iconName: cat.iconName,
         accent: cat.accent,
         sortOrder: 0,
@@ -82,9 +92,9 @@ async function seed() {
         categoryId: svc.categoryId,
         tagline: svc.tagline,
         shortDescription: svc.shortDescription,
-        overview: svc.overview,
+        overview: toDoc(svc.overview),
         problem: j(svc.problem),
-        solution: svc.solution,
+        solution: toDoc(svc.solution),
         deliverables: j(svc.deliverables),
         benefits: j(svc.benefits),
         tech: j(svc.tech),
@@ -110,7 +120,7 @@ async function seed() {
         slug: ind.id,
         name: ind.name,
         tagline: ind.tagline,
-        summary: ind.summary,
+        summary: toDoc(ind.summary),
         challenges: j(ind.challenges),
         solutions: j(ind.solutions),
         outcomes: j(ind.outcomes),
@@ -140,7 +150,7 @@ async function seed() {
         services: j(proj.services),
         location: proj.location,
         scope: proj.scope,
-        description: proj.description,
+        description: toDoc(proj.description),
         highlights: j(proj.highlights),
         gallery: j([]),
         technologies: j([]),
@@ -191,8 +201,8 @@ async function seed() {
         id: slug,
         slug,
         name: sol.name,
-        summary: sol.summary,
-        description: sol.description,
+        summary: toDoc(sol.summary),
+        description: toDoc(sol.description),
         components: j(sol.components),
         outcomes: j(sol.outcomes),
         bestFor: j(sol.bestFor),
@@ -209,7 +219,7 @@ async function seed() {
   for (const t of testimonials) {
     await db.testimonial.create({
       data: {
-        quote: t.quote,
+        quote: toDoc(t.quote),
         authorName: "Verified Client",
         authorRole: t.authorRole,
         sector: t.sector,
@@ -228,7 +238,7 @@ async function seed() {
       data: {
         category: f.category,
         question: f.question,
-        answer: f.answer,
+        answer: toDoc(f.answer),
         published: true,
         sortOrder: 0,
       },
@@ -302,8 +312,8 @@ async function seed() {
         id: p.id,
         step: p.step,
         title: p.title,
-        summary: p.summary,
-        description: p.description,
+        summary: toDoc(p.summary),
+        description: toDoc(p.description),
         iconName: iconName(p.icon),
         activities: p.activities,
         deliverable: p.deliverable,
@@ -322,7 +332,7 @@ async function seed() {
         department: job.department,
         location: job.location,
         type: job.type,
-        summary: job.summary,
+        summary: toDoc(job.summary),
         responsibilities: job.responsibilities,
         requirements: job.requirements,
         niceToHave: job.niceToHave,
@@ -340,7 +350,7 @@ async function seed() {
         intro: careersIntro,
         perks: careersPerks.map((p) => ({
           title: p.title,
-          description: p.description,
+          description: toDoc(p.description),
           iconName: p.icon,
         })),
       }),

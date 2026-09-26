@@ -37,6 +37,7 @@ import {
   TrustLine,
 } from "@/components/site/sections";
 import { RemoteImage } from "@/components/site/sections";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import { motion } from "framer-motion";
 import type { CompanyInfo, ProcessStepRecord } from "@/lib/data-access";
 import type {
@@ -382,7 +383,7 @@ function WhatWeDo({
                     <h3 className="mt-5 font-display text-xl font-bold">{cat.name}</h3>
                     <p className="mt-1.5 text-sm font-medium text-brand">{cat.tagline}</p>
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                      {cat.description}
+                      <RichTextContent content={cat.description} />
                     </p>
                     <div className="mt-5 flex flex-wrap gap-1.5">
                       {catServices.slice(0, 3).map((svc) => (
@@ -704,7 +705,7 @@ function TestimonialsPreview({
               </div>
               <Quote className="mt-3 size-7 text-brand/30" />
               <blockquote className="mt-2 flex-1 text-sm leading-relaxed text-foreground/90">
-                “{t.quote}”
+                “<RichTextContent content={t.quote} />”
               </blockquote>
               <figcaption className="mt-5 border-t border-border pt-4">
                 <div className="text-sm font-semibold">{t.authorRole}</div>

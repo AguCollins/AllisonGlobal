@@ -352,19 +352,26 @@ model Redirect {
 
 model Media {
   id        String   @id @default(cuid())
+  publicId  String?  @unique
   url       String   @unique
+  originalUrl String?
   filename  String
   mimeType  String
+  format    String?
   size      Int
   width     Int?
   height    Int?
   altText   String   @default("")
   caption   String?
+  title     String?
+  folder    String   @default("general")
   category  String   @default("general")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([url])
+  @@index([publicId])
+  @@index([folder])
   @@index([category])
   @@index([mimeType])
   @@index([createdAt])

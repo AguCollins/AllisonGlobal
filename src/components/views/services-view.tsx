@@ -23,6 +23,7 @@ import {
   StatStrip,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -280,7 +281,7 @@ function CategoryBlock({ category, services: catServices }: {
               <h2 className="font-display text-2xl font-bold sm:text-3xl">{cat.name}</h2>
               <p className="mt-1 text-sm font-medium text-brand">{cat.tagline}</p>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                {cat.description}
+                <RichTextContent content={cat.description} />
               </p>
             </div>
           </div>

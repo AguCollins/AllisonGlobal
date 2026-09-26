@@ -24,6 +24,7 @@ import {
   RemoteImage,
 } from "@/components/site/sections";
 import { motion } from "framer-motion";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import type { Industry, Service, Project } from "@/lib/types";
 
 export interface IndustryDetailViewProps {
@@ -61,7 +62,7 @@ export function IndustryDetailView({
       <PageHero
         eyebrow="Industry"
         title={industry.name}
-        subtitle={industry.summary}
+        subtitle={<RichTextContent content={industry.summary} />}
         icon={HeroIcon}
         breadcrumb={[
           { label: "Home", view: "home" },
@@ -79,7 +80,7 @@ export function IndustryDetailView({
               title={`Security & technology for ${industry.name.toLowerCase()}`}
             />
             <p className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
-              {industry.summary} Our engineers understand the operational realities,
+              <RichTextContent content={industry.summary} /> Our engineers understand the operational realities,
               risks and compliance demands of {industry.name.toLowerCase()} — and we tailor
               our six service domains accordingly.
             </p>

@@ -38,7 +38,7 @@ export interface ServiceCategory {
   slug: string;
   name: string;
   tagline: string;
-  description: string;
+  description: unknown;
   iconName: string;
   accent: string; // tailwind gradient classes
   services: string[]; // service slugs in this category
@@ -56,9 +56,9 @@ export interface Service {
   iconName: string;
   tagline: string;
   shortDescription: string;
-  overview: string;
+  overview: unknown;
   problem: string[];
-  solution: string;
+  solution: unknown;
   deliverables: ServiceFeature[];
   benefits: string[];
   tech: string[]; // technologies / platforms deployed
@@ -84,7 +84,7 @@ export interface Industry {
   name: string;
   iconName: string;
   tagline: string;
-  summary: string;
+  summary: unknown;
   challenges: string[];
   solutions: string[]; // service slugs
   outcomes: string[];
@@ -99,7 +99,7 @@ export interface Project {
   services: string[]; // service slugs
   location: string;
   scope: string;
-  description: string;
+  description: unknown;
   highlights: string[];
   imageQuery: string;
   year: string;
@@ -110,8 +110,8 @@ export interface Solution {
   id: string;
   name: string;
   iconName: string;
-  summary: string;
-  description: string;
+  summary: unknown;
+  description: unknown;
   components: string[]; // service slugs
   outcomes: string[];
   bestFor: string[];
@@ -119,7 +119,7 @@ export interface Solution {
 
 export interface Testimonial {
   id: string;
-  quote: string;
+  quote: unknown;
   authorName?: string;
   authorRole: string;
   sector: string; // industry id
@@ -131,7 +131,7 @@ export interface Faq {
   id: string;
   category: string;
   question: string;
-  answer: string;
+  answer: unknown;
 }
 
 export interface BlogPost {

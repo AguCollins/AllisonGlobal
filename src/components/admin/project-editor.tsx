@@ -62,7 +62,7 @@ interface ProjectForm {
   industry: string;
   location: string;
   scope: string;
-  description: string;
+  description: unknown;
   year: string;
   featured: boolean;
   published: boolean;
@@ -86,7 +86,7 @@ interface ProjectRecord {
   industry: string;
   location: string;
   scope: string;
-  description: string;
+  description: unknown;
   year: string;
   featured: boolean;
   published: boolean;
@@ -200,7 +200,7 @@ function buildPayload(form: ProjectForm, id?: string): Record<string, unknown> {
     industry: form.industry,
     location: form.location.trim(),
     scope: form.scope.trim(),
-    description: form.description.trim(),
+    description: form.description,
     year: form.year.trim(),
     featured: form.featured,
     published: form.published,
@@ -522,7 +522,7 @@ export function ProjectEditor({
                   <Label htmlFor="description">Description</Label>
                   <RichTextField
                     value={form.description}
-                    onChange={(doc) => update("description", doc as string)}
+                    onChange={(doc) => update("description", doc)}
                     placeholder="Project description — supports formatting"
                     minHeight={200}
                     label="Project description"
@@ -738,7 +738,7 @@ export function ProjectEditor({
             slug={form.slug}
             pathPrefix="/projects/"
             fallbackImage={galleryUrls[0]}
-            bodyText={form.description}
+            bodyText={typeof form.description === "string" ? form.description : JSON.stringify(form.description || "")}
             excerpt={form.scope}
             category={form.category}
           />

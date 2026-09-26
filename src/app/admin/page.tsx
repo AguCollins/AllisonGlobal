@@ -31,6 +31,12 @@ import {
   RefreshCw,
   PlusCircle,
   ScrollText,
+  FileText,
+  Briefcase,
+  Quote,
+  HelpCircle,
+  ShieldCheck,
+  Activity,
 } from "lucide-react";
 
 interface Stats {
@@ -53,6 +59,51 @@ interface RecentLead {
 interface StatsResponse {
   stats: Stats;
   recentLeads: RecentLead[];
+}
+
+// ───────────────────────── Content health types ─────────────────────────
+
+interface ContentHealth {
+  blog: {
+    published: number;
+    drafts: number;
+    missingSeo: number;
+    total: number;
+  };
+  services: {
+    published: number;
+    missingMeta: number;
+    total: number;
+  };
+  projects: {
+    published: number;
+    missingImages: number;
+    total: number;
+  };
+  testimonials: {
+    published: number;
+    total: number;
+  };
+  faqs: {
+    published: number;
+    total: number;
+  };
+}
+
+interface CrudRow {
+  id: string;
+  published?: boolean;
+  status?: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  gallery?: unknown;
+  ogImage?: string | null;
+  featuredImage?: string | null;
+}
+
+interface CrudResponse {
+  items: CrudRow[];
+  total: number;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -157,10 +208,106 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
   );
 }
 
+// ───────────────────────── Content health card ─────────────────────────
+
+interface MetricRow {
+  label: string;
+  value: number;
+  tone?: "default" | "warning" | "danger";
+}
+
+function ContentHealthCard({
+  title,
+  href,
+  icon: Icon,
+  metrics,
+  loading,
+}: {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  metrics: MetricRow[];
+  loading?: boolean;
+}) {
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="font-display text-base">{title}</CardTitle>
+            <CardDescription className="text-xs">Content overview</CardDescription>
+          </div>
+          <div className="flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
+            <Icon className="size-4" />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-1 flex-col gap-2 pt-0">
+        {loading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+            <Skeleton className="h-6 w-full" />
+          </div>
+        ) : (
+          <dl className="space-y-2">
+            {metrics.map((m) => (
+              <div
+                key={m.label}
+                className="flex items-center justify-between gap-2 text-sm"
+              >
+                <dt className="text-muted-foreground">{m.label}</dt>
+                <dd
+                  className={
+                    m.tone === "warning"
+                      ? "font-semibold text-amber-600 dark:text-amber-400"
+                      : m.tone === "danger"
+                        ? "font-semibold text-destructive"
+                        : "font-semibold text-foreground"
+                  }
+                >
+                  {m.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="mt-auto min-h-10 justify-start text-brand hover:bg-brand/5 hover:text-brand"
+        >
+          <Link href={href}>
+            Manage {title.toLowerCase()}
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ───────────────────────── Helpers for content health ─────────────────────────
+
+function isNonEmptyString(v: unknown): boolean {
+  return typeof v === "string" && v.trim().length > 0;
+}
+
+function arrayLength(v: unknown): number {
+  return Array.isArray(v) ? v.length : 0;
+}
+
+// ───────────────────────── Dashboard ─────────────────────────
+
 export default function AdminDashboardPage() {
   const [data, setData] = React.useState<StatsResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+
+  const [health, setHealth] = React.useState<ContentHealth | null>(null);
+  const [healthLoading, setHealthLoading] = React.useState(true);
+  const [healthError, setHealthError] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -177,9 +324,99 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
+  const loadHealth = React.useCallback(async () => {
+    setHealthLoading(true);
+    setHealthError(null);
+    try {
+      // Fetch all draft+published items for each content type (limit 200)
+      const [blogRes, servicesRes, projectsRes, testimonialsRes, faqsRes] =
+        await Promise.all([
+          fetch("/api/admin/blog?drafts=true&limit=200", { cache: "no-store" }),
+          fetch("/api/admin/services?drafts=true&limit=200", { cache: "no-store" }),
+          fetch("/api/admin/projects?drafts=true&limit=200", { cache: "no-store" }),
+          fetch("/api/admin/testimonials?drafts=true&limit=200", { cache: "no-store" }),
+          fetch("/api/admin/faqs?drafts=true&limit=200", { cache: "no-store" }),
+        ]);
+
+      const responses: Array<{ label: string; res: Response }> = [
+        { label: "blog", res: blogRes },
+        { label: "services", res: servicesRes },
+        { label: "projects", res: projectsRes },
+        { label: "testimonials", res: testimonialsRes },
+        { label: "faqs", res: faqsRes },
+      ];
+      const failed = responses.find(({ res }) => !res.ok);
+      if (failed) {
+        throw new Error(`Failed to load ${failed.label} (HTTP ${failed.res.status})`);
+      }
+
+      const [blog, services, projects, testimonials, faqs] = (await Promise.all([
+        blogRes.json(),
+        servicesRes.json(),
+        projectsRes.json(),
+        testimonialsRes.json(),
+        faqsRes.json(),
+      ])) as [
+        CrudResponse,
+        CrudResponse,
+        CrudResponse,
+        CrudResponse,
+        CrudResponse,
+      ];
+
+      const blogItems = blog.items ?? [];
+      const serviceItems = services.items ?? [];
+      const projectItems = projects.items ?? [];
+      const testimonialItems = testimonials.items ?? [];
+      const faqItems = faqs.items ?? [];
+
+      setHealth({
+        blog: {
+          total: blog.total ?? blogItems.length,
+          published: blogItems.filter((p) => p.status === "published").length,
+          drafts: blogItems.filter((p) => p.status === "draft").length,
+          missingSeo: blogItems.filter(
+            (p) => !isNonEmptyString(p.metaTitle) || !isNonEmptyString(p.metaDescription),
+          ).length,
+        },
+        services: {
+          total: services.total ?? serviceItems.length,
+          published: serviceItems.filter((s) => s.published).length,
+          missingMeta: serviceItems.filter(
+            (s) => !isNonEmptyString(s.metaDescription),
+          ).length,
+        },
+        projects: {
+          total: projects.total ?? projectItems.length,
+          published: projectItems.filter((p) => p.published).length,
+          missingImages:
+            projectItems.filter(
+              (p) =>
+                arrayLength(p.gallery) === 0 &&
+                !isNonEmptyString(p.featuredImage) &&
+                !isNonEmptyString(p.ogImage),
+            ).length,
+        },
+        testimonials: {
+          total: testimonials.total ?? testimonialItems.length,
+          published: testimonialItems.filter((t) => t.published).length,
+        },
+        faqs: {
+          total: faqs.total ?? faqItems.length,
+          published: faqItems.filter((f) => f.published).length,
+        },
+      });
+    } catch (e) {
+      setHealthError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setHealthLoading(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     load();
-  }, [load]);
+    loadHealth();
+  }, [load, loadHealth]);
 
   return (
     <div className="space-y-6">
@@ -265,6 +502,131 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* ─────────────── Content Health section ─────────────── */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
+              <Activity className="size-4" />
+            </div>
+            <div>
+              <h2 className="font-display text-lg font-bold tracking-tight">
+                Content Health
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Spot missing SEO, drafts, and incomplete records across content types.
+              </p>
+            </div>
+          </div>
+          {healthError && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-10"
+              onClick={loadHealth}
+            >
+              <RefreshCw className="size-4" />
+              Retry
+            </Button>
+          )}
+        </div>
+
+        {healthError ? (
+          <ErrorState message={healthError} onRetry={loadHealth} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ContentHealthCard
+              title="Blog"
+              href="/admin/blog"
+              icon={Newspaper}
+              loading={healthLoading}
+              metrics={
+                health
+                  ? [
+                      { label: "Published", value: health.blog.published },
+                      { label: "Drafts", value: health.blog.drafts, tone: health.blog.drafts > 0 ? "warning" : "default" },
+                      { label: "Missing SEO", value: health.blog.missingSeo, tone: health.blog.missingSeo > 0 ? "danger" : "default" },
+                    ]
+                  : []
+              }
+            />
+            <ContentHealthCard
+              title="Services"
+              href="/admin/services"
+              icon={Briefcase}
+              loading={healthLoading}
+              metrics={
+                health
+                  ? [
+                      { label: "Published", value: health.services.published },
+                      { label: "Missing meta descriptions", value: health.services.missingMeta, tone: health.services.missingMeta > 0 ? "danger" : "default" },
+                      { label: "Total", value: health.services.total },
+                    ]
+                  : []
+              }
+            />
+            <ContentHealthCard
+              title="Projects"
+              href="/admin/projects"
+              icon={Briefcase}
+              loading={healthLoading}
+              metrics={
+                health
+                  ? [
+                      { label: "Published", value: health.projects.published },
+                      { label: "Missing images", value: health.projects.missingImages, tone: health.projects.missingImages > 0 ? "danger" : "default" },
+                      { label: "Total", value: health.projects.total },
+                    ]
+                  : []
+              }
+            />
+            <ContentHealthCard
+              title="Testimonials"
+              href="/admin/testimonials"
+              icon={Quote}
+              loading={healthLoading}
+              metrics={
+                health
+                  ? [
+                      { label: "Published", value: health.testimonials.published },
+                      { label: "Total", value: health.testimonials.total },
+                    ]
+                  : []
+              }
+            />
+            <ContentHealthCard
+              title="FAQs"
+              href="/admin/faqs"
+              icon={HelpCircle}
+              loading={healthLoading}
+              metrics={
+                health
+                  ? [
+                      { label: "Published", value: health.faqs.published },
+                      { label: "Total", value: health.faqs.total },
+                    ]
+                  : []
+              }
+            />
+            <ContentHealthCard
+              title="Audit & Access"
+              href="/admin/audit"
+              icon={ShieldCheck}
+              loading={false}
+              metrics={
+                health
+                  ? [
+                      { label: "Blog total", value: health.blog.total },
+                      { label: "Service total", value: health.services.total },
+                      { label: "Project total", value: health.projects.total },
+                    ]
+                  : []
+              }
+            />
+          </div>
+        )}
+      </section>
+
       {/* Quick actions */}
       <Card>
         <CardHeader className="pb-3">
@@ -296,6 +658,12 @@ export default function AdminDashboardPage() {
             <Link href="/admin/audit">
               <ScrollText className="size-4" />
               Audit log
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-10">
+            <Link href="/admin/media">
+              <FileText className="size-4" />
+              Media library
             </Link>
           </Button>
           <Button asChild className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90">

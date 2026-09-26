@@ -268,6 +268,7 @@ export const API = {
   testimonials: "/api/admin/testimonials",
   solutions: "/api/admin/solutions",
   media: "/api/admin/media",
+  cloudinarySign: "/api/admin/cloudinary/sign",
   // Global site-config endpoints (CompanySettings key/value store)
   settings: "/api/admin/settings",
   navigation: "/api/admin/navigation",

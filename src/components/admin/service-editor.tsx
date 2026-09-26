@@ -63,8 +63,8 @@ interface ServiceForm {
   categoryId: string;
   tagline: string;
   shortDescription: string;
-  overview: string;
-  solution: string;
+  overview: unknown;
+  solution: unknown;
   featured: boolean;
   published: boolean;
   iconName: string;
@@ -85,8 +85,8 @@ interface ServiceRecord {
   categoryId: string;
   tagline: string;
   shortDescription: string;
-  overview: string;
-  solution: string;
+  overview: unknown;
+  solution: unknown;
   featured: boolean;
   published: boolean;
   iconName: string;
@@ -182,8 +182,8 @@ function buildPayload(form: ServiceForm, id?: string): Record<string, unknown> {
     categoryId: form.categoryId,
     tagline: form.tagline.trim(),
     shortDescription: form.shortDescription.trim(),
-    overview: form.overview.trim(),
-    solution: form.solution.trim(),
+    overview: form.overview,
+    solution: form.solution,
     featured: form.featured,
     published: form.published,
     iconName: form.iconName.trim() || "Wrench",
@@ -555,7 +555,7 @@ export function ServiceEditor({
                   <Label htmlFor="overview">Overview</Label>
                   <RichTextField
                     value={form.overview}
-                    onChange={(doc) => update("overview", doc as string)}
+                    onChange={(doc) => update("overview", doc)}
                     placeholder="Long-form description of the service — supports formatting"
                     minHeight={200}
                     label="Service overview"
@@ -566,12 +566,12 @@ export function ServiceEditor({
                 </div>
                 <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="solution">Solution</Label>
-                  <Textarea
-                    id="solution"
+                  <RichTextField
                     value={form.solution}
-                    onChange={(e) => update("solution", e.target.value)}
-                    rows={4}
-                    placeholder="How the service solves the client's problem"
+                    onChange={(doc) => update("solution", doc)}
+                    placeholder="How the service solves the client's problem — supports formatting"
+                    minHeight={150}
+                    label="Service solution"
                   />
                 </div>
               </CardContent>
@@ -756,7 +756,7 @@ export function ServiceEditor({
             slug={form.slug}
             pathPrefix="/services/"
             fallbackImage={form.imageUrl}
-            bodyText={form.overview}
+            bodyText={typeof form.overview === "string" ? form.overview : JSON.stringify(form.overview || "")}
             excerpt={form.shortDescription}
             category={form.categoryId}
           />

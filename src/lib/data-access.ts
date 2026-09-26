@@ -458,12 +458,13 @@ export async function getCategoryBySlug(slug: string): Promise<ServiceCategory |
 }
 
 function mapCategory(c: {
-  id: string; slug: string; name: string; tagline: string; description: string;
+  id: string; slug: string; name: string; tagline: string; description: unknown;
   iconName: string; accent: string; imageUrl?: string | null;
 }): ServiceCategory {
   return {
     id: c.slug, slug: c.slug, name: c.name, tagline: c.tagline,
-    description: c.description, iconName: c.iconName, accent: c.accent,
+    description: parseJson<string>(c.description, "") || String(c.description || ""),
+    iconName: c.iconName, accent: c.accent,
     services: [],
   };
 }
@@ -523,8 +524,8 @@ export async function getAllServicesForAdmin(): Promise<Service[]> {
 
 function mapService(s: {
   id: string; slug: string; name: string; categoryId: string;
-  tagline: string; shortDescription: string; overview: string;
-  problem: unknown; solution: string;
+  tagline: string; shortDescription: string; overview: unknown;
+  problem: unknown; solution: unknown;
   deliverables: unknown; benefits: unknown; tech: unknown;
   relatedServices: unknown; relatedIndustries: unknown;
   faqs: unknown; featured: boolean; published: boolean; iconName: string;
@@ -534,9 +535,9 @@ function mapService(s: {
   return {
     slug: s.slug, name: s.name, categoryId: s.category?.slug ?? s.categoryId,
     iconName: s.iconName, tagline: s.tagline, shortDescription: s.shortDescription,
-    overview: s.overview,
+    overview: parseJson<unknown>(s.overview, s.overview),
     problem: parseJson<string[]>(s.problem, []),
-    solution: s.solution,
+    solution: parseJson<unknown>(s.solution, s.solution),
     deliverables: parseJson<Service["deliverables"]>(s.deliverables, []),
     benefits: parseJson<string[]>(s.benefits, []),
     tech: parseJson<string[]>(s.tech, []),
@@ -573,14 +574,14 @@ export async function getIndustryById(idOrSlug: string): Promise<Industry | unde
 }
 
 function mapIndustry(i: {
-  id: string; slug: string; name: string; tagline: string; summary: string;
+  id: string; slug: string; name: string; tagline: string; summary: unknown;
   challenges: unknown; solutions: unknown; outcomes: unknown;
   imageQuery: string; imageUrl?: string | null; iconName: string;
 }): Industry {
   return {
     id: i.slug,
     name: i.name, iconName: i.iconName, tagline: i.tagline,
-    summary: i.summary,
+    summary: parseJson<unknown>(i.summary, i.summary),
     challenges: parseJson<string[]>(i.challenges, []),
     solutions: parseJson<string[]>(i.solutions, []),
     outcomes: parseJson<string[]>(i.outcomes, []),
@@ -627,7 +628,8 @@ function mapProject(p: {
     id: p.slug,
     title: p.title, category: p.category, industry: p.industry,
     services: parseJson<string[]>(p.services, []),
-    location: p.location, scope: p.scope, description: p.description,
+    location: p.location, scope: p.scope,
+    description: parseJson<unknown>(p.description, p.description),
     highlights: parseJson<string[]>(p.highlights, []),
     imageQuery: p.imageQuery, year: p.year, featured: p.featured,
   };
@@ -647,11 +649,11 @@ export async function getTestimonials(): Promise<Testimonial[]> {
 }
 
 function mapTestimonial(t: {
-  id: string; quote: string; authorName: string | null; authorRole: string; sector: string;
+  id: string; quote: unknown; authorName: string | null; authorRole: string; sector: string;
   rating: number; projectType: string;
 }): Testimonial {
   return {
-    id: t.id, quote: t.quote,
+    id: t.id, quote: parseJson<unknown>(t.quote, t.quote) as string,
     authorName: t.authorName || "Verified Client",
     authorRole: t.authorRole, sector: t.sector,
     rating: t.rating, projectType: t.projectType,
@@ -672,9 +674,12 @@ export async function getFaqs(): Promise<Faq[]> {
 }
 
 function mapFaq(f: {
-  id: string; category: string; question: string; answer: string;
+  id: string; category: string; question: string; answer: unknown;
 }): Faq {
-  return { id: f.id, category: f.category, question: f.question, answer: f.answer };
+  return {
+    id: f.id, category: f.category, question: f.question,
+    answer: parseJson<unknown>(f.answer, f.answer) as string,
+  };
 }
 
 // ───────────────────────────────────────────────────────────────────────
@@ -760,16 +765,17 @@ function mapBlogPost(p: {
   imageQuery: string; featuredImage?: string | null;
   content: unknown; tags: unknown; featured: boolean;
 }): BlogPost {
-  // Content is stored as JSON. It may be either the new typed block format
-  // ({ type, ... }) or the legacy { heading?, body } shape — both are
-  // rendered by the shared BlogBlockRenderer. Pass through as-is so the
-  // renderer sees exactly what was authored.
-  const raw = parseJson<unknown[]>(p.content, []);
+  // Content can be:
+  // - TipTap JSON doc: { type: "doc", content: [...] } (new WYSIWYG format)
+  // - BlogBlock[]: [{ type: "paragraph", text: "..." }] (old block editor)
+  // - Legacy: [{ heading?, body }] (original format)
+  // Pass through as-is — the BlogBlockRenderer auto-detects the format.
+  const raw = parseJson<unknown>(p.content, []);
   return {
     slug: p.slug, title: p.title, excerpt: p.excerpt, category: p.category,
     readTime: p.readTime, date: p.date, author: p.author, authorRole: p.authorRole,
     imageQuery: p.featuredImage || p.imageQuery,
-    content: (Array.isArray(raw) ? raw : []) as BlogPost["content"],
+    content: (Array.isArray(raw) ? raw : [raw].filter(Boolean)) as BlogPost["content"],
     tags: parseJson<string[]>(p.tags, []),
     featured: p.featured,
   };
@@ -796,13 +802,14 @@ export async function getSolutionBySlug(slug: string): Promise<Solution | undefi
 }
 
 function mapSolution(s: {
-  id: string; slug: string; name: string; summary: string; description: string;
+  id: string; slug: string; name: string; summary: unknown; description: unknown;
   components: unknown; outcomes: unknown; bestFor: unknown; iconName: string;
 }): Solution {
   return {
     id: s.slug, // use slug as public id
     name: s.name, iconName: s.iconName,
-    summary: s.summary, description: s.description,
+    summary: parseJson<unknown>(s.summary, s.summary) as string,
+    description: parseJson<unknown>(s.description, s.description) as string,
     components: parseJson<string[]>(s.components, []),
     outcomes: parseJson<string[]>(s.outcomes, []),
     bestFor: parseJson<string[]>(s.bestFor, []),

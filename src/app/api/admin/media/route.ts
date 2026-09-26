@@ -26,9 +26,10 @@ const ALLOWED_CATEGORIES = new Set([
   "project",
   "blog",
   "team",
+  "branding",
 ]);
 
-const ALLOWED_PATCH_FIELDS = new Set(["altText", "caption", "category"]);
+const ALLOWED_PATCH_FIELDS = new Set(["altText", "caption", "category", "title", "folder"]);
 
 // ───────────────────────── GET ─────────────────────────
 
@@ -103,6 +104,13 @@ export async function POST(req: Request) {
   const altText = sanitizeText(String(b.altText ?? ""));
   const caption = b.caption ? sanitizeText(String(b.caption)) : null;
   const category = sanitizeText(String(b.category ?? "general")) || "general";
+  const folder = sanitizeText(String(b.folder ?? category)) || category;
+
+  // Cloudinary-specific fields (optional — null for manual URL entries)
+  const publicId = b.publicId ? sanitizeText(String(b.publicId)) : null;
+  const originalUrl = b.originalUrl ? sanitizeText(String(b.originalUrl)) : null;
+  const format = b.format ? sanitizeText(String(b.format)) : null;
+  const title = b.title ? sanitizeText(String(b.title)) : null;
 
   if (!url) {
     return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -128,6 +136,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid size" }, { status: 400 });
   }
 
+  // Max file size: 10MB (stored as metadata — actual upload goes to Cloudinary)
+  if (size > 10 * 1024 * 1024) {
+    return NextResponse.json(
+      { error: "File too large (max 10MB)" },
+      { status: 400 },
+    );
+  }
+
   const width = b.width != null ? Number(b.width) : null;
   const height = b.height != null ? Number(b.height) : null;
 
@@ -135,13 +151,18 @@ export async function POST(req: Request) {
     const created = await db.media.create({
       data: {
         url,
+        publicId,
+        originalUrl,
         filename,
         mimeType,
+        format,
         size,
         width: width != null && Number.isFinite(width) ? width : null,
         height: height != null && Number.isFinite(height) ? height : null,
         altText,
         caption,
+        title,
+        folder,
         category,
       },
     });
@@ -186,15 +207,15 @@ export async function PATCH(req: Request) {
   for (const key of ALLOWED_PATCH_FIELDS) {
     if (key in b) {
       const v = b[key];
-      if (key === "category") {
-        const cat = sanitizeText(String(v ?? ""));
-        if (!ALLOWED_CATEGORIES.has(cat)) {
+      if (key === "category" || key === "folder") {
+        const val = sanitizeText(String(v ?? ""));
+        if (!ALLOWED_CATEGORIES.has(val)) {
           return NextResponse.json(
-            { error: `Invalid category: ${cat}` },
+            { error: `Invalid ${key}: ${val}` },
             { status: 400 },
           );
         }
-        data.category = cat;
+        data[key] = val;
       } else {
         data[key] = v == null ? null : sanitizeText(String(v));
       }
@@ -247,6 +268,18 @@ export async function DELETE(req: Request) {
   }
 
   try {
+    // Fetch the media record first (to get publicId for Cloudinary cleanup)
+    const media = await db.media.findUnique({ where: { id } });
+    if (!media) {
+      return NextResponse.json({ error: "Media not found" }, { status: 404 });
+    }
+
+    // Delete from Cloudinary if it has a publicId
+    if (media.publicId) {
+      const { deleteCloudinaryAsset } = await import("@/lib/cloudinary");
+      await deleteCloudinaryAsset(media.publicId).catch(() => null);
+    }
+
     await db.media.delete({ where: { id } });
 
     await recordAudit({

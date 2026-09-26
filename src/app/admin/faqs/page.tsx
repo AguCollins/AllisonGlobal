@@ -46,7 +46,7 @@ import {
 interface FaqRow {
   id: string;
   question: string;
-  answer: string;
+  answer: unknown;
   category: string;
   sortOrder: number;
 }
@@ -69,7 +69,7 @@ function toDraft(f: FaqRow): DraftRow {
   return {
     id: f.id,
     question: f.question,
-    answer: f.answer,
+    answer: typeof f.answer === "string" ? f.answer : "",
     category: f.category,
     sortOrder: f.sortOrder ?? 0,
     isNew: false,

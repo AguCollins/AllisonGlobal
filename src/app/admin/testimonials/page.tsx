@@ -45,7 +45,7 @@ import {
 
 interface TestimonialRow {
   id: string;
-  quote: string;
+  quote: unknown;
   authorRole: string;
   sector: string;
   rating: number;
@@ -133,7 +133,7 @@ export default function AdminTestimonialsPage() {
     const q = debounced.toLowerCase();
     return items.filter(
       (t) =>
-        t.quote.toLowerCase().includes(q) ||
+        (typeof t.quote === "string" ? t.quote : "").toLowerCase().includes(q) ||
         t.authorRole.toLowerCase().includes(q) ||
         t.projectType.toLowerCase().includes(q),
     );
@@ -221,7 +221,7 @@ export default function AdminTestimonialsPage() {
                   </TableCell>
                   <TableCell className="max-w-[300px] px-4 py-3 text-sm">
                     <p className="line-clamp-2 italic text-muted-foreground">
-                      &ldquo;{t.quote}&rdquo;
+                      &ldquo;{String(t.quote || "")}&rdquo;
                     </p>
                   </TableCell>
                   <TableCell className="px-4 py-3 text-sm">{t.authorRole}</TableCell>

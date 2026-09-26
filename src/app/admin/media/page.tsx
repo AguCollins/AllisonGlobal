@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,11 @@ import {
   Trash2,
   Check,
   AlertCircle,
+  Upload,
+  Cloud,
+  CloudOff,
+  ExternalLink,
+  ZoomIn,
 } from "lucide-react";
 import {
   PageHeader,
@@ -48,19 +55,25 @@ import {
   API,
   formatDate,
 } from "@/components/admin/shared";
+import { cn } from "@/lib/utils";
 
 // ───────────────────────── Types ─────────────────────────
 
 interface MediaItem {
   id: string;
   url: string;
+  publicId?: string | null;
+  originalUrl?: string | null;
   filename: string;
   mimeType: string;
+  format?: string | null;
   size: number;
   width?: number | null;
   height?: number | null;
   altText?: string | null;
   caption?: string | null;
+  title?: string | null;
+  folder?: string | null;
   category: string;
   createdAt: string;
 }
@@ -70,16 +83,25 @@ interface ListResponse {
   total: number;
 }
 
-// ───────────────────────── Constants ─────────────────────────
+interface CloudinarySignResponse {
+  configured: boolean;
+  cloudName?: string;
+  apiKey?: string;
+  timestamp?: number;
+  signature?: string;
+  uploadPreset?: string;
+  uploadUrl?: string;
+  error?: string;
+}
 
-const MIME_OPTIONS = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/svg+xml",
-  "image/avif",
-];
+interface UploadProgress {
+  filename: string;
+  progress: number; // 0–100
+  status: "uploading" | "storing" | "done" | "error";
+  error?: string;
+}
+
+// ───────────────────────── Constants ─────────────────────────
 
 const CATEGORY_OPTIONS = [
   { value: "general", label: "General" },
@@ -88,6 +110,7 @@ const CATEGORY_OPTIONS = [
   { value: "project", label: "Project" },
   { value: "blog", label: "Blog" },
   { value: "team", label: "Team" },
+  { value: "branding", label: "Branding" },
 ];
 
 const FILTER_OPTIONS = [
@@ -95,57 +118,28 @@ const FILTER_OPTIONS = [
   ...CATEGORY_OPTIONS,
 ];
 
-interface NewFormState {
-  url: string;
-  filename: string;
-  mimeType: string;
-  category: string;
-  altText: string;
-  caption: string;
-}
+const ACCEPTED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "image/avif",
+];
 
-const emptyForm: NewFormState = {
-  url: "",
-  filename: "",
-  mimeType: "image/jpeg",
-  category: "general",
-  altText: "",
-  caption: "",
-};
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // ───────────────────────── Helpers ─────────────────────────
-
-function detectMimeFromUrl(url: string): string {
-  const cleaned = url.split("?")[0].split("#")[0].toLowerCase();
-  if (cleaned.endsWith(".jpg") || cleaned.endsWith(".jpeg")) return "image/jpeg";
-  if (cleaned.endsWith(".png")) return "image/png";
-  if (cleaned.endsWith(".webp")) return "image/webp";
-  if (cleaned.endsWith(".gif")) return "image/gif";
-  if (cleaned.endsWith(".svg")) return "image/svg+xml";
-  if (cleaned.endsWith(".avif")) return "image/avif";
-  return "image/jpeg";
-}
-
-function detectFilenameFromUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    const path = u.pathname;
-    const parts = path.split("/").filter(Boolean);
-    const last = parts[parts.length - 1];
-    return last ? decodeURIComponent(last) : "image";
-  } catch {
-    if (!url) return "";
-    const parts = url.split("/").filter(Boolean);
-    const last = parts[parts.length - 1]?.split("?")[0]?.split("#")[0];
-    return last ? decodeURIComponent(last) : "image";
-  }
-}
 
 function formatSize(bytes: number): string {
   if (!bytes || bytes <= 0) return "—";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isImageFile(file: File): boolean {
+  return ACCEPTED_TYPES.includes(file.type);
 }
 
 // ───────────────────────── Inline alt-text editor ─────────────────────────
@@ -254,7 +248,205 @@ function AltTextEditor({
   );
 }
 
-// ───────────────────────── Add Media dialog ─────────────────────────
+// ───────────────────────── Cloudinary status badge ─────────────────────────
+
+function CloudinaryStatusBadge({
+  status,
+}: {
+  status: "unknown" | "configured" | "not-configured";
+}) {
+  if (status === "unknown") {
+    return (
+      <Badge variant="outline" className="gap-1.5">
+        <Loader2 className="size-3 animate-spin" />
+        Checking Cloudinary…
+      </Badge>
+    );
+  }
+  if (status === "configured") {
+    return (
+      <Badge className="gap-1.5 bg-emerald-600 text-white hover:bg-emerald-600/90 dark:bg-emerald-500 dark:text-white">
+        <Cloud className="size-3" />
+        Cloudinary connected
+      </Badge>
+    );
+  }
+  return (
+    <Badge
+      variant="outline"
+      className="gap-1.5 border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"
+    >
+      <CloudOff className="size-3" />
+      Cloudinary not configured
+    </Badge>
+  );
+}
+
+// ───────────────────────── Upload dropzone ─────────────────────────
+
+interface DropzoneProps {
+  configured: boolean;
+  uploading: boolean;
+  onFiles: (files: File[]) => void;
+  onPick: () => void;
+}
+
+function UploadDropzone({ configured, uploading, onFiles, onPick }: DropzoneProps) {
+  const [dragging, setDragging] = React.useState(false);
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    if (!dragging) setDragging(true);
+  }
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+  }
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    if (!configured) return;
+    const files = Array.from(e.dataTransfer.files).filter(isImageFile);
+    if (files.length === 0) {
+      toast.error("Drop image files only (JPG, PNG, WebP, GIF, SVG, AVIF)");
+      return;
+    }
+    onFiles(files);
+  }
+
+  return (
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={cn(
+        "relative flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors",
+        dragging
+          ? "border-brand bg-brand/5"
+          : "border-border bg-muted/20 hover:border-brand/60 hover:bg-muted/30",
+        !configured && "opacity-60",
+      )}
+    >
+      <div
+        className={cn(
+          "flex size-12 items-center justify-center rounded-full",
+          dragging ? "bg-brand text-brand-foreground" : "bg-brand/10 text-brand",
+        )}
+      >
+        {uploading ? (
+          <Loader2 className="size-6 animate-spin" />
+        ) : (
+          <Upload className="size-6" />
+        )}
+      </div>
+      <div>
+        <p className="font-medium">
+          {dragging ? "Drop to upload" : "Drag & drop images here"}
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {configured
+            ? "Or click to browse — uploads go directly to Cloudinary. Max 10 MB per file."
+            : "Cloudinary is not configured — set CLOUDINARY_* env vars to enable uploads."}
+        </p>
+      </div>
+      <Button
+        type="button"
+        size="lg"
+        className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90"
+        disabled={!configured || uploading}
+        onClick={onPick}
+      >
+        <Upload className="size-4" />
+        Browse files
+      </Button>
+      <input
+        type="file"
+        accept={ACCEPTED_TYPES.join(",")}
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length) onFiles(files);
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}
+
+// ───────────────────────── Upload progress list ─────────────────────────
+
+function UploadProgressList({ items }: { items: UploadProgress[] }) {
+  if (items.length === 0) return null;
+  return (
+    <Card>
+      <CardContent className="space-y-2 p-4">
+        {items.map((u, i) => (
+          <div key={`${u.filename}-${i}`} className="space-y-1">
+            <div className="flex items-center justify-between gap-2 text-xs">
+              <span className="truncate font-medium" title={u.filename}>
+                {u.filename}
+              </span>
+              <span
+                className={cn(
+                  "shrink-0",
+                  u.status === "error"
+                    ? "text-destructive"
+                    : u.status === "done"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-muted-foreground",
+                )}
+              >
+                {u.status === "error"
+                  ? "Failed"
+                  : u.status === "done"
+                    ? "Done"
+                    : u.status === "storing"
+                      ? "Storing…"
+                      : `${u.progress}%`}
+              </span>
+            </div>
+            <Progress value={u.progress} className="h-1.5" />
+            {u.error && (
+              <p className="text-[10px] text-destructive">{u.error}</p>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ───────────────────────── Add manual URL dialog ─────────────────────────
+
+interface NewFormState {
+  url: string;
+  filename: string;
+  category: string;
+  altText: string;
+}
+
+const emptyForm: NewFormState = {
+  url: "",
+  filename: "",
+  category: "general",
+  altText: "",
+};
+
+function detectFilenameFromUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const path = u.pathname;
+    const parts = path.split("/").filter(Boolean);
+    const last = parts[parts.length - 1];
+    return last ? decodeURIComponent(last) : "image";
+  } catch {
+    if (!url) return "";
+    const parts = url.split("/").filter(Boolean);
+    const last = parts[parts.length - 1]?.split("?")[0]?.split("#")[0];
+    return last ? decodeURIComponent(last) : "image";
+  }
+}
 
 function AddMediaDialog({
   open,
@@ -273,15 +465,13 @@ function AddMediaDialog({
   }
 
   function handleUrlChange(url: string) {
+    const detectedFilename = detectFilenameFromUrl(form.url);
+    const nextFilename =
+      !form.filename || form.filename === detectedFilename
+        ? detectFilenameFromUrl(url)
+        : form.filename;
     update("url", url);
-    // Auto-detect mime + filename from URL when those fields are empty
-    if (!form.filename || form.filename === detectFilenameFromUrl(form.url)) {
-      update("filename", detectFilenameFromUrl(url));
-    }
-    const detected = detectMimeFromUrl(url);
-    if (url) {
-      update("mimeType", detected);
-    }
+    update("filename", nextFilename);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -296,19 +486,18 @@ function AddMediaDialog({
     }
     setSubmitting(true);
     try {
-      // Try to fetch image headers to get size + dimensions (best effort,
-      // ignored on failure — server may not allow CORS).
       const res = await fetch(API.media, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: form.url.trim(),
           filename: form.filename.trim(),
-          mimeType: form.mimeType,
+          mimeType: "image/jpeg",
           size: 0,
           altText: form.altText.trim(),
-          caption: form.caption.trim() || null,
+          caption: null,
           category: form.category,
+          folder: form.category,
         }),
       });
       if (!res.ok) {
@@ -337,9 +526,10 @@ function AddMediaDialog({
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add media</DialogTitle>
+          <DialogTitle>Add media by URL</DialogTitle>
           <DialogDescription>
             Register an existing publicly-accessible image URL in the library.
+            Use the dropzone above to upload directly to Cloudinary.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -387,24 +577,6 @@ function AddMediaDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="mimeType">MIME type</Label>
-              <Select
-                value={form.mimeType}
-                onValueChange={(v) => update("mimeType", v)}
-              >
-                <SelectTrigger id="mimeType" className="h-10 w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {MIME_OPTIONS.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {m}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="category">Category</Label>
               <Select
                 value={form.category}
@@ -430,16 +602,6 @@ function AddMediaDialog({
                 onChange={(e) => update("altText", e.target.value)}
                 placeholder="Describe the image for accessibility"
                 className="h-10"
-              />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="caption">Caption (optional)</Label>
-              <Textarea
-                id="caption"
-                value={form.caption}
-                onChange={(e) => update("caption", e.target.value)}
-                rows={2}
-                placeholder="Caption shown beneath the image (optional)"
               />
             </div>
           </div>
@@ -473,6 +635,70 @@ function AddMediaDialog({
   );
 }
 
+// ───────────────────────── Image preview with hover-to-zoom ─────────────────────────
+
+function MediaThumbnail({ item }: { item: MediaItem }) {
+  const [zoomed, setZoomed] = React.useState(false);
+  return (
+    <>
+      <div className="relative aspect-square w-full bg-muted/40">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={item.url}
+          alt={item.altText || item.filename}
+          className="absolute inset-0 size-full object-cover"
+          loading="lazy"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
+          }}
+        />
+        {/* hover zoom button */}
+        <button
+          type="button"
+          onClick={() => setZoomed(true)}
+          className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-opacity hover:bg-black/30 hover:opacity-100 focus:opacity-100 focus:outline-none"
+          aria-label={`Zoom ${item.filename}`}
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-white/90 text-foreground shadow">
+            <ZoomIn className="size-4" />
+          </span>
+        </button>
+        {/* Cloudinary badge */}
+        {item.publicId && (
+          <Badge
+            className="absolute left-2 top-2 gap-1 bg-black/60 text-[10px] font-medium text-white hover:bg-black/60"
+            title={`Cloudinary · ${item.publicId}`}
+          >
+            <Cloud className="size-2.5" />
+            Cloud
+          </Badge>
+        )}
+        {/* category badge */}
+        <Badge className="absolute right-2 top-2 bg-background/90 text-foreground shadow-sm">
+          {item.category}
+        </Badge>
+      </div>
+
+      <Dialog open={zoomed} onOpenChange={setZoomed}>
+        <DialogContent className="max-w-3xl p-0 sm:p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{item.filename}</DialogTitle>
+            <DialogDescription>Full preview</DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[80vh] overflow-auto bg-black/95">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={item.originalUrl || item.url}
+              alt={item.altText || item.filename}
+              className="mx-auto max-h-[80vh] w-auto object-contain"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 // ───────────────────────── Page ─────────────────────────
 
 export default function AdminMediaPage() {
@@ -488,10 +714,41 @@ export default function AdminMediaPage() {
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<MediaItem | null>(null);
 
+  // Cloudinary status: "unknown" while we check, "configured" or "not-configured"
+  const [cloudinaryStatus, setCloudinaryStatus] = React.useState<
+    "unknown" | "configured" | "not-configured"
+  >("unknown");
+
+  // Upload progress
+  const [uploads, setUploads] = React.useState<UploadProgress[]>([]);
+  const [uploading, setUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Default upload category (driven by the current filter)
+  const uploadCategory = category !== "all" ? category : "general";
+
   React.useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 300);
     return () => clearTimeout(t);
   }, [search]);
+
+  // Check Cloudinary configuration once on mount
+  React.useEffect(() => {
+    let cancelled = false;
+    fetch(API.cloudinarySign, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data: CloudinarySignResponse) => {
+        if (cancelled) return;
+        setCloudinaryStatus(data.configured ? "configured" : "not-configured");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCloudinaryStatus("not-configured");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -523,6 +780,155 @@ export default function AdminMediaPage() {
   React.useEffect(() => {
     load();
   }, [load]);
+
+  // ── Upload a single file to Cloudinary, then store the metadata ──
+  const uploadFile = React.useCallback(
+    async (file: File) => {
+      if (!isImageFile(file)) {
+        toast.error(`${file.name}: unsupported type (${file.type || "unknown"})`);
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error(`${file.name}: file too large (max 10 MB)`);
+        return;
+      }
+
+      const slot = { filename: file.name, progress: 0, status: "uploading" as const };
+      setUploads((prev) => [...prev, slot]);
+      setUploading(true);
+
+      try {
+        // 1) Get signed params
+        const signRes = await fetch(API.cloudinarySign, { cache: "no-store" });
+        const signData = (await signRes.json()) as CloudinarySignResponse;
+        if (!signData.configured) {
+          throw new Error("Cloudinary not configured");
+        }
+
+        // 2) Upload directly to Cloudinary with XHR for progress events
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", signData.apiKey!);
+        formData.append("timestamp", String(signData.timestamp));
+        if (signData.uploadPreset) {
+          formData.append("upload_preset", signData.uploadPreset);
+        } else {
+          formData.append("signature", signData.signature!);
+        }
+        formData.append("folder", `allison-global/${uploadCategory}`);
+
+        const uploaded = await new Promise<{
+          public_id: string;
+          secure_url: string;
+          url: string;
+          width: number;
+          height: number;
+          bytes: number;
+          format: string;
+          original_filename: string;
+        }>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("POST", signData.uploadUrl!);
+          xhr.upload.onprogress = (ev) => {
+            if (ev.lengthComputable) {
+              const pct = Math.round((ev.loaded / ev.total) * 100);
+              setUploads((prev) =>
+                prev.map((u, i) =>
+                  i === prev.length - 1 && u.filename === file.name
+                    ? { ...u, progress: pct }
+                    : u,
+                ),
+              );
+            }
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                resolve(JSON.parse(xhr.responseText));
+              } catch (e) {
+                reject(e instanceof Error ? e : new Error("Bad JSON"));
+              }
+            } else {
+              reject(new Error(`Upload failed: HTTP ${xhr.status}`));
+            }
+          };
+          xhr.onerror = () => reject(new Error("Network error during upload"));
+          xhr.send(formData);
+        });
+
+        // 3) Storing → update progress UI
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.filename === file.name ? { ...u, status: "storing", progress: 100 } : u,
+          ),
+        );
+
+        // 4) Persist the media record
+        const storeRes = await fetch(API.media, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            url: uploaded.secure_url,
+            publicId: uploaded.public_id,
+            originalUrl: uploaded.url,
+            filename: uploaded.original_filename,
+            mimeType: file.type,
+            format: uploaded.format,
+            size: uploaded.bytes,
+            width: uploaded.width,
+            height: uploaded.height,
+            folder: uploadCategory,
+            category: uploadCategory,
+            altText: "",
+          }),
+        });
+        if (!storeRes.ok) {
+          const j = (await storeRes.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(j?.error || "Failed to store media record");
+        }
+        const stored = (await storeRes.json()) as { item: MediaItem };
+
+        // 5) Insert into local state (only if it matches current filter)
+        setItems((prev) => {
+          // If we're filtered to a category, only show this item if it matches
+          if (category !== "all" && stored.item.category !== category) return prev;
+          return [stored.item, ...prev];
+        });
+        setTotal((t) => t + 1);
+
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.filename === file.name ? { ...u, status: "done", progress: 100 } : u,
+          ),
+        );
+        toast.success(`${file.name} uploaded`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Upload failed";
+        setUploads((prev) =>
+          prev.map((u) =>
+            u.filename === file.name ? { ...u, status: "error", error: msg } : u,
+          ),
+        );
+        toast.error(`${file.name}: ${msg}`);
+      } finally {
+        setUploading(false);
+        // Auto-remove completed entries after 4s
+        setTimeout(() => {
+          setUploads((prev) =>
+            prev.filter((u) => u.filename !== file.name || u.status === "uploading"),
+          );
+        }, 4000);
+      }
+    },
+    [uploadCategory, category],
+  );
+
+  function handleFiles(files: File[]) {
+    files.forEach((file) => {
+      // stagger uploads slightly so the UI updates per file
+      void uploadFile(file);
+    });
+  }
 
   async function confirmDelete() {
     if (!deleteTarget) return;
@@ -563,16 +969,83 @@ export default function AdminMediaPage() {
         title="Media Library"
         description={`${total} ${total === 1 ? "asset" : "assets"}`}
         action={
-          <Button
-            size="lg"
-            className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90"
-            onClick={() => setAddOpen(true)}
-          >
-            <PlusCircle className="size-4" />
-            Add Media
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              className="min-h-10"
+              onClick={() => setAddOpen(true)}
+            >
+              <PlusCircle className="size-4" />
+              Add by URL
+            </Button>
+            <Button
+              size="lg"
+              className="min-h-10 bg-brand text-brand-foreground hover:bg-brand/90"
+              disabled={cloudinaryStatus !== "configured" || uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Upload className="size-4" />
+              )}
+              Upload
+            </Button>
+          </div>
         }
       />
+
+      {/* Cloudinary status banner */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CloudinaryStatusBadge status={cloudinaryStatus} />
+        {cloudinaryStatus === "not-configured" && (
+          <div className="flex-1 rounded-md border border-amber-300/40 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <p className="font-medium">Set up Cloudinary to enable uploads</p>
+            <p className="mt-1">
+              Add these environment variables and restart the server:
+            </p>
+            <pre className="mt-2 overflow-x-auto rounded bg-amber-100/60 p-2 font-mono text-[11px] dark:bg-amber-500/10">{`CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+# optional:
+CLOUDINARY_UPLOAD_PRESET=...`}</pre>
+            <a
+              href="https://console.cloudinary.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-amber-900 underline decoration-amber-500 underline-offset-2 hover:text-amber-700 dark:text-amber-100"
+            >
+              Open Cloudinary console
+              <ExternalLink className="size-3" />
+            </a>
+          </div>
+        )}
+      </div>
+
+      {/* Drag-and-drop upload zone */}
+      <UploadDropzone
+        configured={cloudinaryStatus === "configured"}
+        uploading={uploading}
+        onFiles={handleFiles}
+        onPick={() => fileInputRef.current?.click()}
+      />
+      {/* hidden file input used by the Upload button + dropzone Browse button */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPTED_TYPES.join(",")}
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length) handleFiles(files);
+          e.target.value = "";
+        }}
+      />
+
+      {/* Active uploads */}
+      <UploadProgressList items={uploads} />
 
       {error && (
         <div className="flex items-start gap-3 rounded-md border border-amber-300/40 bg-amber-50 px-4 py-3 text-sm text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
@@ -581,7 +1054,7 @@ export default function AdminMediaPage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Search + filter */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="relative max-w-md flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -631,9 +1104,11 @@ export default function AdminMediaPage() {
           description={
             debounced
               ? "Try a different search term or category."
-              : "Add your first image to start building the library."
+              : cloudinaryStatus === "configured"
+                ? "Drag and drop images above, or click Upload to add your first asset."
+                : "Click \"Add by URL\" to register an existing image URL, or configure Cloudinary to enable uploads."
           }
-          actionLabel={debounced ? undefined : "Add Media"}
+          actionLabel={debounced ? undefined : "Add by URL"}
           onAction={debounced ? undefined : () => setAddOpen(true)}
         />
       ) : (
@@ -643,23 +1118,7 @@ export default function AdminMediaPage() {
               key={m.id}
               className="group flex flex-col overflow-hidden transition hover:shadow-sm"
             >
-              <div className="relative aspect-square w-full bg-muted/40">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={m.url}
-                  alt={m.altText || m.filename}
-                  className="absolute inset-0 size-full object-cover"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.opacity = "0.3";
-                  }}
-                />
-                <div className="absolute right-2 top-2 flex gap-1">
-                  <Badge className="bg-background/90 text-foreground shadow-sm">
-                    {m.category}
-                  </Badge>
-                </div>
-              </div>
+              <MediaThumbnail item={m} />
               <CardContent className="flex flex-1 flex-col gap-2 p-3">
                 <p
                   className="line-clamp-1 text-sm font-medium"
@@ -673,26 +1132,46 @@ export default function AdminMediaPage() {
                     : "Dimensions unknown"}
                   {" · "}
                   {formatSize(m.size)}
+                  {m.format ? ` · ${m.format}` : ""}
                 </p>
                 <AltTextEditor item={m} onSaved={handleItemUpdated} />
                 <div className="mt-auto flex items-center justify-between pt-1">
                   <span className="text-[10px] text-muted-foreground">
                     {formatDate(m.createdAt)}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 hover:text-destructive"
-                    title="Delete"
-                    disabled={deletingId === m.id}
-                    onClick={() => setDeleteTarget(m)}
-                  >
-                    {deletingId === m.id ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="size-3.5" />
+                  <div className="flex items-center gap-1">
+                    {m.publicId && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        asChild
+                        title="Open original in new tab"
+                      >
+                        <Link
+                          href={m.originalUrl || m.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <ExternalLink className="size-3.5" />
+                        </Link>
+                      </Button>
                     )}
-                  </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 hover:text-destructive"
+                      title="Delete"
+                      disabled={deletingId === m.id}
+                      onClick={() => setDeleteTarget(m)}
+                    >
+                      {deletingId === m.id ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -718,12 +1197,25 @@ export default function AdminMediaPage() {
               <span className="font-medium text-foreground">
                 {deleteTarget?.filename}
               </span>
-              . The original file at{" "}
-              <span className="break-all font-mono text-xs">
-                {deleteTarget?.url}
-              </span>{" "}
-              will remain where it is hosted — only the library entry is
-              removed. This action cannot be undone.
+              .{" "}
+              {deleteTarget?.publicId ? (
+                <>
+                  The Cloudinary asset{" "}
+                  <span className="break-all font-mono text-xs">
+                    {deleteTarget.publicId}
+                  </span>{" "}
+                  will also be deleted. This action cannot be undone.
+                </>
+              ) : (
+                <>
+                  The original file at{" "}
+                  <span className="break-all font-mono text-xs">
+                    {deleteTarget?.url}
+                  </span>{" "}
+                  will remain where it is hosted — only the library entry is
+                  removed. This action cannot be undone.
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

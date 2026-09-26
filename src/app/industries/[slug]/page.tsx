@@ -30,7 +30,7 @@ export async function generateMetadata({
     const meta = ind as Industry & { metaTitle?: string; metaDescription?: string };
     return {
       title: meta.metaTitle || `${ind.name} — Sector Solutions`,
-      description: meta.metaDescription || ind.summary,
+      description: meta.metaDescription || (typeof ind.summary === "string" ? ind.summary : undefined),
     };
   } catch {
     return { title: "Industry" };

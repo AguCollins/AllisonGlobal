@@ -45,7 +45,7 @@ import {
 interface SolutionRow {
   id: string;
   name: string;
-  summary: string;
+  summary: unknown;
   iconName: string;
   sortOrder: number;
 }
@@ -134,7 +134,7 @@ export default function AdminSolutionsPage() {
     return items.filter(
       (s) =>
         s.name.toLowerCase().includes(q) ||
-        s.summary.toLowerCase().includes(q),
+        (typeof s.summary === "string" ? s.summary : "").toLowerCase().includes(q),
     );
   }, [items, debounced]);
 
@@ -205,7 +205,7 @@ export default function AdminSolutionsPage() {
                 <TableRow key={s.id}>
                   <TableCell className="px-4 py-3 font-medium">{s.name}</TableCell>
                   <TableCell className="max-w-[380px] truncate px-4 py-3 text-sm text-muted-foreground">
-                    {s.summary || "—"}
+                    {String(s.summary || "") || "—"}
                   </TableCell>
                   <TableCell className="px-4 py-3">
                     <Badge variant="secondary" className="font-mono">

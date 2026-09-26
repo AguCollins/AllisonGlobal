@@ -259,7 +259,7 @@ export function ServiceDetailView({
               <div className="mt-5 flex items-start gap-3 rounded-2xl border border-brand/20 bg-emerald-50 p-5 dark:bg-emerald-500/10">
                 <Lightbulb className="mt-0.5 size-5 shrink-0 text-brand" />
                 <p className="text-sm leading-relaxed text-foreground/90">
-                  {service.solution}
+                  <RichTextContent content={service.solution} />
                 </p>
               </div>
             </div>

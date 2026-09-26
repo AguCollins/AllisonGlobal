@@ -83,7 +83,7 @@ model Category {
   slug        String   @unique
   name        String
   tagline     String
-  description String
+  description Json
   iconName    String
   accent      String
   imageUrl    String?
@@ -106,9 +106,9 @@ model Service {
   categoryId        String
   tagline           String
   shortDescription  String
-  overview          String
+  overview          Json
   problem           Json
-  solution          String
+  solution          Json
   deliverables      Json
   benefits          Json
   tech              Json
@@ -149,7 +149,7 @@ model Project {
   services    Json   // array of service slugs
   location    String
   scope       String
-  description String
+  description Json
   highlights  Json   // array of strings
   gallery     Json   // array of image URLs (new)
   technologies Json  // array of strings (new)
@@ -224,7 +224,7 @@ model Industry {
   slug      String   @unique  // new — URL-safe slug for /industries/[slug]
   name      String
   tagline   String
-  summary   String
+  summary   Json
   challenges Json   // array of strings
   solutions  Json   // array of service slugs
   outcomes   Json   // array of strings
@@ -252,7 +252,7 @@ model Industry {
 
 model Testimonial {
   id          String   @id @default(cuid())
-  quote       String
+  quote       Json
   authorName  String   @default("")  // new — was missing
   authorRole  String
   sector      String
@@ -275,7 +275,7 @@ model Faq {
   id       String   @id @default(cuid())
   category String
   question String
-  answer   String
+  answer   Json
   published Boolean @default(true)  // new
   sortOrder Int     @default(0)
   createdAt DateTime @default(now())
@@ -292,8 +292,8 @@ model Solution {
   id          String   @id @default(cuid())
   slug        String   @unique  // new
   name        String
-  summary     String
-  description String
+  summary     Json
+  description Json
   components  Json   // array of service slugs
   outcomes    Json   // array of strings
   bestFor     Json   // array of industry ids
@@ -363,24 +363,35 @@ model Redirect {
 }
 
 // ──────────────────────────── Media Library ─────────────────────────────
-// Uploaded media assets (images, documents). Stored as URLs — either
-// Vercel Blob URLs, S3 URLs, or any publicly-accessible URL.
+// Uploaded media assets (images). Stores Cloudinary public_id as the
+// canonical identifier + optimized URL. Falls back to manual URL entry
+// when Cloudinary is not configured.
 
 model Media {
   id        String   @id @default(cuid())
+  // Cloudinary canonical identifier (preferred) — null for manual URL entries
+  publicId  String?  @unique
+  // The deliverable URL (Cloudinary optimized URL or manual URL)
   url       String   @unique
+  // Original secure URL from Cloudinary (full-quality, for reference)
+  originalUrl String?
   filename  String
   mimeType  String
+  format    String?  // e.g. "jpg", "png", "webp"
   size      Int      // bytes
   width     Int?
   height    Int?
   altText   String   @default("")
   caption   String?
-  category  String   @default("general")  // general | hero | service | project | blog | team
+  title     String?  // display title in media library
+  folder    String   @default("general")  // general | hero | service | project | blog | team | branding
+  category  String   @default("general")  // alias for folder (backward compat)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([url])
+  @@index([publicId])
+  @@index([folder])
   @@index([category])
   @@index([mimeType])
   @@index([createdAt])

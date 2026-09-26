@@ -237,18 +237,31 @@ export function generateSeoSuggestions(
 
 // ───────────────────────────── Quality scoring ─────────────────────────────
 
+export interface SeoCheck {
+  label: string;
+  passed: boolean;
+  detail: string;
+  /** Which field this check relates to (for click-to-jump) */
+  field?: "metaTitle" | "metaDescription" | "slug" | "content" | "image" | "canonical" | "ogImage";
+  /** Severity — "error" blocks good SEO, "warning" is a suggestion */
+  severity: "error" | "warning" | "info";
+}
+
 export interface SeoQualityScore {
   score: number; // 0-100
-  checks: {
-    label: string;
-    passed: boolean;
-    detail: string;
-  }[];
+  status: "excellent" | "good" | "needs-attention" | "incomplete";
+  checks: SeoCheck[];
 }
 
 /**
  * Score the SEO quality of the current values.
- * Returns 0-100 and a list of pass/fail checks with explanations.
+ * Returns 0-100, a status label, and a list of pass/fail checks.
+ *
+ * Status mapping:
+ * - Excellent: 90-100 (all critical checks pass)
+ * - Good: 70-89 (minor issues only)
+ * - Needs attention: 40-69 (some failures)
+ * - Incomplete: 0-39 (major issues)
  */
 export function scoreSeoQuality(params: {
   metaTitle: string;
@@ -256,15 +269,33 @@ export function scoreSeoQuality(params: {
   title: string;
   bodyText?: string;
   slug?: string;
+  hasFeaturedImage?: boolean;
+  hasAltText?: boolean;
+  hasCanonical?: boolean;
+  content?: unknown; // TipTap JSON for heading analysis
 }): SeoQualityScore {
-  const { metaTitle, metaDescription, title, bodyText = "", slug = "" } = params;
-  const checks: SeoQualityScore["checks"] = [];
+  const {
+    metaTitle,
+    metaDescription,
+    title,
+    bodyText = "",
+    slug = "",
+    hasFeaturedImage,
+    hasAltText,
+    hasCanonical,
+    content,
+  } = params;
+  const checks: SeoCheck[] = [];
+
+  // ─── TITLE CHECKS ───
 
   // 1. Meta title length (50-60 chars ideal)
   const titleLen = metaTitle.length;
   checks.push({
     label: "Meta title length",
     passed: titleLen >= 30 && titleLen <= 60,
+    field: "metaTitle",
+    severity: titleLen === 0 ? "error" : titleLen < 30 || titleLen > 60 ? "warning" : "info",
     detail:
       titleLen === 0
         ? "Meta title is empty — defaults to page title"
@@ -280,6 +311,8 @@ export function scoreSeoQuality(params: {
   checks.push({
     label: "Meta description length",
     passed: descLen >= 120 && descLen <= 160,
+    field: "metaDescription",
+    severity: descLen === 0 ? "error" : descLen < 120 || descLen > 160 ? "warning" : "info",
     detail:
       descLen === 0
         ? "Meta description is empty — search engines will auto-generate"
@@ -297,6 +330,8 @@ export function scoreSeoQuality(params: {
   checks.push({
     label: "Title keyword in content",
     passed: titleKeywordInBody,
+    field: "content",
+    severity: titleKeywordInBody ? "info" : "warning",
     detail: titleKeywordInBody
       ? "Title keywords appear in body content"
       : "Title keywords not found in body — consider aligning them",
@@ -307,6 +342,8 @@ export function scoreSeoQuality(params: {
   checks.push({
     label: "Slug format",
     passed: slugOk,
+    field: "slug",
+    severity: slugOk ? "info" : "warning",
     detail: slugOk
       ? "Slug is URL-friendly (lowercase, hyphens)"
       : "Slug should be lowercase with hyphens only",
@@ -317,6 +354,8 @@ export function scoreSeoQuality(params: {
   checks.push({
     label: "Content length",
     passed: words >= 300,
+    field: "content",
+    severity: words < 300 ? "warning" : "info",
     detail:
       words < 300
         ? `Only ${words} words — aim for 300+ for better ranking`
@@ -330,13 +369,94 @@ export function scoreSeoQuality(params: {
   checks.push({
     label: "Keyword in description",
     passed: descHasKeyword,
+    field: "metaDescription",
+    severity: descHasKeyword ? "info" : "warning",
     detail: descHasKeyword
       ? "Primary keyword appears in meta description"
       : "Add the primary keyword to the meta description",
   });
 
+  // 7. Featured image present
+  if (hasFeaturedImage !== undefined) {
+    checks.push({
+      label: "Featured image",
+      passed: hasFeaturedImage,
+      field: "image",
+      severity: hasFeaturedImage ? "info" : "warning",
+      detail: hasFeaturedImage
+        ? "Featured image is set"
+        : "Add a featured image for social sharing and visual search",
+    });
+  }
+
+  // 8. Image alt text
+  if (hasAltText !== undefined) {
+    checks.push({
+      label: "Image alt text",
+      passed: hasAltText,
+      field: "image",
+      severity: hasAltText ? "info" : "warning",
+      detail: hasAltText
+        ? "Image has alt text"
+        : "Add alt text for accessibility and image SEO",
+    });
+  }
+
+  // 9. Canonical URL
+  if (hasCanonical !== undefined) {
+    checks.push({
+      label: "Canonical URL",
+      passed: hasCanonical,
+      field: "canonical",
+      severity: hasCanonical ? "info" : "warning",
+      detail: hasCanonical
+        ? "Canonical URL is set"
+        : "Consider setting a canonical URL to prevent duplicate content issues",
+    });
+  }
+
+  // 10. Heading structure (H2 presence in content)
+  if (content) {
+    const headingCount = countHeadings(content);
+    checks.push({
+      label: "Heading structure",
+      passed: headingCount >= 1,
+      field: "content",
+      severity: headingCount >= 1 ? "info" : "warning",
+      detail:
+        headingCount === 0
+          ? "No H2 headings detected — add sections for better structure"
+          : `${headingCount} H2+ headings detected`,
+    });
+  }
+
+  // Calculate score
+  const errorCount = checks.filter((c) => !c.passed && c.severity === "error").length;
   const passed = checks.filter((c) => c.passed).length;
   const score = Math.round((passed / checks.length) * 100);
 
-  return { score, checks };
+  let status: SeoQualityScore["status"];
+  if (score >= 90 && errorCount === 0) status = "excellent";
+  else if (score >= 70 && errorCount === 0) status = "good";
+  else if (score >= 40) status = "needs-attention";
+  else status = "incomplete";
+
+  return { score, status, checks };
+}
+
+/** Count H2/H3 headings in a TipTap JSON doc or block array. */
+function countHeadings(content: unknown): number {
+  if (!content || typeof content !== "object") return 0;
+  const doc = content as Record<string, unknown>;
+  if (doc.type === "doc" && Array.isArray(doc.content)) {
+    return (doc.content as Record<string, unknown>[]).filter(
+      (n) => n.type === "heading",
+    ).length;
+  }
+  if (Array.isArray(content)) {
+    return (content as Record<string, unknown>[]).filter(
+      (n) => n.type === "h2" || n.type === "h3" || n.type === "h4",
+    ).length;
+  }
+  return 0;
 }

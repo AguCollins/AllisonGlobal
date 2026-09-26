@@ -14,6 +14,7 @@ import {
   NavButton,
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import {
   Accordion,
   AccordionItem,
@@ -180,7 +181,7 @@ export function FaqsView({ faqs, company, heroImage }: FaqsViewProps) {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent className="text-sm leading-relaxed text-muted-foreground sm:text-[0.95rem] sm:leading-relaxed">
-                        <div className="pl-7">{f.answer}</div>
+                        <div className="pl-7"><RichTextContent content={f.answer} /></div>
                       </AccordionContent>
                     </AccordionItem>
                   ))}

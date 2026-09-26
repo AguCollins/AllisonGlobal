@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "www.ui.com", pathname: "/microsite/static/**" },
+      // Cloudinary image delivery
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
     ],
   },
   allowedDevOrigins: ["127.0.0.1"],

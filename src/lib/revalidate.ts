@@ -37,7 +37,7 @@ type ContentType =
 
 const ROUTES: Record<ContentType, string[]> = {
   company: ["/", "/about", "/contact", "/quote", "/careers", "/privacy", "/terms", "/support", "/why-choose-us"],
-  navigation: ["/"],
+  navigation: ["/", "/about", "/services", "/solutions", "/industries", "/projects", "/process", "/support", "/why-choose-us", "/testimonials", "/faqs", "/blog", "/contact", "/quote", "/careers", "/privacy", "/terms"],
   ctas: ["/"],
   process: ["/", "/process"],
   careers: ["/", "/careers"],

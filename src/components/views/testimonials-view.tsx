@@ -20,6 +20,7 @@ import {
   ConversionPathCTA,
   StatStrip,
 } from "@/components/site/sections";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import type { Testimonial, Industry, Stat } from "@/lib/types";
 
 const HERO_IMAGE = "https://www.ui.com/microsite/static/networking-mobile-BFL4cCaR.jpg";
@@ -134,7 +135,7 @@ export function TestimonialsView({ testimonials, industries, heroImage }: Testim
                   </div>
 
                   <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-foreground/90">
-                    “{t.quote}”
+                    “<RichTextContent content={t.quote} />”
                   </blockquote>
 
                   <figcaption className="mt-5 border-t border-border pt-4">

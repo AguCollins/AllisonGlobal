@@ -19,6 +19,7 @@ import {
 } from "@/components/site/primitives";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import type { Service, Industry, Project, BlogPost, Stat, ViewId } from "@/lib/types";
 
 /* ------------------------------------------------------------------ */
@@ -320,7 +321,7 @@ export function IndustryCard({ industry }: { industry: Industry }) {
             {industry.name}
           </h3>
           <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-            {industry.summary}
+            <RichTextContent content={industry.summary} />
           </p>
           <div className="mt-4 flex flex-wrap gap-1.5">
             {industry.solutions.slice(0, 3).map((s) => (
@@ -365,7 +366,7 @@ export function ProjectCard({ project, imageUrl }: { project: Project; imageUrl?
           {project.scope}
         </p>
         <p className="mt-2.5 flex-1 text-sm leading-relaxed text-muted-foreground">
-          {project.description}
+          <RichTextContent content={project.description} />
         </p>
         <div className="mt-4 flex flex-wrap gap-1.5">
           {project.services.slice(0, 3).map((s) => (

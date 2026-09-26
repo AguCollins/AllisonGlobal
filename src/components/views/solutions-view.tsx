@@ -23,6 +23,7 @@ import {
   NavLink,
 } from "@/components/site/primitives";
 import { PageHero, ConversionPathCTA } from "@/components/site/sections";
+import { RichTextContent } from "@/components/site/rich-text-content";
 import type { Solution, Service, Industry } from "@/lib/types";
 import { motion } from "framer-motion";
 
@@ -134,11 +135,11 @@ export function SolutionsView({ solutions, services, industries, heroImage }: So
                       {solution.name}
                     </h3>
                     <p className="relative mt-2.5 text-sm leading-relaxed text-muted-foreground">
-                      {solution.summary}
+                      <RichTextContent content={solution.summary} />
                     </p>
 
                     <p className="relative mt-4 text-sm leading-relaxed text-foreground/80">
-                      {solution.description}
+                      <RichTextContent content={solution.description} />
                     </p>
 
                     {/* Components — clickable service badges */}

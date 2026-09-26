@@ -61,6 +61,7 @@ export function SeoSuggestCard({ input, current, onAccept }: SeoSuggestCardProps
         title: input.title,
         bodyText: input.bodyText,
         slug: input.title ? input.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") : "",
+        content: input.bodyText,
       });
     } catch {
       return null;
@@ -78,15 +79,18 @@ export function SeoSuggestCard({ input, current, onAccept }: SeoSuggestCardProps
 
   const scoreColor =
     !quality ? "text-muted-foreground" :
-    quality.score >= 80 ? "text-emerald-600 dark:text-emerald-400" :
-    quality.score >= 50 ? "text-amber-600 dark:text-amber-400" :
+    quality.status === "excellent" ? "text-emerald-600 dark:text-emerald-400" :
+    quality.status === "good" ? "text-emerald-600 dark:text-emerald-400" :
+    quality.status === "needs-attention" ? "text-amber-600 dark:text-amber-400" :
     "text-rose-600 dark:text-rose-400";
 
   const scoreBg =
     !quality ? "bg-muted" :
-    quality.score >= 80 ? "bg-emerald-50 dark:bg-emerald-500/10" :
-    quality.score >= 50 ? "bg-amber-50 dark:bg-amber-500/10" :
+    quality.status === "excellent" || quality.status === "good" ? "bg-emerald-50 dark:bg-emerald-500/10" :
+    quality.status === "needs-attention" ? "bg-amber-50 dark:bg-amber-500/10" :
     "bg-rose-50 dark:bg-rose-500/10";
+
+  const statusLabel = quality ? quality.status.replace("-", " ") : "";
 
   return (
     <Card className={cn("border-brand/20", scoreBg)}>
@@ -99,8 +103,8 @@ export function SeoSuggestCard({ input, current, onAccept }: SeoSuggestCardProps
             <div>
               <CardTitle className="text-sm font-semibold">Smart SEO Suggestions</CardTitle>
               {quality && (
-                <p className={cn("text-xs font-medium", scoreColor)}>
-                  SEO score: {quality.score}/100
+                <p className={cn("text-xs font-medium capitalize", scoreColor)}>
+                  SEO: {statusLabel} ({quality.score}/100)
                 </p>
               )}
             </div>
@@ -195,21 +199,38 @@ export function SeoSuggestCard({ input, current, onAccept }: SeoSuggestCardProps
           <div className="space-y-2 rounded-lg border border-border/60 bg-background/50 p-3">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               <TrendingUp className="size-3.5" />
-              SEO Quality Check
+              SEO Quality Check — {quality.checks.filter((c) => c.passed).length}/{quality.checks.length} passed
             </div>
-            {quality.checks.map((check, i) => (
-              <div key={i} className="flex items-start gap-2 text-xs">
-                {check.passed ? (
-                  <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                ) : (
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
-                )}
-                <div>
-                  <span className="font-medium text-foreground">{check.label}</span>
-                  <span className="ml-1.5 text-muted-foreground">{check.detail}</span>
+            {quality.checks.map((check, i) => {
+              const iconColor = check.passed
+                ? "text-emerald-600 dark:text-emerald-400"
+                : check.severity === "error"
+                  ? "text-rose-600 dark:text-rose-400"
+                  : "text-amber-600 dark:text-amber-400";
+              return (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 text-xs"
+                >
+                  {check.passed ? (
+                    <CheckCircle2 className={cn("mt-0.5 size-3.5 shrink-0", iconColor)} />
+                  ) : check.severity === "error" ? (
+                    <AlertTriangle className={cn("mt-0.5 size-3.5 shrink-0", iconColor)} />
+                  ) : (
+                    <AlertTriangle className={cn("mt-0.5 size-3.5 shrink-0", iconColor)} />
+                  )}
+                  <div>
+                    <span className="font-medium text-foreground">{check.label}</span>
+                    <span className="ml-1.5 text-muted-foreground">{check.detail}</span>
+                    {!check.passed && check.field && (
+                      <span className="ml-1 text-[10px] text-muted-foreground/60">
+                        ({check.field})
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </CardContent>
