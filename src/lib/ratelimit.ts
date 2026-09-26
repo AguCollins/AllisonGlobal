@@ -93,13 +93,63 @@ export async function checkLoginRateLimit(identifier: string): Promise<{ limited
   return { limited: inMemoryLoginLimited(identifier) };
 }
 
+/**
+ * Extract the real client IP from a Request.
+ *
+ * On Vercel, the client IP is in `x-forwarded-for` (the FIRST entry —
+ * each proxy appends to the end, so the first is the original client).
+ * Vercel also sets `x-real-ip` to the client IP.
+ *
+ * The `x-vercel-forwarded-for` header is Vercel-specific and should be
+ * preferred when present (it cannot be spoofed by the client).
+ */
 export function getClientIp(req: Request): string {
-  const real = req.headers.get("x-real-ip");
-  if (real && real.trim()) return real.trim();
-  const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) {
+  return getClientIpFromHeaders(req.headers);
+}
+
+/** Extract client IP from a Headers object (works with any Request-like object). */
+export function getClientIpFromHeaders(headers: Headers): string {
+  // Vercel-specific header (most reliable on Vercel — set by the platform)
+  const vercelFwd = headers.get("x-vercel-forwarded-for");
+  if (vercelFwd && vercelFwd.trim()) {
+    const parts = vercelFwd.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[0];
+  }
+  // Standard x-forwarded-for (first entry = original client)
+  const fwd = headers.get("x-forwarded-for");
+  if (fwd && fwd.trim()) {
     const parts = fwd.split(",").map((s) => s.trim()).filter(Boolean);
-    if (parts.length > 0) return parts[parts.length - 1];
+    if (parts.length > 0) return parts[0];
+  }
+  // x-real-ip (set by some proxies — single IP, not a list)
+  const real = headers.get("x-real-ip");
+  if (real && real.trim()) return real.trim();
+  return "unknown";
+}
+
+/**
+ * Extract client IP from a NextRequest or similar object with a `.headers` property.
+ * Used by NextAuth's authorize() callback where `req` is a NextRequest.
+ */
+export function getClientIpFromRequest(req: { headers?: Headers | Record<string, string | string[] | undefined> }): string {
+  if (!req?.headers) return "unknown";
+  // NextRequest.headers is a Headers object with .get()
+  if (typeof (req.headers as Headers).get === "function") {
+    return getClientIpFromHeaders(req.headers as Headers);
+  }
+  // Fallback for plain Record<string, string> headers
+  const h = req.headers as Record<string, string | string[] | undefined>;
+  const vercelFwd = h["x-vercel-forwarded-for"];
+  if (typeof vercelFwd === "string" && vercelFwd.trim()) {
+    return vercelFwd.split(",")[0].trim();
+  }
+  const fwd = h["x-forwarded-for"];
+  if (typeof fwd === "string" && fwd.trim()) {
+    return fwd.split(",")[0].trim();
+  }
+  const real = h["x-real-ip"];
+  if (typeof real === "string" && real.trim()) {
+    return real.trim();
   }
   return "unknown";
 }

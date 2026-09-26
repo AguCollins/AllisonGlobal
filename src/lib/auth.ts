@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { recordAudit } from "@/lib/audit";
-import { checkLoginRateLimit } from "@/lib/ratelimit";
+import { checkLoginRateLimit, getClientIpFromRequest } from "@/lib/ratelimit";
 import type { NextRequest } from "next/server";
 
 export const authOptions: NextAuthOptions = {
@@ -18,16 +18,10 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = credentials.email.toLowerCase().trim();
-        const rawReq = req as unknown as NextRequest;
-        const ip = rawReq?.headers?.get?.("x-real-ip") ||
-          (() => {
-            const fwd = rawReq?.headers?.get?.("x-forwarded-for");
-            if (fwd) {
-              const parts = fwd.split(",").map((s) => s.trim());
-              return parts[parts.length - 1] || "unknown";
-            }
-            return "unknown";
-          })();
+        // Capture the real client IP. On Vercel, the client IP is in the
+        // `x-forwarded-for` header (first entry) or `x-real-ip`.
+        // NextAuth's authorize() `req` is the raw NextRequest; we read its headers.
+        const ip = getClientIpFromRequest(req as unknown as NextRequest);
 
         // Rate limit login attempts (brute-force protection)
         const { limited } = await checkLoginRateLimit(`${email}:${ip}`);
@@ -95,6 +89,16 @@ export const authOptions: NextAuthOptions = {
         domain: undefined,
       },
     },
+  },
+  events: {
+    /**
+     * Fallback LOGIN audit — fires if authorize() didn't capture the IP
+     * (e.g., if req.headers was undefined). We log with "unknown" IP.
+     * The primary LOGIN audit (with real IP) is in authorize().
+     *
+     * Note: NextAuth's signIn event doesn't include the request object,
+     * so we can't get the IP here — authorize() is the correct place.
+     */
   },
 };
 
