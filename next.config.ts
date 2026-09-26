@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
     ],
   },
+  // Redirect /home → / (safety net for nav data that may store "home" as href)
+  async redirects() {
+    return [
+      {
+        source: "/home",
+        destination: "/",
+        permanent: false,
+      },
+    ];
+  },
   allowedDevOrigins: ["127.0.0.1"],
 };
 

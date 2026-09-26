@@ -289,10 +289,18 @@ export async function getNavigation(): Promise<{ main: NavItem[]; utility: NavIt
   const settings = await db.companySettings.findUnique({ where: { key: "navigation" } });
   if (!settings) return NAV_DEFAULTS;
   const value = parseJson<{ main?: NavItem[]; utility?: NavItem[]; legal?: NavItem[] }>(settings.value, {});
+
+  // Normalize hrefs — fix legacy "home" → "/" and ensure all hrefs start with "/"
+  const normalize = (items: NavItem[]): NavItem[] =>
+    items.map((item) => ({
+      ...item,
+      href: item.href === "home" ? "/" : item.href.startsWith("/") || item.href.startsWith("http") ? item.href : `/${item.href}`,
+    }));
+
   return {
-    main: value.main?.length ? value.main : NAV_DEFAULTS.main,
-    utility: value.utility?.length ? value.utility : NAV_DEFAULTS.utility,
-    legal: value.legal?.length ? value.legal : NAV_DEFAULTS.legal,
+    main: normalize(value.main?.length ? value.main : NAV_DEFAULTS.main),
+    utility: normalize(value.utility?.length ? value.utility : NAV_DEFAULTS.utility),
+    legal: normalize(value.legal?.length ? value.legal : NAV_DEFAULTS.legal),
   };
 }
 
