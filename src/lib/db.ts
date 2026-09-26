@@ -3,13 +3,17 @@ import { PrismaClient } from "@prisma/client";
 /**
  * Prisma client initialization — Vercel/serverless compatible.
  *
- * Supports both PostgreSQL (production/Neon) and SQLite (local dev).
- * In production with a valid PostgreSQL DATABASE_URL, a real PrismaClient
- * is created. In dev with a SQLite `file:` URL, a real PrismaClient is
- * also created (SQLite works in Node.js without a separate server).
+ * CRITICAL: On Neon's connection pooler, prepared statements are cached
+ * across serverless invocations. When the schema changes (e.g., TEXT →
+ * JSONB column type), the cached plans become invalid and PostgreSQL
+ * throws error 0A000 "cached plan must not change result type".
  *
- * Only when DATABASE_URL is missing entirely or is an unsupported format
- * does this return a safe proxy that throws controlled errors.
+ * FIX: We disable prepared statements when using a pooled connection
+ * (Neon's `-pooler` URL or `pgbouncer=true` parameter). This forces
+ * Prisma to re-plan every query, which is slightly slower but prevents
+ * the cache invalidation error after schema migrations.
+ *
+ * Supports both PostgreSQL (production/Neon) and SQLite (local dev).
  */
 
 function isValidDbUrl(url: string | undefined): boolean {
@@ -18,6 +22,15 @@ function isValidDbUrl(url: string | undefined): boolean {
     url.startsWith("postgresql://") ||
     url.startsWith("postgres://") ||
     url.startsWith("file:")
+  );
+}
+
+function isPooledConnection(url: string): boolean {
+  // Neon pooler URLs contain "-pooler" or have ?pgbouncer=true
+  return (
+    url.includes("-pooler") ||
+    url.includes("pgbouncer=true") ||
+    url.includes("mode=no-transaction")
   );
 }
 
@@ -57,13 +70,49 @@ function createClient(): PrismaClient {
     return createSafeProxy();
   }
 
+  // At this point url is guaranteed to be a string (isValidDbUrl checks for it)
+  const dbUrl = url as string;
+
   const log: ("query" | "error" | "warn")[] =
     process.env.NODE_ENV === "production" ? ["error", "warn"] : ["error", "warn"];
 
-  return new PrismaClient({ log });
+  // Detect if we're using a pooled connection (Neon pooler, PgBouncer)
+  const isPooled = isPooledConnection(dbUrl);
+
+  // For pooled connections, add pgbouncer=true to the connection URL.
+  // This prevents "cached plan must not change result type" errors after
+  // schema migrations by ensuring Prisma doesn't use prepared statements.
+  const connectionString = isPooled
+    ? (dbUrl.includes("?")
+        ? `${dbUrl}&pgbouncer=true&connect_timeout=15&pool_timeout=15`
+        : `${dbUrl}?pgbouncer=true&connect_timeout=15&pool_timeout=15`)
+    : dbUrl;
+
+  // For pooled connections, disable prepared statements to prevent
+  // "cached plan must not change result type" errors after schema changes.
+  // This is the official Prisma + Neon recommendation.
+  const client = new PrismaClient({
+    log,
+    datasources: {
+      db: {
+        url: connectionString,
+      },
+    },
+  });
+
+  // On Vercel serverless, we need to handle the "cached plan" error
+  // gracefully by reconnecting. Prisma 6.x doesn't auto-retry on this.
+  // The $on('error') hook logs but doesn't retry — the retry happens
+  // naturally on the next serverless invocation (fresh connection).
+  client.$on("error", (e) => {
+    console.error("[prisma] connection error:", e.message?.slice(0, 200));
+  });
+
+  return client;
 }
 
 // Singleton pattern — prevent multiple instances in dev (hot reload)
+// In production (Vercel), each serverless invocation gets a fresh client
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };

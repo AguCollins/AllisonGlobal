@@ -55,22 +55,60 @@ export class DatabaseUnavailableError extends Error {
  * Verify the database is reachable AND has the required tables.
  * Uses a simple Prisma model query (works on both PostgreSQL and SQLite).
  * Throws `DatabaseUnavailableError` if not.
+ *
+ * Handles Neon's "cached plan must not change result type" error (0A000)
+ * by retrying once — the failed call invalidates the stale prepared
+ * statement cache, so the retry succeeds with a fresh query plan.
  */
 async function requireDb(): Promise<true> {
   try {
-    // Probe: query the Service table with a minimal SELECT.
-    // If the table doesn't exist, Prisma throws → caught below.
     await db.service.findFirst({ select: { id: true }, take: 1 });
     return true;
   } catch (e) {
-    // If the error is "table does not exist", the DB is connected but unseeded
     const msg = e instanceof Error ? e.message : "unknown";
+
+    // Neon pooler: "cached plan must not change result type" — retry
+    if (msg.includes("cached plan") || msg.includes("0A000")) {
+      try {
+        await db.service.findFirst({ select: { id: true }, take: 1 });
+        return true;
+      } catch {
+        // Still failing — fall through
+      }
+    }
+
     if (msg.includes("does not exist") || msg.includes("no such table")) {
       throw new DatabaseUnavailableError(
         "Database tables not found. Run scripts/neon-seed.sql (PostgreSQL) or bun run scripts/dev-seed.ts (SQLite).",
       );
     }
     throw new DatabaseUnavailableError(`Cannot connect to database: ${msg.slice(0, 120)}`);
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────
+//  Retry helper — handles Neon's "cached plan must not change result
+//  type" error by retrying the query once.
+// ───────────────────────────────────────────────────────────────────────
+
+/**
+ * Execute a Prisma query with automatic retry on Neon's
+ * "cached plan must not change result type" error (0A000).
+ *
+ * After a schema migration (e.g., TEXT → JSONB), Neon's pooled
+ * connections may have stale prepared statement caches. The first
+ * query fails; the retry succeeds because the failed call
+ * invalidates the cache.
+ */
+export async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "";
+    if (msg.includes("cached plan") || msg.includes("0A000")) {
+      return await fn();
+    }
+    throw e;
   }
 }
 
@@ -215,10 +253,10 @@ export async function getCompany(): Promise<CompanyInfo> {
   // company, contact, social, founder, footer, stats.
   // We merge them all into a single CompanyInfo object.
   const [companyRow, contactRow, socialRow, founderRow] = await Promise.all([
-    db.companySettings.findUnique({ where: { key: "company" } }),
-    db.companySettings.findUnique({ where: { key: "contact" } }),
-    db.companySettings.findUnique({ where: { key: "social" } }),
-    db.companySettings.findUnique({ where: { key: "founder" } }),
+    withRetry(() => db.companySettings.findUnique({ where: { key: "company" } })),
+    withRetry(() => db.companySettings.findUnique({ where: { key: "contact" } })),
+    withRetry(() => db.companySettings.findUnique({ where: { key: "social" } })),
+    withRetry(() => db.companySettings.findUnique({ where: { key: "founder" } })),
   ]);
 
   const companyData = parseJson<Record<string, unknown> | null>(companyRow?.value, null);
@@ -286,7 +324,7 @@ const NAV_DEFAULTS: { main: NavItem[]; utility: NavItem[]; legal: NavItem[] } = 
 
 export async function getNavigation(): Promise<{ main: NavItem[]; utility: NavItem[]; legal: NavItem[] }> {
   await requireDb();
-  const settings = await db.companySettings.findUnique({ where: { key: "navigation" } });
+  const settings = await withRetry(() => db.companySettings.findUnique({ where: { key: "navigation" } }));
   if (!settings) return NAV_DEFAULTS;
   const value = parseJson<{ main?: NavItem[]; utility?: NavItem[]; legal?: NavItem[] }>(settings.value, {});
 
@@ -358,7 +396,7 @@ export interface ProcessStepRecord {
 
 export async function getProcessSteps(): Promise<ProcessStepRecord[]> {
   await requireDb();
-  const settings = await db.companySettings.findUnique({ where: { key: "process" } });
+  const settings = await withRetry(() => db.companySettings.findUnique({ where: { key: "process" } }));
   if (!settings) return [];
   const list = parseJson<ProcessStepRecord[]>(settings.value, []);
   return Array.isArray(list) ? list.sort((a, b) => a.step - b.step) : [];
@@ -483,11 +521,11 @@ function mapCategory(c: {
 
 export async function getServices(): Promise<Service[]> {
   await requireDb();
-  const svcs = await db.service.findMany({
+  const svcs = await withRetry(() => db.service.findMany({
     where: { published: true },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     include: { category: true },
-  });
+  }));
   return svcs.map(mapService);
 }
 
@@ -562,10 +600,10 @@ function mapService(s: {
 
 export async function getIndustries(): Promise<Industry[]> {
   await requireDb();
-  const inds = await db.industry.findMany({
+  const inds = await withRetry(() => db.industry.findMany({
     where: { published: true },
     orderBy: { sortOrder: "asc" },
-  });
+  }));
   return inds.map(mapIndustry);
 }
 
@@ -722,7 +760,7 @@ export interface BlogPostWithMeta extends BlogPost {
 export async function getBlogPosts(): Promise<BlogPost[]> {
   await requireDb();
   const now = new Date().toISOString();
-  const posts = await db.blogPost.findMany({
+  const posts = await withRetry(() => db.blogPost.findMany({
     where: {
       OR: [
         { status: "published" },
@@ -730,7 +768,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
       ],
     },
     orderBy: { date: "desc" },
-  });
+  }));
   return posts.map(mapBlogPost);
 }
 

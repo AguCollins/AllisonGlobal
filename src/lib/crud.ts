@@ -95,6 +95,24 @@ const FIELD_ALLOWLISTS: Record<ModelName, Set<string>> = {
 export function createCrudHandlers(config: Omit<CrudConfig, "allowedFields">) {
   const { model, resourceLabel, contentType } = config;
   const allowedFields = FIELD_ALLOWLISTS[model] ?? new Set<string>();
+
+  /**
+   * Retry a Prisma query on Neon's "cached plan must not change result
+   * type" error (0A000). The failed call invalidates the stale cache,
+   * so the retry succeeds with a fresh query plan.
+   */
+  async function retryableQuery<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (msg.includes("cached plan") || msg.includes("0A000")) {
+        return await fn();
+      }
+      throw e;
+    }
+  }
+
   const table = (db as unknown as Record<string, unknown>)[model] as {
     findMany: (args: Record<string, unknown>) => Promise<unknown[]>;
     count: (args: Record<string, unknown>) => Promise<number>;
@@ -168,8 +186,8 @@ export function createCrudHandlers(config: Omit<CrudConfig, "allowedFields">) {
 
     try {
       const [items, total] = await Promise.all([
-        table.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit }),
-        table.count({ where }),
+        retryableQuery(() => table.findMany({ where, orderBy: { createdAt: "desc" }, skip: (page - 1) * limit, take: limit })),
+        retryableQuery(() => table.count({ where })),
       ]);
       return NextResponse.json({ items, total, page, pages: Math.ceil(total / limit) });
     } catch (err) {
